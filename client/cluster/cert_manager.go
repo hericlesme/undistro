@@ -197,6 +197,7 @@ func (cm *certManagerClient) createObj(o unstructured.Unstructured) error {
 		labels = map[string]string{}
 	}
 	labels[undistrov1.ClusterctlCoreLabelName] = "cert-manager"
+	labels[undistrov1.UndistroCoreLabelName] = "cert-manager"
 	o.SetLabels(labels)
 
 	if err = c.Create(ctx, &o); err != nil {

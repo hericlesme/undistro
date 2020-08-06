@@ -21,6 +21,15 @@ const (
 	ConfigFolder = ".undistro"
 	// ConfigName defines the name of the config file under ConfigFolder
 	ConfigName = "undistro"
+
+	// ConfigFolder defines the name of the config folder under $home (capi)
+	ConfigFolderCapi = ".cluster-api"
+	// ConfigName defines the name of the config file under ConfigFolder (capi)
+	ConfigNameCapi = "clusterctl"
+)
+
+var (
+	configNames = []string{ConfigName, ConfigNameCapi}
 )
 
 // viperReader implements Reader using viper as backend for reading from environment variables
@@ -40,7 +49,10 @@ func InjectConfigPaths(configPaths []string) viperReaderOption {
 // newViperReader returns a viperReader.
 func newViperReader(opts ...viperReaderOption) Reader {
 	vr := &viperReader{
-		configPaths: []string{filepath.Join(homedir.HomeDir(), ConfigFolder)},
+		configPaths: []string{
+			filepath.Join(homedir.HomeDir(), ConfigFolder),
+			filepath.Join(homedir.HomeDir(), ConfigFolderCapi),
+		},
 	}
 	for _, o := range opts {
 		o(vr)
@@ -111,10 +123,12 @@ func (v *viperReader) UnmarshalKey(key string, rawval interface{}) error {
 func (v *viperReader) checkDefaultConfig() bool {
 	for _, path := range v.configPaths {
 		for _, ext := range viper.SupportedExts {
-			f := filepath.Join(path, fmt.Sprintf("%s.%s", ConfigName, ext))
-			_, err := os.Stat(f)
-			if err == nil {
-				return true
+			for _, cfgName := range configNames {
+				f := filepath.Join(path, fmt.Sprintf("%s.%s", cfgName, ext))
+				_, err := os.Stat(f)
+				if err == nil {
+					return true
+				}
 			}
 		}
 	}

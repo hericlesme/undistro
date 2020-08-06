@@ -124,6 +124,7 @@ func (c *components) WatchingNamespace() string {
 func (c *components) InventoryObject() undistrov1.Provider {
 	labels := getCommonLabels(c.Provider)
 	labels[undistrov1.ClusterctlCoreLabelName] = "inventory"
+	labels[undistrov1.UndistroCoreLabelName] = "inventory"
 
 	return undistrov1.Provider{
 		TypeMeta: metav1.TypeMeta{
@@ -581,6 +582,7 @@ func addCommonLabels(objs []unstructured.Unstructured, provider config.Provider)
 func getCommonLabels(provider config.Provider) map[string]string {
 	return map[string]string{
 		undistrov1.ClusterctlLabelName: "",
+		undistrov1.UndistroLabelName:   "",
 		clusterv1.ProviderLabelName:    provider.ManifestLabel(),
 	}
 }
@@ -591,6 +593,7 @@ func fixSharedLabels(objs []unstructured.Unstructured) []unstructured.Unstructur
 	for _, o := range objs {
 		labels := o.GetLabels()
 		labels[undistrov1.ClusterctlResourceLifecyleLabelName] = string(undistrov1.ResourceLifecycleShared)
+		labels[undistrov1.UndistroResourceLifecyleLabelName] = string(undistrov1.ResourceLifecycleShared)
 
 		// the capi-webhook-system namespace is shared among many providers, so removing the ProviderLabelName label.
 		if o.GetKind() == namespaceKind && o.GetName() == WebhookNamespaceName {

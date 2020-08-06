@@ -112,6 +112,7 @@ func (p *providerComponents) Delete(options DeleteOptions) error {
 	// TODO: in future we can eventually block delete --IncludeCRDs in case more than one instance of a provider exists
 	labels := map[string]string{
 		undistrov1.ClusterctlLabelName: "",
+		undistrov1.UndistroLabelName:   "",
 		clusterv1.ProviderLabelName:    options.Provider.ManifestLabel(),
 	}
 
