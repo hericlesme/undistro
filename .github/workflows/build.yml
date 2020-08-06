@@ -29,3 +29,16 @@ jobs:
       
     - name: Test
       run: make test
+
+    - name: vars from bash
+      if: startsWith(github.ref, 'refs/tags/')
+      run: ./hack/version.sh
+    
+    - name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        version: latest
+        args: release --rm-dist
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
