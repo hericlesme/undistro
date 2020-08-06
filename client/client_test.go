@@ -120,7 +120,7 @@ func newFakeClient(configClient config.Client) *fakeClient {
 		return fake.clusters[k], nil
 	}
 
-	fake.internalClient, _ = newClusterctlClient("fake-config",
+	fake.internalClient, _ = newUndistroClient("fake-config",
 		InjectConfig(fake.configClient),
 		InjectClusterClientFactory(clusterClientFactory),
 		InjectRepositoryFactory(func(input RepositoryClientFactoryInput) (repository.Client, error) {
