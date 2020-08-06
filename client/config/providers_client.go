@@ -68,8 +68,6 @@ func (p *providersClient) defaults() []Provider {
 	// undistro includes a predefined list of Cluster API providers sponsored by SIG-cluster-lifecycle to provide users the simplest
 	// out-of-box experience. This is an opt-in feature; other providers can be added by using the undistro configuration file.
 
-	// if you are a developer of a SIG-cluster-lifecycle project, you can send a PR to extend the following list.
-
 	defaults := []Provider{
 		// cluster API core provider
 		&provider{
