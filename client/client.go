@@ -113,10 +113,10 @@ func InjectClusterClientFactory(factory ClusterClientFactory) Option {
 
 // New returns a configClient.
 func New(path string, options ...Option) (Client, error) {
-	return newClusterctlClient(path, options...)
+	return newUndistroClient(path, options...)
 }
 
-func newClusterctlClient(path string, options ...Option) (*undistroClient, error) {
+func newUndistroClient(path string, options ...Option) (*undistroClient, error) {
 	client := &undistroClient{}
 	for _, o := range options {
 		o(client)
