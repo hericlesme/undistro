@@ -43,9 +43,10 @@ func Execute() {
 				for _, f := range err.StackTrace() {
 					fmt.Fprintf(os.Stderr, "%+s:%d\n", f, f)
 				}
+				os.Exit(1)
 			}
 		}
-		// TODO: print cmd help if validation error
+		RootCmd.Help()
 		os.Exit(1)
 	}
 }
