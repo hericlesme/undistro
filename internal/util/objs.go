@@ -76,11 +76,11 @@ func IsResourceNamespaced(kind string) bool {
 
 // IsSharedResource returns true if the resource lifecycle is shared.
 func IsSharedResource(o unstructured.Unstructured) bool {
-	lifecycle, ok := o.GetLabels()[undistrov1.ClusterctlResourceLifecyleLabelName]
-	if !ok {
-		return false
-	}
-	if lifecycle == string(undistrov1.ResourceLifecycleShared) {
+	labels := o.GetLabels()
+	lifecycle := labels[undistrov1.ClusterctlResourceLifecyleLabelName]
+	lifecycleUndistro := labels[undistrov1.UndistroResourceLifecyleLabelName]
+	exp := string(undistrov1.ResourceLifecycleShared)
+	if lifecycle == exp || lifecycleUndistro == exp {
 		return true
 	}
 	return false

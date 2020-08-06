@@ -8,16 +8,28 @@ import "fmt"
 
 const (
 	// ClusterctlLabelName is applied to all components managed by undistro.
-	ClusterctlLabelName = "getupcloud.com"
+	ClusterctlLabelName = "clusterctl.cluster.x-k8s.io"
 
 	// ClusterctlCoreLabelName is applied to all the core objects managed by undistro.
-	ClusterctlCoreLabelName = "getupcloud.com/core"
+	ClusterctlCoreLabelName = "clusterctl.cluster.x-k8s.io/core"
 
 	// ClusterctlResourceLifecyleLabelName describes the lifecyle for a specific resource.
 	//
 	// Example: resources shared between instances of the same provider:  CRDs,
 	// ValidatingWebhookConfiguration, MutatingWebhookConfiguration, and so on.
-	ClusterctlResourceLifecyleLabelName = "getupcloud.com/lifecycle"
+	ClusterctlResourceLifecyleLabelName = "clusterctl.cluster.x-k8s.io/lifecycle"
+
+	// UndisroLabelName is applied to all components managed by undistro.
+	UndistroLabelName = "getupcloud.com"
+
+	// UndistroCoreLabelName is applied to all the core objects managed by undistro.
+	UndistroCoreLabelName = "getupcloud.com/core"
+
+	// UndistroResourceLifecyleLabelName describes the lifecyle for a specific resource.
+	//
+	// Example: resources shared between instances of the same provider:  CRDs,
+	// ValidatingWebhookConfiguration, MutatingWebhookConfiguration, and so on.
+	UndistroResourceLifecyleLabelName = "getupcloud.com/lifecycle"
 )
 
 // ResourceLifecycle configures the lifecycle of a resource

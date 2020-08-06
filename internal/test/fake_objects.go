@@ -1124,6 +1124,7 @@ func FakeCustomResourceDefinition(group string, kind string, versions ...string)
 			Name: fmt.Sprintf("%s.%s", strings.ToLower(kind), group), //NB. this technically should use plural(kind), but for the sake of test what really matters is to generate a unique name
 			Labels: map[string]string{
 				undistrov1.ClusterctlLabelName: "",
+				undistrov1.UndistroLabelName:   "",
 			},
 		},
 		Spec: apiextensionslv1.CustomResourceDefinitionSpec{ //NB. the spec contains only what is strictly required by the move test

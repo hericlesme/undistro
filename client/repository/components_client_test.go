@@ -327,13 +327,13 @@ func Test_componentsClient_Get(t *testing.T) {
 			}
 
 			for _, o := range got.InstanceObjs() {
-				for _, v := range []string{undistrov1.ClusterctlLabelName, clusterv1.ProviderLabelName} {
+				for _, v := range []string{undistrov1.ClusterctlLabelName, undistrov1.UndistroLabelName, clusterv1.ProviderLabelName} {
 					gs.Expect(o.GetLabels()).To(HaveKey(v))
 				}
 			}
 
 			for _, o := range got.SharedObjs() {
-				for _, v := range []string{undistrov1.ClusterctlLabelName, clusterv1.ProviderLabelName, undistrov1.ClusterctlResourceLifecyleLabelName} {
+				for _, v := range []string{undistrov1.ClusterctlLabelName, undistrov1.UndistroLabelName, clusterv1.ProviderLabelName, undistrov1.ClusterctlResourceLifecyleLabelName, undistrov1.UndistroResourceLifecyleLabelName} {
 					gs.Expect(o.GetLabels()).To(HaveKey(v))
 				}
 			}

@@ -798,6 +798,7 @@ func Test_addCommonLabels(t *testing.T) {
 						"metadata": map[string]interface{}{
 							"labels": map[string]interface{}{
 								undistrov1.ClusterctlLabelName: "",
+								undistrov1.UndistroLabelName:   "",
 								clusterv1.ProviderLabelName:    "infrastructure-provider",
 							},
 						},

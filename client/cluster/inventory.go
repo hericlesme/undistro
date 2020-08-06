@@ -197,6 +197,7 @@ func (p *inventoryClient) createObj(o unstructured.Unstructured) error {
 		labels = map[string]string{}
 	}
 	labels[undistrov1.ClusterctlCoreLabelName] = "inventory"
+	labels[undistrov1.UndistroCoreLabelName] = "inventory"
 	o.SetLabels(labels)
 
 	if err := c.Create(ctx, &o); err != nil {

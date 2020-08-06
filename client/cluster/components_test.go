@@ -29,6 +29,7 @@ func Test_providerComponents_Delete(t *testing.T) {
 	sharedLabels := map[string]string{
 		clusterv1.ProviderLabelName:                    "infrastructure-infra",
 		undistrov1.ClusterctlResourceLifecyleLabelName: string(undistrov1.ResourceLifecycleShared),
+		undistrov1.UndistroResourceLifecyleLabelName:   string(undistrov1.ResourceLifecycleShared),
 	}
 
 	crd := unstructured.Unstructured{}
@@ -86,6 +87,7 @@ func Test_providerComponents_Delete(t *testing.T) {
 				Name: repository.WebhookNamespaceName,
 				Labels: map[string]string{
 					undistrov1.ClusterctlResourceLifecyleLabelName: string(undistrov1.ResourceLifecycleShared),
+					undistrov1.UndistroResourceLifecyleLabelName:   string(undistrov1.ResourceLifecycleShared),
 					//NB. the capi-webhook-system namespace doe not have a provider label (see fixSharedLabels)
 				},
 			},

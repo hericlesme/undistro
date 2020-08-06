@@ -200,8 +200,7 @@ func getCRDList(proxy Proxy, crdList *apiextensionsv1.CustomResourceDefinitionLi
 	if err != nil {
 		return err
 	}
-
-	if err := c.List(ctx, crdList, client.HasLabels{undistrov1.ClusterctlLabelName}); err != nil {
+	if err := c.List(ctx, crdList, client.HasLabels{undistrov1.ClusterctlLabelName, undistrov1.UndistroLabelName}); err != nil {
 		return errors.Wrap(err, "failed to get the list of CRDs required for the move discovery phase")
 	}
 	return nil
