@@ -77,28 +77,19 @@ version::get_version_vars() {
 
 # stolen from k8s.io/hack/lib/version.sh and modified
 # Prints the value that needs to be passed to the -ldflags parameter of go build
-version::ldflags() {
+export_vars() {
     version::get_version_vars
 
-    local -a ldflags
-    function add_ldflag() {
-        local key=${1}
-        local val=${2}
-        ldflags+=(
-            "-X 'github.com/getupcloud/undistro/cmd/version.${key}=${val}'"
-        )
-    }
+    
 
-    add_ldflag "buildDate" "$(date ${SOURCE_DATE_EPOCH:+"--date=@${SOURCE_DATE_EPOCH}"} -u +'%Y-%m-%dT%H:%M:%SZ')"
-    add_ldflag "gitCommit" "${GIT_COMMIT}"
-    add_ldflag "gitTreeState" "${GIT_TREE_STATE}"
-    add_ldflag "gitMajor" "${GIT_MAJOR}"
-    add_ldflag "gitMinor" "${GIT_MINOR}"
-    add_ldflag "gitVersion" "${GIT_VERSION}"
-    add_ldflag "gitReleaseCommit" "${GIT_RELEASE_COMMIT}"
+    echo ::set-env name=BUILD_DATE::$(date ${SOURCE_DATE_EPOCH:+"--date=@${SOURCE_DATE_EPOCH}"} -u +'%Y-%m-%dT%H:%M:%SZ')
+    echo ::set-env name=BUILD_COMMIT::${GIT_COMMIT}
+    echo ::set-env name=BUILD_STATE::${GIT_TREE_STATE}
+    echo ::set-env name=GIT_MAJOR::${GIT_MAJOR}
+    echo ::set-env name=GIT_MINOR::${GIT_MINOR}
+    echo ::set-env name=GIT_VERSION::${GIT_VERSION}
+    echo ::set-env name=RELEASE_COMMIT::${GIT_RELEASE_COMMIT}
 
-    # The -ldflags parameter takes a single string, so join the output.
-    echo "${ldflags[*]-}"
 }
 
-version::ldflags
+export_vars

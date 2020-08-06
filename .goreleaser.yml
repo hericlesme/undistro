@@ -1,0 +1,17 @@
+builds:
+  - binary: undistro
+    main: main.go
+    ldflags: -X github.com/getupcloud/undistro/cmd/version.buildDate={{.Env.BUILD_DATE}} -X github.com/getupcloud/undistro/cmd/version.gitCommit={{.Env.BUILD_COMMIT}} -X github.com/getupcloud/undistro/cmd/version.gitTreeState={{.Env.BUILD_STATE}} -X github.com/getupcloud/undistro/cmd/version.gitMajor={{.Env.GIT_MAJOR}} -X github.com/getupcloud/undistro/cmd/version.gitMinor={{.Env.GIT_MINOR}} -X github.com/getupcloud/undistro/cmd/version.gitVersion={{.Env.GIT_VERSION}} -X github.com/getupcloud/undistro/cmd/version.gitReleaseCommit={{.Env.RELEASE_COMMIT}}
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 7
+release:
+  github:
+    owner: getupcloud
+    name: undistro
