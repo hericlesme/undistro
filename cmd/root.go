@@ -53,7 +53,7 @@ func Execute() {
 func init() {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-	verbosity = flag.CommandLine.Int("v", 0, "Set the log level verbosity. This overrides the CLUSTERCTL_LOG_LEVEL environment variable.")
+	verbosity = flag.CommandLine.Int("v", 0, "Set the log level verbosity. This overrides the UNDISTRO_LOG_LEVEL environment variable.")
 
 	RootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
@@ -63,15 +63,15 @@ func init() {
 }
 
 func initConfig() {
-	// check if the CLUSTERCTL_LOG_LEVEL was set via env var or in the config file
+	// check if the UNDISTRO_LOG_LEVEL was set via env var or in the config file
 	if *verbosity == 0 {
 		configClient, err := config.New(cfgFile)
 		if err == nil {
-			v, err := configClient.Variables().Get("CLUSTERCTL_LOG_LEVEL")
+			v, err := configClient.Variables().Get("UNDISTRO_LOG_LEVEL")
 			if err == nil && v != "" {
 				verbosityFromEnv, err := strconv.Atoi(v)
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Failed to convert CLUSTERCTL_LOG_LEVEL string to an int. err=%s\n", err.Error())
+					fmt.Fprintf(os.Stderr, "Failed to convert UNDISTRO_LOG_LEVEL string to an int. err=%s\n", err.Error())
 					os.Exit(1)
 				}
 				verbosity = &verbosityFromEnv
