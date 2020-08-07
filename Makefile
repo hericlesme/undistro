@@ -49,6 +49,8 @@ ifeq ($(SELINUX_ENABLED),1)
   DOCKER_VOL_OPTS?=:z
 endif
 
+# Set build time variables including version details
+LDFLAGS := $(shell hack/version-local.sh)
 
 all: test undistro
 
@@ -75,7 +77,7 @@ test-cover: ## Run tests with code coverage and code generate reports
 
 .PHONY: undistro
 undistro: ## Build undistro binary
-	go build -o bin/undistro
+	go build -ldflags "$(LDFLAGS)" -o bin/undistro
 
 # $(KUSTOMIZE): $(TOOLS_DIR)/go.mod # Build kustomize from tools folder.
 # 	cd $(TOOLS_DIR); go build -tags=tools -o $(BIN_DIR)/kustomize sigs.k8s.io/kustomize/kustomize/v3
