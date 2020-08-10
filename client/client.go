@@ -31,6 +31,9 @@ type Client interface {
 	// Delete deletes providers from a management cluster.
 	Delete(options DeleteOptions) error
 
+	// GetKubeconfig returns the kubeconfig of the workload cluster.
+	GetKubeconfig(options GetKubeconfigOptions) (string, error)
+
 	// Move moves all the Cluster API objects existing in a namespace (or from all the namespaces if empty) to a target management cluster.
 	Move(options MoveOptions) error
 
