@@ -81,6 +81,10 @@ func (f fakeClient) Delete(options DeleteOptions) error {
 	return f.internalClient.Delete(options)
 }
 
+func (f fakeClient) GetKubeconfig(options GetKubeconfigOptions) (string, error) {
+	return f.internalClient.GetKubeconfig(options)
+}
+
 func (f fakeClient) Move(options MoveOptions) error {
 	return f.internalClient.Move(options)
 }
@@ -263,6 +267,10 @@ func (f *fakeClusterClient) WithProviderInventory(name string, providerType undi
 func (f *fakeClusterClient) WithRepository(repositoryClient repository.Client) *fakeClusterClient {
 	f.repositories[repositoryClient.Name()] = repositoryClient
 	return f
+}
+
+func (f *fakeClusterClient) WorkloadCluster() cluster.WorkloadCluster {
+	return f.internalclient.WorkloadCluster()
 }
 
 func (f *fakeClusterClient) WithObjectMover(mover cluster.ObjectMover) *fakeClusterClient {
