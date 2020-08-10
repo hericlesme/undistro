@@ -1,5 +1,17 @@
 /*
-Copyright 2020 Getup Cloud. All rights reserved.
+Copyright 2020 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package cluster
@@ -47,8 +59,8 @@ func (o *objectMover) Move(namespace string, toCluster Client) error {
 		return err
 	}
 
-	// Gets all the types defines by the CRDs installed by undistro plus the ConfigMap/Secret core types.
-	types, err := objectGraph.getDiscoveryTypes()
+	// Gets all the types defines by the CRDs installed by clusterctl plus the ConfigMap/Secret core types.
+	err := objectGraph.getDiscoveryTypes()
 	if err != nil {
 		return err
 	}
@@ -56,7 +68,7 @@ func (o *objectMover) Move(namespace string, toCluster Client) error {
 	// Discovery the object graph for the selected types:
 	// - Nodes are defined the Kubernetes objects (Clusters, Machines etc.) identified during the discovery process.
 	// - Edges are derived by the OwnerReferences between nodes.
-	if err := objectGraph.Discovery(namespace, types); err != nil {
+	if err := objectGraph.Discovery(namespace); err != nil {
 		return err
 	}
 
@@ -263,7 +275,8 @@ func getMoveSequence(graph *objectGraph) *moveSequence {
 		// NB. it is necessary to filter out nodes not belonging to a cluster because e.g. discovery reads all the secrets,
 		// but only few of them are related to Clusters/Machines etc.
 		moveGroup := moveGroup{}
-		for _, n := range graph.getNodesWithTenants() {
+
+		for _, n := range graph.getMoveNodes() {
 			// If the node was already included in the moveSequence, skip it.
 			if moveSequence.hasNode(n) {
 				continue
@@ -348,7 +361,13 @@ func patchCluster(proxy Proxy, cluster *node, patch client.Patch) error {
 func (o *objectMover) ensureNamespaces(graph *objectGraph, toProxy Proxy) error {
 	ensureNamespaceBackoff := newWriteBackoff()
 	namespaces := sets.NewString()
-	for _, node := range graph.getNodesWithTenants() {
+	for _, node := range graph.getMoveNodes() {
+
+		// ignore global/cluster-wide objects
+		if node.isGlobal {
+			continue
+		}
+
 		namespace := node.identity.Namespace
 
 		// If the namespace was already processed, skip it.
@@ -553,6 +572,11 @@ func (o *objectMover) deleteGroup(group moveGroup) error {
 	for i := range group {
 		nodeToDelete := group[i]
 
+		// Don't delete cluster-wide nodes
+		if nodeToDelete.isGlobal {
+			continue
+		}
+
 		// Delete the Kubernetes object corresponding to the current node.
 		// Nb. The operation is wrapped in a retry loop to make move more resilient to unexpected conditions.
 		err := retryWithExponentialBackoff(deleteSourceObjectBackoff, func() error {
@@ -652,7 +676,7 @@ func (o *objectMover) checkTargetProviders(namespace string, toInventory Invento
 
 			// If we are moving objects in all the namespaces, skip all the providers with a different watching namespace.
 			// NB. This introduces a constraints for move all namespaces, that the configuration of source and target provider MUST match (except for the version);
-			// however this is acceptable because undistro supports only two models of multi-tenancy (n-Infra, n-Core).
+			// however this is acceptable because clusterctl supports only two models of multi-tenancy (n-Infra, n-Core).
 			if namespace == "" && !(targetProvider.WatchedNamespace == sourceProvider.WatchedNamespace) {
 				continue
 			}

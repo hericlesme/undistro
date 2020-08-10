@@ -1,13 +1,26 @@
 /*
-Copyright 2020 Getup Cloud. All rights reserved.
+Copyright 2019 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package test
 
 import (
-	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
+	clusterctlv1 "github.com/getupcloud/undistro/api/v1alpha1"
 	fakebootstrap "github.com/getupcloud/undistro/internal/test/providers/bootstrap"
 	fakecontrolplane "github.com/getupcloud/undistro/internal/test/providers/controlplane"
+	fakeexternal "github.com/getupcloud/undistro/internal/test/providers/external"
 	fakeinfrastructure "github.com/getupcloud/undistro/internal/test/providers/infrastructure"
 	apiextensionslv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,8 +36,9 @@ import (
 )
 
 type FakeProxy struct {
-	cs   client.Client
-	objs []runtime.Object
+	cs        client.Client
+	namespace string
+	objs      []runtime.Object
 }
 
 var (
@@ -33,7 +47,7 @@ var (
 
 func init() {
 	_ = clientgoscheme.AddToScheme(FakeScheme)
-	_ = undistrov1.AddToScheme(FakeScheme)
+	_ = clusterctlv1.AddToScheme(FakeScheme)
 	_ = clusterv1.AddToScheme(FakeScheme)
 	_ = expv1.AddToScheme(FakeScheme)
 	_ = addonsv1alpha3.AddToScheme(FakeScheme)
@@ -41,11 +55,12 @@ func init() {
 
 	_ = fakebootstrap.AddToScheme(FakeScheme)
 	_ = fakecontrolplane.AddToScheme(FakeScheme)
+	_ = fakeexternal.AddToScheme(FakeScheme)
 	_ = fakeinfrastructure.AddToScheme(FakeScheme)
 }
 
 func (f *FakeProxy) CurrentNamespace() (string, error) {
-	return "default", nil
+	return f.namespace, nil
 }
 
 func (f *FakeProxy) ValidateKubernetesVersion() error {
@@ -109,7 +124,9 @@ func (f *FakeProxy) ListResources(labels map[string]string, namespaces ...string
 }
 
 func NewFakeProxy() *FakeProxy {
-	return &FakeProxy{}
+	return &FakeProxy{
+		namespace: "default",
+	}
 }
 
 func (f *FakeProxy) WithObjs(objs ...runtime.Object) *FakeProxy {
@@ -117,25 +134,30 @@ func (f *FakeProxy) WithObjs(objs ...runtime.Object) *FakeProxy {
 	return f
 }
 
+func (f *FakeProxy) WithNamespace(n string) *FakeProxy {
+	f.namespace = n
+	return f
+}
+
 // WithProviderInventory can be used as a fast track for setting up test scenarios requiring an already initialized management cluster.
 // NB. this method adds an items to the Provider inventory, but it doesn't install the corresponding provider; if the
 // test case requires the actual provider to be installed, use the the fake client to install both the provider
 // components and the corresponding inventory item.
-func (f *FakeProxy) WithProviderInventory(name string, providerType undistrov1.ProviderType, version, targetNamespace, watchingNamespace string) *FakeProxy {
-	f.objs = append(f.objs, &undistrov1.Provider{
+func (f *FakeProxy) WithProviderInventory(name string, providerType clusterctlv1.ProviderType, version, targetNamespace, watchingNamespace string) *FakeProxy {
+	f.objs = append(f.objs, &clusterctlv1.Provider{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: undistrov1.GroupVersion.String(),
+			APIVersion: clusterctlv1.GroupVersion.String(),
 			Kind:       "Provider",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: targetNamespace,
-			Name:      undistrov1.ManifestLabel(name, providerType),
+			Name:      clusterctlv1.ManifestLabel(name, providerType),
 			Labels: map[string]string{
-				undistrov1.ClusterctlLabelName:     "",
-				undistrov1.UndistroLabelName:       "",
-				clusterv1.ProviderLabelName:        undistrov1.ManifestLabel(name, providerType),
-				undistrov1.ClusterctlCoreLabelName: "inventory",
-				undistrov1.UndistroCoreLabelName:   "inventory",
+				clusterctlv1.ClusterctlLabelName:     "",
+				clusterctlv1.UndistroLabelName:       "",
+				clusterv1.ProviderLabelName:          clusterctlv1.ManifestLabel(name, providerType),
+				clusterctlv1.ClusterctlCoreLabelName: "inventory",
+				clusterctlv1.UndistroCoreLabelName:   "inventory",
 			},
 		},
 		ProviderName:     name,

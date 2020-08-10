@@ -15,37 +15,32 @@ limitations under the License.
 */
 
 /*
-package controlplane defines the types for a generic control plane provider used for tests
+package external defines the types for a generic external provider used for tests
 */
-package controlplane
+package external
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type GenericControlPlaneSpec struct {
-	InfrastructureTemplate corev1.ObjectReference `json:"infrastructureTemplate"`
-}
-
+// GenericExternalObject is an object which is not actually managed by CAPI, but we wish to move with clusterctl
+// using the "move" label on the resource.
 // +kubebuilder:object:root=true
-
-type GenericControlPlane struct {
+type GenericExternalObject struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              GenericControlPlaneSpec `json:"spec,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-type GenericControlPlaneList struct {
+type GenericExternalObjectList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []GenericControlPlane `json:"items"`
+	Items           []GenericExternalObject `json:"items"`
 }
 
 func init() {
 	SchemeBuilder.Register(
-		&GenericControlPlane{}, &GenericControlPlaneList{},
+		&GenericExternalObject{}, &GenericExternalObjectList{},
 	)
 }

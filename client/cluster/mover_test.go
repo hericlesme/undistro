@@ -1,5 +1,17 @@
 /*
-Copyright 2020 Getup Cloud. All rights reserved.
+Copyright 2020 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package cluster
@@ -7,7 +19,7 @@ package cluster
 import (
 	"testing"
 
-	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
+	clusterctlv1 "github.com/getupcloud/undistro/api/v1alpha1"
 	"github.com/getupcloud/undistro/internal/test"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -380,6 +392,32 @@ var moveTests = []struct {
 			},
 		},
 	},
+	{
+		name: "Cluster and global + namespaced external objects with force-move label",
+		fields: moveTestsFields{
+			func() []runtime.Object {
+				objs := []runtime.Object{}
+				objs = append(objs, test.NewFakeCluster("ns1", "foo").Objs()...)
+				objs = append(objs, test.NewFakeExternalObject("ns1", "externalTest1").Objs()...)
+				objs = append(objs, test.NewFakeExternalObject("", "externalTest2").Objs()...)
+				return objs
+			}(),
+		},
+		wantMoveGroups: [][]string{
+			{ // group1
+				"cluster.x-k8s.io/v1alpha3, Kind=Cluster, ns1/foo",
+				"external.cluster.x-k8s.io/v1alpha3, Kind=GenericExternalObject, ns1/externalTest1",
+				"external.cluster.x-k8s.io/v1alpha3, Kind=GenericExternalObject, /externalTest2",
+			},
+			{ //group 2 (objects with ownerReferences in group 1)
+				// owned by Clusters
+				"/v1, Kind=Secret, ns1/foo-ca",
+				"/v1, Kind=Secret, ns1/foo-kubeconfig",
+				"infrastructure.cluster.x-k8s.io/v1alpha3, Kind=GenericInfrastructureCluster, ns1/foo",
+			},
+		},
+		wantErr: false,
+	},
 }
 
 func Test_getMoveSequence(t *testing.T) {
@@ -392,11 +430,11 @@ func Test_getMoveSequence(t *testing.T) {
 			graph := getObjectGraphWithObjs(tt.fields.objs)
 
 			// Get all the types to be considered for discovery
-			discoveryTypes, err := getFakeDiscoveryTypes(graph)
+			err := getFakeDiscoveryTypes(graph)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			// trigger discovery the content of the source cluster
-			g.Expect(graph.Discovery("ns1", discoveryTypes)).To(Succeed())
+			g.Expect(graph.Discovery("")).To(Succeed())
 
 			moveSequence := getMoveSequence(graph)
 			g.Expect(moveSequence.groups).To(HaveLen(len(tt.wantMoveGroups)))
@@ -424,11 +462,11 @@ func Test_objectMover_move(t *testing.T) {
 			graph := getObjectGraphWithObjs(tt.fields.objs)
 
 			// Get all the types to be considered for discovery
-			discoveryTypes, err := getFakeDiscoveryTypes(graph)
+			err := getFakeDiscoveryTypes(graph)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			// trigger discovery the content of the source cluster
-			g.Expect(graph.Discovery("ns1", discoveryTypes)).To(Succeed())
+			g.Expect(graph.Discovery("")).To(Succeed())
 
 			// gets a fakeProxy to an empty cluster with all the required CRDs
 			toProxy := getFakeProxyWithCRDs()
@@ -466,10 +504,11 @@ func Test_objectMover_move(t *testing.T) {
 
 				err := csFrom.Get(ctx, key, oFrom)
 				if err == nil {
-					t.Errorf("%v not deleted in source cluster", key)
-					continue
-				}
-				if !apierrors.IsNotFound(err) {
+					if oFrom.GetNamespace() != "" {
+						t.Errorf("%v not deleted in source cluster", key)
+						continue
+					}
+				} else if !apierrors.IsNotFound(err) {
 					t.Errorf("error = %v when checking for %v deleted in source cluster", err, key)
 					continue
 				}
@@ -664,11 +703,11 @@ func Test_objectMover_checkProvisioningCompleted(t *testing.T) {
 			graph := getObjectGraphWithObjs(tt.fields.objs)
 
 			// Get all the types to be considered for discovery
-			discoveryTypes, err := getFakeDiscoveryTypes(graph)
+			err := getFakeDiscoveryTypes(graph)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			// trigger discovery the content of the source cluster
-			g.Expect(graph.Discovery("ns1", discoveryTypes)).To(Succeed())
+			g.Expect(graph.Discovery("")).To(Succeed())
 
 			o := &objectMover{
 				fromProxy: graph.proxy,
@@ -701,16 +740,16 @@ func Test_objectsMoverService_checkTargetProviders(t *testing.T) {
 			name: "move objects in single namespace, all the providers in place (lazy matching)",
 			fields: fields{
 				fromProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v1.0.0", "capi-system", "").
-					WithProviderInventory("kubeadm", undistrov1.BootstrapProviderType, "v1.0.0", "cabpk-system", "").
-					WithProviderInventory("capa", undistrov1.InfrastructureProviderType, "v1.0.0", "capa-system", ""),
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v1.0.0", "capi-system", "").
+					WithProviderInventory("kubeadm", clusterctlv1.BootstrapProviderType, "v1.0.0", "cabpk-system", "").
+					WithProviderInventory("capa", clusterctlv1.InfrastructureProviderType, "v1.0.0", "capa-system", ""),
 			},
 			args: args{
 				namespace: "ns1", // a single namespaces
 				toProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v1.0.0", "capi-system", "ns1").
-					WithProviderInventory("kubeadm", undistrov1.BootstrapProviderType, "v1.0.0", "cabpk-system", "ns1").
-					WithProviderInventory("capa", undistrov1.InfrastructureProviderType, "v1.0.0", "capa-system", "ns1"),
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v1.0.0", "capi-system", "ns1").
+					WithProviderInventory("kubeadm", clusterctlv1.BootstrapProviderType, "v1.0.0", "cabpk-system", "ns1").
+					WithProviderInventory("capa", clusterctlv1.InfrastructureProviderType, "v1.0.0", "capa-system", "ns1"),
 			},
 			wantErr: false,
 		},
@@ -718,12 +757,12 @@ func Test_objectsMoverService_checkTargetProviders(t *testing.T) {
 			name: "move objects in single namespace, all the providers in place but with a newer version (lazy matching)",
 			fields: fields{
 				fromProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v2.0.0", "capi-system", ""),
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v2.0.0", "capi-system", ""),
 			},
 			args: args{
 				namespace: "ns1", // a single namespaces
 				toProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v2.1.0", "capi-system", "ns1"), // Lazy matching
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v2.1.0", "capi-system", "ns1"), // Lazy matching
 			},
 			wantErr: false,
 		},
@@ -731,16 +770,16 @@ func Test_objectsMoverService_checkTargetProviders(t *testing.T) {
 			name: "move objects in all namespaces, all the providers in place (exact matching)",
 			fields: fields{
 				fromProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v1.0.0", "capi-system", "").
-					WithProviderInventory("kubeadm", undistrov1.BootstrapProviderType, "v1.0.0", "cabpk-system", "").
-					WithProviderInventory("capa", undistrov1.InfrastructureProviderType, "v1.0.0", "capa-system", ""),
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v1.0.0", "capi-system", "").
+					WithProviderInventory("kubeadm", clusterctlv1.BootstrapProviderType, "v1.0.0", "cabpk-system", "").
+					WithProviderInventory("capa", clusterctlv1.InfrastructureProviderType, "v1.0.0", "capa-system", ""),
 			},
 			args: args{
 				namespace: "", // all namespaces
 				toProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v1.0.0", "capi-system", "").
-					WithProviderInventory("kubeadm", undistrov1.BootstrapProviderType, "v1.0.0", "cabpk-system", "").
-					WithProviderInventory("capa", undistrov1.InfrastructureProviderType, "v1.0.0", "capa-system", ""),
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v1.0.0", "capi-system", "").
+					WithProviderInventory("kubeadm", clusterctlv1.BootstrapProviderType, "v1.0.0", "cabpk-system", "").
+					WithProviderInventory("capa", clusterctlv1.InfrastructureProviderType, "v1.0.0", "capa-system", ""),
 			},
 			wantErr: false,
 		},
@@ -748,12 +787,12 @@ func Test_objectsMoverService_checkTargetProviders(t *testing.T) {
 			name: "move objects in all namespaces, all the providers in place but with a newer version (exact matching)",
 			fields: fields{
 				fromProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v2.0.0", "capi-system", ""),
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v2.0.0", "capi-system", ""),
 			},
 			args: args{
 				namespace: "", // all namespaces
 				toProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v2.1.0", "capi-system", ""),
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v2.1.0", "capi-system", ""),
 			},
 			wantErr: false,
 		},
@@ -761,12 +800,12 @@ func Test_objectsMoverService_checkTargetProviders(t *testing.T) {
 			name: "move objects in all namespaces, not exact matching",
 			fields: fields{
 				fromProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v2.0.0", "capi-system", ""),
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v2.0.0", "capi-system", ""),
 			},
 			args: args{
 				namespace: "", // all namespaces
 				toProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v2.1.0", "capi-system", "ns1"), // Lazy matching only
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v2.1.0", "capi-system", "ns1"), // Lazy matching only
 			},
 			wantErr: true,
 		},
@@ -774,7 +813,7 @@ func Test_objectsMoverService_checkTargetProviders(t *testing.T) {
 			name: "fails if a provider is missing",
 			fields: fields{
 				fromProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v2.0.0", "capi-system", ""),
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v2.0.0", "capi-system", ""),
 			},
 			args: args{
 				namespace: "", // all namespaces
@@ -786,12 +825,12 @@ func Test_objectsMoverService_checkTargetProviders(t *testing.T) {
 			name: "fails if a provider version is older than expected",
 			fields: fields{
 				fromProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v2.0.0", "capi-system", ""),
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v2.0.0", "capi-system", ""),
 			},
 			args: args{
 				namespace: "", // all namespaces
 				toProxy: test.NewFakeProxy().
-					WithProviderInventory("capi", undistrov1.CoreProviderType, "v1.0.0", "capi1-system", ""),
+					WithProviderInventory("capi", clusterctlv1.CoreProviderType, "v1.0.0", "capi1-system", ""),
 			},
 			wantErr: true,
 		},
@@ -894,6 +933,7 @@ func Test_objectMoverService_ensureNamespaces(t *testing.T) {
 
 	cluster1 := test.NewFakeCluster("namespace-1", "cluster-1")
 	cluster2 := test.NewFakeCluster("namespace-2", "cluster-2")
+	globalObj := test.NewFakeExternalObject("", "eo-1")
 
 	clustersObjs := append(cluster1.Objs(), cluster2.Objs()...)
 
@@ -934,6 +974,15 @@ func Test_objectMoverService_ensureNamespaces(t *testing.T) {
 			},
 			expectedNamespaces: []string{"namespace-1", "namespace-2"},
 		},
+		{
+			name: "ensureNamespaces doesn't fail if no namespace is specified (cluster-wide)",
+			fields: fields{
+				objs: globalObj.Objs(),
+			},
+			args: args{
+				toProxy: test.NewFakeProxy(),
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -943,11 +992,11 @@ func Test_objectMoverService_ensureNamespaces(t *testing.T) {
 			graph := getObjectGraphWithObjs(tt.fields.objs)
 
 			// Get all the types to be considered for discovery
-			discoveryTypes, err := getFakeDiscoveryTypes(graph)
+			err := getFakeDiscoveryTypes(graph)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			// Trigger discovery the content of the source cluster
-			g.Expect(graph.Discovery("", discoveryTypes)).To(Succeed())
+			g.Expect(graph.Discovery("")).To(Succeed())
 
 			mover := objectMover{
 				fromProxy: graph.proxy,
@@ -965,6 +1014,10 @@ func Test_objectMoverService_ensureNamespaces(t *testing.T) {
 
 			err = csTo.List(ctx, namespaces, client.Continue(namespaces.Continue))
 			g.Expect(err).ToNot(HaveOccurred())
+
+			// Ensure length of namespaces matches what's expected to ensure we're handling
+			// cluster-wide (namespace of "") objects
+			g.Expect(namespaces.Items).To(HaveLen(len(tt.expectedNamespaces)))
 
 			// Loop through each expected result to ensure that it is found in
 			// the actual results.
