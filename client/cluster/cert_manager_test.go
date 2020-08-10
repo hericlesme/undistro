@@ -1,14 +1,29 @@
 /*
-Copyright 2020 Getup Cloud. All rights reserved.
+Copyright 2020 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package cluster
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/getupcloud/undistro/client/config"
+	manifests "github.com/getupcloud/undistro/config"
 	"github.com/getupcloud/undistro/internal/scheme"
 	"github.com/getupcloud/undistro/internal/test"
 	. "github.com/onsi/gomega"
@@ -16,6 +31,19 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
+
+func Test_VersionMarkerUpToDate(t *testing.T) {
+	yaml, err := manifests.Asset(embeddedCertManagerManifestPath)
+	if err != nil {
+		t.Fatalf("Failed to get cert-manager.yaml asset data: %v", err)
+	}
+
+	actualHash := fmt.Sprintf("%x", sha256.Sum256(yaml))
+	_, embeddedHash := embeddedCertManagerVersion()
+	if actualHash != embeddedHash {
+		t.Errorf("The cert-manager.yaml asset data has changed, but the version marker embeddedCertManagerManifestVersion has not been updated. Expected hash to be: %s", actualHash)
+	}
+}
 
 func Test_certManagerClient_getManifestObjects(t *testing.T) {
 
