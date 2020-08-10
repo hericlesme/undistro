@@ -212,6 +212,7 @@ func (cm *certManagerClient) createObj(o unstructured.Unstructured) error {
 		labels = map[string]string{}
 	}
 	labels[clusterctlv1.ClusterctlCoreLabelName] = "cert-manager"
+	labels[clusterctlv1.UndistroCoreLabelName] = "cert-manager"
 	o.SetLabels(labels)
 
 	// persist version marker information as annotations to avoid character and length

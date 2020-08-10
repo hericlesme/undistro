@@ -1,5 +1,17 @@
 /*
-Copyright 2020 Getup Cloud. All rights reserved.
+Copyright 2020 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package cluster
@@ -53,14 +65,19 @@ func TestObjectGraph_getDiscoveryTypeMetaList(t *testing.T) {
 			g := NewWithT(t)
 
 			graph := newObjectGraph(tt.fields.proxy)
-			got, err := graph.getDiscoveryTypes()
+			err := graph.getDiscoveryTypes()
 			if tt.wantErr {
 				g.Expect(err).To(HaveOccurred())
 				return
 			}
 
 			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(got).To(ConsistOf(tt.want))
+
+			discoveryTypeMetas := []metav1.TypeMeta{}
+			for _, discoveryType := range graph.types {
+				discoveryTypeMetas = append(discoveryTypeMetas, discoveryType.typeMeta)
+			}
+			g.Expect(discoveryTypeMetas).To(ConsistOf(tt.want))
 		})
 	}
 }
@@ -966,6 +983,42 @@ var objectGraphsTests = []struct {
 			},
 		},
 	},
+
+	{
+		name: "Cluster and Global + Namespaced External Objects",
+		args: objectGraphTestArgs{
+			func() []runtime.Object {
+				objs := []runtime.Object{}
+				objs = append(objs, test.NewFakeCluster("ns1", "cluster1").Objs()...)
+				objs = append(objs, test.NewFakeExternalObject("ns1", "externalObject1").Objs()...)
+				objs = append(objs, test.NewFakeExternalObject("", "externalObject2").Objs()...)
+
+				return objs
+			}(),
+		},
+		want: wantGraph{
+			nodes: map[string]wantGraphItem{
+				"external.cluster.x-k8s.io/v1alpha3, Kind=GenericExternalObject, ns1/externalObject1": {},
+				"external.cluster.x-k8s.io/v1alpha3, Kind=GenericExternalObject, /externalObject2":    {},
+				"cluster.x-k8s.io/v1alpha3, Kind=Cluster, ns1/cluster1":                               {},
+				"infrastructure.cluster.x-k8s.io/v1alpha3, Kind=GenericInfrastructureCluster, ns1/cluster1": {
+					owners: []string{
+						"cluster.x-k8s.io/v1alpha3, Kind=Cluster, ns1/cluster1",
+					},
+				},
+				"/v1, Kind=Secret, ns1/cluster1-ca": {
+					softOwners: []string{
+						"cluster.x-k8s.io/v1alpha3, Kind=Cluster, ns1/cluster1", //NB. this secret is not linked to the cluster through owner ref
+					},
+				},
+				"/v1, Kind=Secret, ns1/cluster1-kubeconfig": {
+					owners: []string{
+						"cluster.x-k8s.io/v1alpha3, Kind=Cluster, ns1/cluster1",
+					},
+				},
+			},
+		},
+	},
 }
 
 func getDetachedObjectGraphWihObjs(objs []runtime.Object) (*objectGraph, error) {
@@ -1015,17 +1068,17 @@ func getFakeProxyWithCRDs() *test.FakeProxy {
 	return proxy
 }
 
-func getFakeDiscoveryTypes(graph *objectGraph) ([]metav1.TypeMeta, error) {
-	discoveryTypes, err := graph.getDiscoveryTypes()
+func getFakeDiscoveryTypes(graph *objectGraph) error {
+	err := graph.getDiscoveryTypes()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Given that the Fake client behaves in a different way than real client, for this test we are required to add the List suffix to all the types.
-	for i := range discoveryTypes {
-		discoveryTypes[i].Kind = fmt.Sprintf("%sList", discoveryTypes[i].Kind)
+	for _, discoveryType := range graph.types {
+		discoveryType.typeMeta.Kind = fmt.Sprintf("%sList", discoveryType.typeMeta.Kind)
 	}
-	return discoveryTypes, nil
+	return nil
 }
 
 func TestObjectGraph_Discovery(t *testing.T) {
@@ -1038,11 +1091,11 @@ func TestObjectGraph_Discovery(t *testing.T) {
 			graph := getObjectGraphWithObjs(tt.args.objs)
 
 			// Get all the types to be considered for discovery
-			discoveryTypes, err := getFakeDiscoveryTypes(graph)
+			err := getFakeDiscoveryTypes(graph)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			// finally test discovery
-			err = graph.Discovery("ns1", discoveryTypes)
+			err = graph.Discovery("")
 			if tt.wantErr {
 				g.Expect(err).To(HaveOccurred())
 				return
@@ -1155,11 +1208,11 @@ func TestObjectGraph_DiscoveryByNamespace(t *testing.T) {
 			graph := getObjectGraphWithObjs(tt.args.objs)
 
 			// Get all the types to be considered for discovery
-			discoveryTypes, err := getFakeDiscoveryTypes(graph)
+			err := getFakeDiscoveryTypes(graph)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			// finally test discovery
-			err = graph.Discovery(tt.args.namespace, discoveryTypes)
+			err = graph.Discovery(tt.args.namespace)
 			if tt.wantErr {
 				g.Expect(err).To(HaveOccurred())
 				return

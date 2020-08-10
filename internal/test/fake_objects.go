@@ -1,5 +1,17 @@
 /*
-Copyright 2020 Getup Cloud. All rights reserved.
+Copyright 2019 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package test
@@ -8,9 +20,10 @@ import (
 	"fmt"
 	"strings"
 
-	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
+	clusterctlv1 "github.com/getupcloud/undistro/api/v1alpha1"
 	fakebootstrap "github.com/getupcloud/undistro/internal/test/providers/bootstrap"
 	fakecontrolplane "github.com/getupcloud/undistro/internal/test/providers/controlplane"
+	fakeexternal "github.com/getupcloud/undistro/internal/test/providers/external"
 	fakeinfrastructure "github.com/getupcloud/undistro/internal/test/providers/infrastructure"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionslv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -1080,6 +1093,35 @@ func (f *FakeClusterResourceSet) Objs() []runtime.Object {
 	return objs
 }
 
+type FakeExternalObject struct {
+	name      string
+	namespace string
+}
+
+func NewFakeExternalObject(namespace, name string) *FakeExternalObject {
+	return &FakeExternalObject{
+		name:      name,
+		namespace: namespace,
+	}
+}
+
+func (f *FakeExternalObject) Objs() []runtime.Object {
+	externalObj := &fakeexternal.GenericExternalObject{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: fakeexternal.GroupVersion.String(),
+			Kind:       "GenericExternalObject",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      f.name,
+			Namespace: f.namespace,
+		},
+	}
+
+	setUID(externalObj)
+
+	return []runtime.Object{externalObj}
+}
+
 func SelectClusterObj(objs []runtime.Object, namespace, name string) *clusterv1.Cluster {
 	for _, o := range objs {
 		if o.GetObjectKind().GroupVersionKind().GroupKind() != clusterv1.GroupVersion.WithKind("Cluster").GroupKind() {
@@ -1092,7 +1134,12 @@ func SelectClusterObj(objs []runtime.Object, namespace, name string) *clusterv1.
 		}
 
 		if accessor.GetName() == name && accessor.GetNamespace() == namespace {
-			cluster := &clusterv1.Cluster{}
+			cluster := &clusterv1.Cluster{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: clusterv1.GroupVersion.String(),
+					Kind:       "Cluster",
+				},
+			}
 			if err := FakeScheme.Convert(o, cluster, nil); err != nil {
 				panic(fmt.Sprintf("failed to convert %s to cluster: %v", o.GetObjectKind(), err))
 			}
@@ -1123,8 +1170,8 @@ func FakeCustomResourceDefinition(group string, kind string, versions ...string)
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprintf("%s.%s", strings.ToLower(kind), group), //NB. this technically should use plural(kind), but for the sake of test what really matters is to generate a unique name
 			Labels: map[string]string{
-				undistrov1.ClusterctlLabelName: "",
-				undistrov1.UndistroLabelName:   "",
+				clusterctlv1.ClusterctlLabelName: "",
+				clusterctlv1.UndistroLabelName:   "",
 			},
 		},
 		Spec: apiextensionslv1.CustomResourceDefinitionSpec{ //NB. the spec contains only what is strictly required by the move test
@@ -1151,6 +1198,11 @@ func FakeCustomResourceDefinition(group string, kind string, versions ...string)
 func FakeCRDList() []*apiextensionslv1.CustomResourceDefinition {
 	version := "v1alpha3"
 
+	// Ensure external objects are of a CRD type with the "force move" label
+	externalCRD := FakeCustomResourceDefinition(fakeexternal.GroupVersion.Group, "GenericExternalObject", version)
+	externalCRD.Labels[clusterctlv1.ClusterctlMoveLabelName] = ""
+	externalCRD.Labels[clusterctlv1.UndistroMoveLabelName] = ""
+
 	return []*apiextensionslv1.CustomResourceDefinition{
 		FakeCustomResourceDefinition(clusterv1.GroupVersion.Group, "Cluster", version),
 		FakeCustomResourceDefinition(clusterv1.GroupVersion.Group, "Machine", version),
@@ -1165,5 +1217,6 @@ func FakeCRDList() []*apiextensionslv1.CustomResourceDefinition {
 		FakeCustomResourceDefinition(fakeinfrastructure.GroupVersion.Group, "GenericInfrastructureMachineTemplate", version),
 		FakeCustomResourceDefinition(fakebootstrap.GroupVersion.Group, "GenericBootstrapConfig", version),
 		FakeCustomResourceDefinition(fakebootstrap.GroupVersion.Group, "GenericBootstrapConfigTemplate", version),
+		externalCRD,
 	}
 }
