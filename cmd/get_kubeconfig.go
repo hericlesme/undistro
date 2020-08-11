@@ -27,9 +27,9 @@ var getKubeconfigCmd = &cobra.Command{
 
 	Example: Examples(`
 		# Get the workload cluster's kubeconfig.
-		clusterctl get kubeconfig <name of workload cluster>
+		undistro get kubeconfig <name of workload cluster>
 		# Get the workload cluster's kubeconfig in a particular namespace.
-		clusterctl get kubeconfig <name of workload cluster> --namespace foo`),
+		undistro get kubeconfig <name of workload cluster> --namespace foo`),
 
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
