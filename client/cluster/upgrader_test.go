@@ -28,7 +28,7 @@ func Test_providerUpgrader_Plan(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Single Management group, no multi-tenancy, upgrade within the same contact",
+			name: "Single Management group, no multi-tenancy, upgrade within the same contract",
 			fields: fields{
 				// config for two providers
 				reader: test.NewFakeReader().
@@ -75,7 +75,60 @@ func Test_providerUpgrader_Plan(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Single Management group, no multi-tenancy, upgrade for two contacts",
+			name: "pre-releases should be ignored",
+			fields: fields{
+				// config for two providers
+				reader: test.NewFakeReader().
+					WithProvider("cluster-api", undistrov1.CoreProviderType, "https://somewhere.com").
+					WithProvider("infra", undistrov1.InfrastructureProviderType, "https://somewhere.com"),
+				// two provider repositories, each with a new version in the v1alpha3 contract
+				repository: map[string]repository.Repository{
+					"cluster-api": test.NewFakeRepository().
+						WithVersions("v1.0.0", "v1.0.1").
+						WithMetadata("v1.0.1", &undistrov1.Metadata{
+							ReleaseSeries: []undistrov1.ReleaseSeries{
+								{Major: 1, Minor: 0, Contract: "v1alpha3"},
+							},
+						}),
+					"infrastructure-infra": test.NewFakeRepository().
+						WithVersions("v2.0.0", "v2.0.1", "v3.0.0-alpha.0").
+						WithMetadata("v2.0.1", &undistrov1.Metadata{
+							ReleaseSeries: []undistrov1.ReleaseSeries{
+								{Major: 2, Minor: 0, Contract: "v1alpha3"},
+							},
+						}).
+						WithMetadata("v3.0.0-alpha.0", &undistrov1.Metadata{
+							ReleaseSeries: []undistrov1.ReleaseSeries{
+								{Major: 2, Minor: 0, Contract: "v1alpha3"},
+								{Major: 3, Minor: 0, Contract: "v1alpha3"},
+							},
+						}),
+				},
+				// two providers existing in the cluster
+				proxy: test.NewFakeProxy().
+					WithProviderInventory("cluster-api", undistrov1.CoreProviderType, "v1.0.0", "cluster-api-system", "").
+					WithProviderInventory("infra", undistrov1.InfrastructureProviderType, "v2.0.0", "infra-system", ""),
+			},
+			want: []UpgradePlan{
+				{ // one upgrade plan with the latest releases the v1alpha3 contract
+					Contract:     "v1alpha3",
+					CoreProvider: fakeProvider("cluster-api", undistrov1.CoreProviderType, "v1.0.0", "cluster-api-system", ""),
+					Providers: []UpgradeItem{
+						{
+							Provider:    fakeProvider("cluster-api", undistrov1.CoreProviderType, "v1.0.0", "cluster-api-system", ""),
+							NextVersion: "v1.0.1",
+						},
+						{
+							Provider:    fakeProvider("infra", undistrov1.InfrastructureProviderType, "v2.0.0", "infra-system", ""),
+							NextVersion: "v2.0.1",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Single Management group, no multi-tenancy, upgrade for two contracts",
 			fields: fields{
 				// config for two providers
 				reader: test.NewFakeReader().
@@ -138,7 +191,7 @@ func Test_providerUpgrader_Plan(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Single Management group, n-Infra multi-tenancy, upgrade within the same contact",
+			name: "Single Management group, n-Infra multi-tenancy, upgrade within the same contract",
 			fields: fields{
 				// config for two providers
 				reader: test.NewFakeReader().
@@ -190,7 +243,7 @@ func Test_providerUpgrader_Plan(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Single Management group, n-Infra multi-tenancy, upgrade for two contacts",
+			name: "Single Management group, n-Infra multi-tenancy, upgrade for two contracts",
 			fields: fields{
 				// config for two providers
 				reader: test.NewFakeReader().
@@ -262,7 +315,7 @@ func Test_providerUpgrader_Plan(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Single Management group, n-Core multi-tenancy, upgrade within the same contact",
+			name: "Single Management group, n-Core multi-tenancy, upgrade within the same contract",
 			fields: fields{
 				// config for two providers
 				reader: test.NewFakeReader().
@@ -325,7 +378,7 @@ func Test_providerUpgrader_Plan(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Single Management group, n-Core multi-tenancy, upgrade for two contacts",
+			name: "Single Management group, n-Core multi-tenancy, upgrade for two contracts",
 			fields: fields{
 				// config for two providers
 				reader: test.NewFakeReader().
