@@ -115,7 +115,7 @@ generate: ## Generate code
 .PHONY: generate-go-core
 generate-go-core: $(CONTROLLER_GEN)
 	$(CONTROLLER_GEN) \
-		object:headerFile=./hack/boilerplatego.txt \
+		object:headerFile=./hack/boilerplate.go.txt \
 		paths=./api/...
 
 .PHONY: generate-bindata
@@ -125,7 +125,7 @@ generate-bindata: $(KUSTOMIZE) $(GOBINDATA) clean-bindata  ## Generate code for 
 	$(KUSTOMIZE) build $(GOBINDATA_UNDISTRO_DIR)/crd > $(GOBINDATA_UNDISTRO_DIR)/manifest/undistro-api.yaml
 	# Generate go-bindata, add boilerplate, then cleanup.
 	$(GOBINDATA) -mode=420 -modtime=1 -pkg=config -o=$(GOBINDATA_UNDISTRO_DIR)/zz_generated.bindata.go $(GOBINDATA_UNDISTRO_DIR)/manifest/ $(GOBINDATA_UNDISTRO_DIR)/assets
-	cat ./hack/boilerplatego.txt $(GOBINDATA_UNDISTRO_DIR)/zz_generated.bindata.go > $(GOBINDATA_UNDISTRO_DIR)/manifest/manifests.go
+	cat ./hack/boilerplate.go.txt $(GOBINDATA_UNDISTRO_DIR)/zz_generated.bindata.go > $(GOBINDATA_UNDISTRO_DIR)/manifest/manifests.go
 	cp $(GOBINDATA_UNDISTRO_DIR)/manifest/manifests.go $(GOBINDATA_UNDISTRO_DIR)/zz_generated.bindata.go
 	# Cleanup the manifest folder.
 	$(MAKE) clean-bindata
