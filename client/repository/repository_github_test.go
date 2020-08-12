@@ -304,11 +304,11 @@ func Test_gitHubRepository_getLatestRelease(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Get release v0.4.1",
+			name: "Get release v0.4.1, ignores pre-release version",
 			field: field{
-				providerConfig: config.NewProvider("test", "https://github.com/o/r1/releases/v0.4.1/path", undistrov1.CoreProviderType),
+				providerConfig: config.NewProvider("test", "https://github.com/o/r1/releases/latest/path", undistrov1.CoreProviderType),
 			},
-			want:    "v0.4.3-alpha", // prerelease/build releaese are considered as well
+			want:    "v0.4.2", // prerelease/build releaese are considered as well
 			wantErr: false,
 		},
 		{
@@ -337,6 +337,7 @@ func Test_gitHubRepository_getLatestRelease(t *testing.T) {
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(got).To(Equal(tt.want))
+			g.Expect(gRepo.defaultVersion).To(Equal(tt.want))
 		})
 	}
 }
