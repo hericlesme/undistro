@@ -13,7 +13,7 @@ webhooks:
       namespace: system
       path: /mutate-getupcloud-com-v1alpha1-cluster
   failurePolicy: Fail
-  name: mcluster.kb.io
+  name: mcluster.getupcloud.com
   rules:
   - apiGroups:
     - getupcloud.com
