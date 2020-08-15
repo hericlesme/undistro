@@ -110,6 +110,9 @@ const (
 	// control-plane capabilities.
 	ControlPlaneProviderType = ProviderType("ControlPlaneProvider")
 
+	// undistro controllers type
+	UndistroProviderType = ProviderType("UndistroProvider")
+
 	// ProviderTypeUnknown is used when the type is unknown.
 	ProviderTypeUnknown = ProviderType("")
 )
@@ -119,14 +122,16 @@ func (p ProviderType) Order() int {
 	switch p {
 	case CoreProviderType:
 		return 0
-	case BootstrapProviderType:
+	case UndistroProviderType:
 		return 1
-	case ControlPlaneProviderType:
+	case BootstrapProviderType:
 		return 2
-	case InfrastructureProviderType:
+	case ControlPlaneProviderType:
 		return 3
-	default:
+	case InfrastructureProviderType:
 		return 4
+	default:
+		return 5
 	}
 }
 
@@ -166,6 +171,12 @@ func (l *ProviderList) FilterCore() []Provider {
 func (l *ProviderList) FilterNonCore() []Provider {
 	return l.filterBy(func(p Provider) bool {
 		return p.GetProviderType() != CoreProviderType
+	})
+}
+
+func (l *ProviderList) FilterByProviderName(providerName string) []Provider {
+	return l.filterBy(func(p Provider) bool {
+		return p.GetName() == providerName
 	})
 }
 

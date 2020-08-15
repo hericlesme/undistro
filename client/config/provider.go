@@ -34,13 +34,25 @@ type Provider interface {
 
 	// Less func can be used to ensure a consist order of provider lists.
 	Less(other Provider) bool
+
+	// GetInitFunc return provider initFunc
+	GetInitFunc() InitFunc
+
+	// GetPreConfigFunc return preConfigFunc
+	GetPreConfigFunc() PreConfigFunc
 }
+
+type InitFunc func(Client, bool) error
+
+type PreConfigFunc func(*undistrov1.Cluster, VariablesClient) error
 
 // provider implements provider
 type provider struct {
-	name         string
-	url          string
-	providerType undistrov1.ProviderType
+	name          string
+	url           string
+	providerType  undistrov1.ProviderType
+	initFunc      InitFunc
+	preConfigFunc PreConfigFunc
 }
 
 // ensure provider implements provider
@@ -71,11 +83,21 @@ func (p *provider) Less(other Provider) bool {
 		(p.providerType.Order() == other.Type().Order() && p.name < other.Name())
 }
 
-func NewProvider(name string, url string, ttype undistrov1.ProviderType) Provider {
+func (p *provider) GetInitFunc() InitFunc {
+	return p.initFunc
+}
+
+func (p *provider) GetPreConfigFunc() PreConfigFunc {
+	return p.preConfigFunc
+}
+
+func NewProvider(name string, url string, ttype undistrov1.ProviderType, initFunc InitFunc, preConfigFunc PreConfigFunc) Provider {
 	return &provider{
-		name:         name,
-		url:          url,
-		providerType: ttype,
+		name:          name,
+		url:           url,
+		providerType:  ttype,
+		initFunc:      initFunc,
+		preConfigFunc: preConfigFunc,
 	}
 }
 

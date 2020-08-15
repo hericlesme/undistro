@@ -50,6 +50,12 @@ type Client interface {
 	// ProcessYAML provides a direct way to process a yaml and inspect its
 	// variables.
 	ProcessYAML(options ProcessYAMLOptions) (YamlPrinter, error)
+
+	// GetVariables provide a way to get variables
+	GetVariables() Variables
+
+	// GetProxy provider a way to get proxy
+	GetProxy() (Proxy, error)
 }
 
 // YamlPrinter exposes methods that prints the processed template and
