@@ -35,3 +35,9 @@ type Kubeconfig cluster.Kubeconfig
 // Processor defines the methods necessary for creating a specific yaml
 // processor.
 type Processor yaml.Processor
+
+// Variables defines a list o variables necessary for config
+type Variables config.VariablesClient
+
+// Proxy is the cluster proxy
+type Proxy cluster.Proxy

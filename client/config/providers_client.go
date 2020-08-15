@@ -17,6 +17,7 @@ import (
 const (
 	// Core providers
 	ClusterAPIProviderName = "cluster-api"
+	UndistroProviderName   = "undistro"
 
 	// Infra providers
 	AWSProviderName       = "aws"
@@ -76,11 +77,19 @@ func (p *providersClient) defaults() []Provider {
 			providerType: undistrov1.CoreProviderType,
 		},
 
+		&provider{
+			name:         UndistroProviderName,
+			url:          "https://github.com/getupcloud/undistro/releases/latest/core-components.yaml",
+			providerType: undistrov1.UndistroProviderType,
+		},
+
 		// Infrastructure providers
 		&provider{
-			name:         AWSProviderName,
-			url:          "https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/latest/infrastructure-components.yaml",
-			providerType: undistrov1.InfrastructureProviderType,
+			name:          AWSProviderName,
+			url:           "https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/latest/infrastructure-components.yaml",
+			providerType:  undistrov1.InfrastructureProviderType,
+			preConfigFunc: awsPreConfig,
+			initFunc:      awsInit,
 		},
 		&provider{
 			name:         AzureProviderName,
@@ -156,7 +165,7 @@ func (p *providersClient) List() ([]Provider, error) {
 	}
 
 	for _, u := range userDefinedProviders {
-		provider := NewProvider(u.Name, u.URL, u.Type)
+		provider := NewProvider(u.Name, u.URL, u.Type, nil, nil)
 		if err := validateProvider(provider); err != nil {
 			return nil, errors.Wrapf(err, "error validating configuration for the %s with name %s. Please fix the providers value in undistro configuration file", provider.Type(), provider.Name())
 		}
@@ -188,7 +197,7 @@ func (p *providersClient) Get(name string, providerType undistrov1.ProviderType)
 		return nil, err
 	}
 
-	provider := NewProvider(name, "", providerType) //Nb. Having the url empty is fine because the url is not considered by SameAs.
+	provider := NewProvider(name, "", providerType, nil, nil) //Nb. Having the url empty is fine because the url is not considered by SameAs.
 	for _, r := range l {
 		if r.SameAs(provider) {
 			return r, nil
@@ -224,14 +233,16 @@ func validateProvider(r Provider) error {
 	case undistrov1.CoreProviderType,
 		undistrov1.BootstrapProviderType,
 		undistrov1.InfrastructureProviderType,
-		undistrov1.ControlPlaneProviderType:
+		undistrov1.ControlPlaneProviderType,
+		undistrov1.UndistroProviderType:
 		break
 	default:
-		return errors.Errorf("invalid provider type. Allowed values are [%s, %s, %s, %s]",
+		return errors.Errorf("invalid provider type. Allowed values are [%s, %s, %s, %s, %s]",
 			undistrov1.CoreProviderType,
 			undistrov1.BootstrapProviderType,
 			undistrov1.InfrastructureProviderType,
-			undistrov1.ControlPlaneProviderType)
+			undistrov1.ControlPlaneProviderType,
+			undistrov1.UndistroProviderType)
 	}
 	return nil
 }

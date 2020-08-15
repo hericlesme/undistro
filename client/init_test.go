@@ -75,7 +75,7 @@ func Test_undistroClient_InitImages(t *testing.T) {
 				kubeconfigContext: "mgmt-context",
 			},
 			additionalProviders: []Provider{
-				config.NewProvider("some-core-provider", "some-core-url", undistrov1.CoreProviderType),
+				config.NewProvider("some-core-provider", "some-core-url", undistrov1.CoreProviderType, nil, nil),
 			},
 			wantErr:              true,
 			expectedErrorMessage: "name cluster-api must be used with the CoreProvider type",
@@ -530,10 +530,10 @@ func Test_undistroClient_Init(t *testing.T) {
 }
 
 var (
-	capiProviderConfig         = config.NewProvider(config.ClusterAPIProviderName, "url", undistrov1.CoreProviderType)
-	bootstrapProviderConfig    = config.NewProvider(config.KubeadmBootstrapProviderName, "url", undistrov1.BootstrapProviderType)
-	controlPlaneProviderConfig = config.NewProvider(config.KubeadmControlPlaneProviderName, "url", undistrov1.ControlPlaneProviderType)
-	infraProviderConfig        = config.NewProvider("infra", "url", undistrov1.InfrastructureProviderType)
+	capiProviderConfig         = config.NewProvider(config.ClusterAPIProviderName, "url", undistrov1.CoreProviderType, nil, nil)
+	bootstrapProviderConfig    = config.NewProvider(config.KubeadmBootstrapProviderName, "url", undistrov1.BootstrapProviderType, nil, nil)
+	controlPlaneProviderConfig = config.NewProvider(config.KubeadmControlPlaneProviderName, "url", undistrov1.ControlPlaneProviderType, nil, nil)
+	infraProviderConfig        = config.NewProvider("infra", "url", undistrov1.InfrastructureProviderType, nil, nil)
 )
 
 // setup a cluster client and the fake configuration for testing

@@ -24,7 +24,7 @@ import (
 )
 
 func Test_undistroClient_GetProvidersConfig(t *testing.T) {
-	customProviderConfig := config.NewProvider("custom", "url", undistrov1.BootstrapProviderType)
+	customProviderConfig := config.NewProvider("custom", "url", undistrov1.BootstrapProviderType, nil, nil)
 
 	type field struct {
 		client Client
@@ -43,6 +43,7 @@ func Test_undistroClient_GetProvidersConfig(t *testing.T) {
 			// note: these will be sorted by name by the Providers() call, so be sure they are in alphabetical order here too
 			wantProviders: []string{
 				config.ClusterAPIProviderName,
+				config.UndistroProviderName,
 				config.KubeadmBootstrapProviderName,
 				config.TalosBootstrapProviderName,
 				config.KubeadmControlPlaneProviderName,
@@ -64,6 +65,7 @@ func Test_undistroClient_GetProvidersConfig(t *testing.T) {
 			// note: these will be sorted by name by the Providers() call, so be sure they are in alphabetical order here too
 			wantProviders: []string{
 				config.ClusterAPIProviderName,
+				config.UndistroProviderName,
 				customProviderConfig.Name(),
 				config.KubeadmBootstrapProviderName,
 				config.TalosBootstrapProviderName,
@@ -175,7 +177,7 @@ func Test_getComponentsByName_withEmptyVariables(t *testing.T) {
 	g := NewWithT(t)
 
 	// Create a fake config with a provider named P1 and a variable named foo.
-	repository1Config := config.NewProvider("p1", "url", undistrov1.InfrastructureProviderType)
+	repository1Config := config.NewProvider("p1", "url", undistrov1.InfrastructureProviderType, nil, nil)
 
 	config1 := newFakeConfig().
 		WithProvider(repository1Config)

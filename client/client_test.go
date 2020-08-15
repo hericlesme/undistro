@@ -25,7 +25,7 @@ import (
 // TestNewFakeClient is a fake test to document fakeClient usage
 func TestNewFakeClient(t *testing.T) {
 	// create a fake config with a provider named P1 and a variable named var
-	repository1Config := config.NewProvider("p1", "url", undistrov1.CoreProviderType)
+	repository1Config := config.NewProvider("p1", "url", undistrov1.CoreProviderType, nil, nil)
 
 	config1 := newFakeConfig().
 		WithVar("var", "value").
@@ -56,6 +56,14 @@ type fakeClient struct {
 }
 
 var _ Client = &fakeClient{}
+
+func (f fakeClient) GetVariables() Variables {
+	return f.configClient.Variables()
+}
+
+func (f fakeClient) GetProxy() (Proxy, error) {
+	return test.NewFakeProxy(), nil
+}
 
 func (f fakeClient) GetProvidersConfig() ([]Provider, error) {
 	return f.internalClient.GetProvidersConfig()

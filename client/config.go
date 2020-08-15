@@ -9,15 +9,31 @@ import (
 	"io/ioutil"
 	"strconv"
 
-	"k8s.io/utils/pointer"
-
 	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
 	"github.com/getupcloud/undistro/client/cluster"
 	"github.com/getupcloud/undistro/client/repository"
 	yaml "github.com/getupcloud/undistro/client/yamlprocessor"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/version"
+	"k8s.io/utils/pointer"
 )
+
+func (c *undistroClient) GetVariables() Variables {
+	return c.configClient.Variables()
+}
+
+func (c *undistroClient) GetProxy() (Proxy, error) {
+	cluster, err := c.clusterClientFactory(
+		ClusterClientFactoryInput{
+			// use the default kubeconfig
+			kubeconfig: Kubeconfig{},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return cluster.Proxy(), nil
+}
 
 func (c *undistroClient) GetProvidersConfig() ([]Provider, error) {
 	r, err := c.configClient.Providers().List()
