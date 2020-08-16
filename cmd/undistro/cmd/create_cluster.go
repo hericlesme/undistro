@@ -18,7 +18,7 @@ type createClusterOptions struct {
 var ccOpts = &createClusterOptions{}
 
 var createCluterCmd = &cobra.Command{
-	Use:   "yaml",
+	Use:   "cluster",
 	Short: "Create a cluster",
 	Long:  "Create a cluster",
 
@@ -56,16 +56,15 @@ func createCluster(r io.Reader, w io.Writer) error {
 	options := client.ProcessYAMLOptions{
 		ListVariablesOnly: false,
 	}
-	if ccOpts.url != "" {
-		if ccOpts.url == "-" {
-			options.ReaderSource = &client.ReaderSourceOptions{
-				Reader: r,
-			}
-		} else {
-			options.URLSource = &client.URLSourceOptions{
-				URL: ccOpts.url,
-			}
+
+	options.URLSource = &client.URLSourceOptions{
+		URL: ccOpts.url,
+	}
+	if ccOpts.url == "-" {
+		options.ReaderSource = &client.ReaderSourceOptions{
+			Reader: r,
 		}
+		options.URLSource = nil
 	}
 	printer, err := c.ProcessYAML(options)
 	if err != nil {
