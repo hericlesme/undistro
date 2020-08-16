@@ -53,7 +53,7 @@ const (
 // it's not meant to be used to describe each instance of a particular provider.
 func ManifestLabel(name string, providerType ProviderType) string {
 	switch providerType {
-	case CoreProviderType:
+	case CoreProviderType, UndistroProviderType:
 		return name
 	case BootstrapProviderType:
 		return fmt.Sprintf("bootstrap-%s", name)

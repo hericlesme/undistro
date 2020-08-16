@@ -200,7 +200,7 @@ func (i *providerInstaller) Validate() error {
 		if err != nil {
 			return err
 		}
-		if providerContract != managementGroupContract {
+		if providerContract != managementGroupContract && provider.GetProviderType() != undistrov1.UndistroProviderType {
 			return errors.Errorf("installing provider %q can lead to a non functioning management cluster: the target version for the provider supports the %s API Version of Cluster API (contract), while the management group is using %s", components.ManifestLabel(), providerContract, managementGroupContract)
 		}
 	}
