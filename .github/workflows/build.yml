@@ -60,6 +60,7 @@ jobs:
       run: |
         cd config/manager && kustomize edit set image controller=felipeweb/undistro:$GIT_VERSION && cd ../..
         kustomize build config/default > core-components.yaml
+        git checkout .
     
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v2
