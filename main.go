@@ -8,28 +8,18 @@ import (
 	"flag"
 	"os"
 
-	"k8s.io/apimachinery/pkg/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	getupcloudcomv1alpha1 "github.com/getupcloud/undistro/api/v1alpha1"
+	"github.com/getupcloud/undistro/controllers"
+	"github.com/getupcloud/undistro/internal/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	getupcloudcomv1alpha1 "github.com/getupcloud/undistro/api/v1alpha1"
-	"github.com/getupcloud/undistro/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
 )
-
-func init() {
-	_ = clientgoscheme.AddToScheme(scheme)
-
-	_ = getupcloudcomv1alpha1.AddToScheme(scheme)
-	// +kubebuilder:scaffold:scheme
-}
 
 func main() {
 	var metricsAddr string
@@ -43,7 +33,7 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme,
+		Scheme:             scheme.Scheme,
 		MetricsBindAddress: metricsAddr,
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,

@@ -24,4 +24,5 @@ func init() {
 	_ = clusterv1.AddToScheme(Scheme)
 	_ = apiextensionsv1.AddToScheme(Scheme)
 	_ = addonsv1alpha3.AddToScheme(Scheme)
+	// +kubebuilder:scaffold:scheme
 }
