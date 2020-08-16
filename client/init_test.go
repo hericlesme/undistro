@@ -243,6 +243,12 @@ func Test_undistroClient_Init(t *testing.T) {
 			},
 			want: []want{
 				{
+					provider:          undistroProviderConfig,
+					version:           "v1.0.0",
+					targetNamespace:   "ns1",
+					watchingNamespace: "",
+				},
+				{
 					provider:          capiProviderConfig,
 					version:           "v1.0.0",
 					targetNamespace:   "ns1",
@@ -285,6 +291,12 @@ func Test_undistroClient_Init(t *testing.T) {
 			},
 			want: []want{
 				{
+					provider:          undistroProviderConfig,
+					version:           "v1.0.0",
+					targetNamespace:   "ns1",
+					watchingNamespace: "",
+				},
+				{
 					provider:          capiProviderConfig,
 					version:           "v1.0.0",
 					targetNamespace:   "ns1",
@@ -314,6 +326,12 @@ func Test_undistroClient_Init(t *testing.T) {
 				watchingNamespace:      "",
 			},
 			want: []want{
+				{
+					provider:          undistroProviderConfig,
+					version:           "v1.0.0",
+					targetNamespace:   "ns1",
+					watchingNamespace: "",
+				},
 				{
 					provider:          capiProviderConfig,
 					version:           "v1.1.0",
@@ -355,6 +373,12 @@ func Test_undistroClient_Init(t *testing.T) {
 				watchingNamespace:      "",
 			},
 			want: []want{
+				{
+					provider:          undistroProviderConfig,
+					version:           "v1.0.0",
+					targetNamespace:   "nsx",
+					watchingNamespace: "",
+				},
 				{
 					provider:          capiProviderConfig,
 					version:           "v1.0.0",
@@ -519,6 +543,7 @@ func Test_undistroClient_Init(t *testing.T) {
 			g.Expect(got).To(HaveLen(len(tt.want)))
 			for i, gItem := range got {
 				w := tt.want[i]
+				t.Log("name", w.provider.Name())
 				g.Expect(gItem.Name()).To(Equal(w.provider.Name()))
 				g.Expect(gItem.Type()).To(Equal(w.provider.Type()))
 				g.Expect(gItem.Version()).To(Equal(w.version))
@@ -534,6 +559,7 @@ var (
 	bootstrapProviderConfig    = config.NewProvider(config.KubeadmBootstrapProviderName, "url", undistrov1.BootstrapProviderType, nil, nil)
 	controlPlaneProviderConfig = config.NewProvider(config.KubeadmControlPlaneProviderName, "url", undistrov1.ControlPlaneProviderType, nil, nil)
 	infraProviderConfig        = config.NewProvider("infra", "url", undistrov1.InfrastructureProviderType, nil, nil)
+	undistroProviderConfig     = config.NewProvider(config.UndistroProviderName, "url", undistrov1.UndistroProviderType, nil, nil)
 )
 
 // setup a cluster client and the fake configuration for testing
@@ -560,7 +586,7 @@ func fakeEmptyCluster() *fakeClient {
 	// create a config variables client which contains the value for the
 	// variable required
 	config1 := fakeConfig(
-		[]config.Provider{capiProviderConfig, bootstrapProviderConfig, controlPlaneProviderConfig, infraProviderConfig},
+		[]config.Provider{undistroProviderConfig, capiProviderConfig, bootstrapProviderConfig, controlPlaneProviderConfig, infraProviderConfig},
 		map[string]string{"SOME_VARIABLE": "value"},
 	)
 
@@ -658,8 +684,17 @@ func fakeRepositories(config *fakeConfigClient, providers []Provider) []*fakeRep
 			},
 		}).
 		WithFile("v3.0.0", "cluster-template.yaml", templateYAML("ns4", "test"))
+	repository5 := newFakeRepository(undistroProviderConfig, config).
+		WithPaths("root", "components.yaml").
+		WithDefaultVersion("v1.0.0").
+		WithFile("v1.0.0", "components.yaml", componentsYAML("ns1")).
+		WithMetadata("v1.0.0", &undistrov1.Metadata{
+			ReleaseSeries: []undistrov1.ReleaseSeries{
+				{Major: 1, Minor: 0, Contract: "v1alpha1"},
+			},
+		})
 
-	var providerRepositories = []*fakeRepositoryClient{repository1, repository2, repository3, repository4}
+	var providerRepositories = []*fakeRepositoryClient{repository1, repository2, repository3, repository4, repository5}
 
 	for _, provider := range providers {
 		providerRepositories = append(providerRepositories,
