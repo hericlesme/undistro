@@ -15,6 +15,7 @@ import (
 
 	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
 	"github.com/getupcloud/undistro/internal/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -55,6 +56,23 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(k8sClient).ToNot(BeNil())
 
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
+		Scheme: scheme.Scheme,
+	})
+	Expect(err).ToNot(HaveOccurred())
+
+	(&ClusterReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Cluster"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr)
+	go func() {
+		err = mgr.Start(ctrl.SetupSignalHandler())
+		Expect(err).ToNot(HaveOccurred())
+	}()
+
+	k8sClient = mgr.GetClient()
+	Expect(k8sClient).ToNot(BeNil())
 	close(done)
 }, 60)
 
