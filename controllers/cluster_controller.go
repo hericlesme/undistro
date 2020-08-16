@@ -103,6 +103,7 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 func (r *ClusterReconciler) init(ctx context.Context, cl *undistrov1.Cluster, c uclient.Client) error {
 	log := r.Log
 	components, err := c.Init(uclient.InitOptions{
+		Kubeconfig:              uclient.Kubeconfig{},
 		InfrastructureProviders: []string{cl.Spec.InfrastructureProvider.NameVersion()},
 		TargetNamespace:         "undistro-system",
 		LogUsageInstructions:    false,
@@ -134,6 +135,7 @@ func (r *ClusterReconciler) init(ctx context.Context, cl *undistrov1.Cluster, c 
 
 func (r *ClusterReconciler) config(ctx context.Context, cl *undistrov1.Cluster, c uclient.Client) error {
 	tpl, err := c.GetClusterTemplate(uclient.GetClusterTemplateOptions{
+		Kubeconfig:               uclient.Kubeconfig{},
 		ClusterName:              cl.Name,
 		TargetNamespace:          cl.Namespace,
 		ListVariablesOnly:        false,
@@ -200,6 +202,7 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl *undistrov1.Clust
 	cniAddr := cl.GetCNITemplateURL()
 	log.Info("getting CNI", "name", cl.Spec.CniName, "URL", cniAddr)
 	tpl, err := c.GetClusterTemplate(uclient.GetClusterTemplateOptions{
+		Kubeconfig:      uclient.Kubeconfig{},
 		ClusterName:     cl.Name,
 		TargetNamespace: cl.Namespace,
 		URLSource: &uclient.URLSourceOptions{
@@ -210,6 +213,7 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl *undistrov1.Clust
 		return err
 	}
 	clKubeconfig, err := c.GetKubeconfig(uclient.GetKubeconfigOptions{
+		Kubeconfig:          uclient.Kubeconfig{},
 		WorkloadClusterName: cl.Name,
 		Namespace:           cl.Namespace,
 	})
