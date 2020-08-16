@@ -150,7 +150,6 @@ spec:
                       - name
                       type: object
                     type: array
-                    uniqueItems: true
                   name:
                     minLength: 1
                     type: string

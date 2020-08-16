@@ -23,9 +23,8 @@ type InfrastructureProvider struct {
 	Name    string  `json:"name,omitempty"`
 	Version *string `json:"version,omitempty"`
 	// +kubebuilder:validation:MinLength=1
-	SSHKey string `json:"sshKey,omitempty"`
-	// +kubebuilder:validation:UniqueItems=true
-	Env []corev1.EnvVar `json:"env,omitempty"`
+	SSHKey string          `json:"sshKey,omitempty"`
+	Env    []corev1.EnvVar `json:"env,omitempty"`
 }
 
 func (i *InfrastructureProvider) NameVersion() string {
