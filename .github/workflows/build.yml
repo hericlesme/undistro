@@ -49,10 +49,12 @@ jobs:
         docker build -t felipeweb/undistro:$GIT_VERSION .
         docker push felipeweb/undistro:$GIT_VERSION
     
-    - name: 'Kustomize Build'
+    - name: install kustomize
       uses: imranismail/setup-kustomize@v1
       with:
         kustomize-version: "3.5.4"
+
+    - name: kustomise build
       run: |
         cd config/manager && kustomize edit set image controller=felipeweb/undistro:$GIT_VERSION && cd ../..
         kustomize build config/default > core-components.yaml
