@@ -111,10 +111,6 @@ func (c *undistroClient) Init(options InitOptions) ([]Components, error) {
 		log.Info("")
 		log.Info("Your management cluster has been initialized successfully!")
 		log.Info("")
-		log.Info("You can now create your first workload cluster by running the following:")
-		log.Info("")
-		log.Info("  undistro config cluster [name] --kubernetes-version [version] | kubectl apply -f -")
-		log.Info("")
 	}
 
 	// Components is an alias for repository.Components; this makes the conversion from the two types
@@ -173,6 +169,12 @@ func (c *undistroClient) setupInstaller(cluster cluster.Client, options InitOpti
 
 	if options.CoreProvider != "" {
 		if err := c.addToInstaller(addOptions, undistrov1.CoreProviderType, options.CoreProvider); err != nil {
+			return nil, err
+		}
+	}
+
+	if options.UndistroProvider != "" {
+		if err := c.addToInstaller(addOptions, undistrov1.UndistroProviderType, options.UndistroProvider); err != nil {
 			return nil, err
 		}
 	}
