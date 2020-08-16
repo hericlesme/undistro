@@ -21,6 +21,7 @@ type initOptions struct {
 	targetNamespace         string
 	watchingNamespace       string
 	listImages              bool
+	clusterctl              bool
 }
 
 var initOpts = &initOptions{}
@@ -90,14 +91,14 @@ func init() {
 		"Bootstrap providers and versions (e.g. kubeadm:v0.3.0) to add to the management cluster. If unspecified, Kubeadm bootstrap provider's latest release is used.")
 	initCmd.Flags().StringSliceVarP(&initOpts.controlPlaneProviders, "control-plane", "c", nil,
 		"Control plane providers and versions (e.g. kubeadm:v0.3.0) to add to the management cluster. If unspecified, the Kubeadm control plane provider's latest release is used.")
-	initCmd.Flags().StringVar(&initOpts.targetNamespace, "target-namespace", "",
+	initCmd.Flags().StringVar(&initOpts.targetNamespace, "target-namespace", "undistro-system",
 		"The target namespace where the providers should be deployed. If unspecified, the provider components' default namespace is used.")
 	initCmd.Flags().StringVar(&initOpts.watchingNamespace, "watching-namespace", "",
 		"Namespace the providers should watch when reconciling objects. If unspecified, all namespaces are watched.")
-
-	// TODO: Move this to a sub-command or similar, it shouldn't really be a flag.
 	initCmd.Flags().BoolVar(&initOpts.listImages, "list-images", false,
 		"Lists the container images required for initializing the management cluster (without actually installing the providers)")
+	initCmd.Flags().BoolVar(&initOpts.clusterctl, "clusterctl", false,
+		"change the init behavior to be the same of clusterctl")
 
 	RootCmd.AddCommand(initCmd)
 }
@@ -106,6 +107,10 @@ func runInit() error {
 	c, err := client.New(cfgFile)
 	if err != nil {
 		return err
+	}
+
+	if initOpts.clusterctl {
+		initOpts.targetNamespace = ""
 	}
 
 	options := client.InitOptions{

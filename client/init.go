@@ -167,14 +167,14 @@ func (c *undistroClient) setupInstaller(cluster cluster.Client, options InitOpti
 		skipVariables:     options.skipVariables,
 	}
 
-	if options.CoreProvider != "" {
-		if err := c.addToInstaller(addOptions, undistrov1.CoreProviderType, options.CoreProvider); err != nil {
+	if options.UndistroProvider != "" {
+		if err := c.addToInstaller(addOptions, undistrov1.UndistroProviderType, options.UndistroProvider); err != nil {
 			return nil, err
 		}
 	}
 
-	if options.UndistroProvider != "" {
-		if err := c.addToInstaller(addOptions, undistrov1.UndistroProviderType, options.UndistroProvider); err != nil {
+	if options.CoreProvider != "" {
+		if err := c.addToInstaller(addOptions, undistrov1.CoreProviderType, options.CoreProvider); err != nil {
 			return nil, err
 		}
 	}
