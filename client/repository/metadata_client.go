@@ -95,6 +95,16 @@ func (f *metadataClient) getEmbeddedMetadata() *undistrov1.Metadata {
 
 	// if you are a developer of a SIG-cluster-lifecycle project, you can send a PR to extend the following list.
 	switch f.provider.Type() {
+	case undistrov1.UndistroProviderType:
+		return &undistrov1.Metadata{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: undistrov1.GroupVersion.String(),
+				Kind:       "Metadata",
+			},
+			ReleaseSeries: []undistrov1.ReleaseSeries{
+				{Major: 0, Minor: 4, Contract: "v1alpha1"},
+			},
+		}
 	case undistrov1.CoreProviderType:
 		switch f.provider.Name() {
 		case config.ClusterAPIProviderName:

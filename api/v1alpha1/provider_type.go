@@ -82,6 +82,7 @@ func (p *Provider) GetProviderType() ProviderType {
 	switch t := ProviderType(p.Type); t {
 	case
 		CoreProviderType,
+		UndistroProviderType,
 		BootstrapProviderType,
 		InfrastructureProviderType,
 		ControlPlaneProviderType:
