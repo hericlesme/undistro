@@ -247,13 +247,15 @@ func (c *undistroClient) addToInstaller(options addToInstallerOptions, providerT
 		installedProviders := options.installedProviders.FilterByProviderName(provider)
 		p, err := c.configClient.Providers().Get(provider, providerType)
 		if err != nil {
-			return errors.Errorf("failed to get provider config: %s-%s", provider, providerType)
+			logf.Log.V(5).Info("failed to get provider config:", "provider", provider, "type", providerType)
 		}
-		initFunc := p.GetInitFunc()
-		if initFunc != nil {
-			err = initFunc(c.configClient, len(installedProviders) == 0)
-			if err != nil {
-				return errors.Errorf("failed to init func for %s", provider)
+		if p != nil {
+			initFunc := p.GetInitFunc()
+			if initFunc != nil {
+				err = initFunc(c.configClient, len(installedProviders) == 0)
+				if err != nil {
+					return errors.Errorf("failed to init func for %s", provider)
+				}
 			}
 		}
 		componentsOptions := repository.ComponentsOptions{
