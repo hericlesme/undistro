@@ -66,6 +66,23 @@ func (c awsCredentials) setBase64EncodedAWSDefaultProfile(v VariablesClient) err
 	return nil
 }
 
+func (c awsCredentials) createCloudFormation() error {
+	t := bootstrap.NewTemplate()
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(c.Region),
+		Credentials: credentials.NewStaticCredentials(
+			c.AccessKeyID,
+			c.SecretAccessKey,
+			c.SessionToken,
+		),
+	})
+	if err != nil {
+		return err
+	}
+	cfnSvc := cloudformation.NewService(cfn.New(sess))
+	return cfnSvc.ReconcileBootstrapStack(t.Spec.StackName, *t.RenderCloudFormation())
+}
+
 func awsPreConfig(cl *undistrov1.Cluster, v VariablesClient) error {
 	v.Set(awsSshKeyNameKey, cl.Spec.InfrastructureProvider.SSHKey)
 	v.Set(awsControlPlaneMachineTypeKey, cl.Spec.ControlPlaneNode.MachineType)
@@ -125,18 +142,6 @@ func awsInit(c Client, firstRun bool) error {
 			return err
 		}
 	}
-	t := bootstrap.NewTemplate()
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(creds.Region),
-		Credentials: credentials.NewStaticCredentials(
-			creds.AccessKeyID,
-			creds.SecretAccessKey,
-			creds.SessionToken,
-		),
-	})
-	if err != nil {
-		return err
-	}
-	cfnSvc := cloudformation.NewService(cfn.New(sess))
-	return cfnSvc.ReconcileBootstrapStack(t.Spec.StackName, *t.RenderCloudFormation())
+
+	return creds.createCloudFormation()
 }
