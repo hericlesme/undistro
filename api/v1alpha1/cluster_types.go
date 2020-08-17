@@ -71,7 +71,7 @@ type ClusterStatus struct {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=clusters,shortName=cl,scope=Namespaced,categories=undistro
+// +kubebuilder:resource:path=clusters,shortName=cl,scope=Cluster,categories=undistro
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Infra",type="string",JSONPath=".spec.infrastructureProvider.name"
