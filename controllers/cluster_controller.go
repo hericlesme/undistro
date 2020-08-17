@@ -38,6 +38,8 @@ type ClusterReconciler struct {
 
 // +kubebuilder:rbac:groups=getupcloud.com,resources=clusters,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=getupcloud.com,resources=clusters/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=getupcloud.com,resources=providers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=getupcloud.com,resources=providers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;patch
 // +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;patch
 // +kubebuilder:rbac:groups=core,resources=nodes,verbs=get;list;watch;create;update;patch;delete
