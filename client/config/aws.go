@@ -6,10 +6,11 @@ import (
 	"text/template"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/defaults"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
+	"golang.org/x/sync/errgroup"
 	"sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/cloudformation/bootstrap"
 	cloudformation "sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/cloudformation/service"
 )
@@ -21,6 +22,9 @@ const (
 	awsWorkerMachineTypeKey       = "AWS_NODE_MACHINE_TYPE"
 	awsRegionKey                  = "AWS_REGION"
 	awsCredentialsKey             = "AWS_B64ENCODED_CREDENTIALS"
+	awsKeyID                      = "AWS_ACCESS_KEY_ID"
+	awsKey                        = "AWS_SECRET_ACCESS_KEY"
+	awsSessionToken               = "AWS_SESSION_TOKEN"
 
 	awsCredentialsTemplate = `[default]
 	aws_access_key_id = {{ .AccessKeyID }}
@@ -70,42 +74,63 @@ func awsPreConfig(cl *undistrov1.Cluster, v VariablesClient) error {
 }
 
 func newAWSCreds(v VariablesClient) (*awsCredentials, error) {
-	creds := awsCredentials{}
-	region, err := v.Get(awsRegionKey)
-	if region == "" || err != nil {
-		region = defaultAWSRegion
-		v.Set(awsRegionKey, region)
-	}
-	creds.Region = region
-	conf := aws.NewConfig()
-	conf.CredentialsChainVerboseErrors = aws.Bool(true)
-	chain := defaults.CredChain(conf, defaults.Handlers())
-	chainCreds, err := chain.Get()
+	credsMap, err := getCreds(v)
 	if err != nil {
 		return nil, err
 	}
-	creds.Region = region
-	creds.AccessKeyID = chainCreds.AccessKeyID
-	creds.SecretAccessKey = chainCreds.SecretAccessKey
-	creds.SessionToken = chainCreds.SessionToken
+	creds := awsCredentials{}
+	creds.Region = credsMap[awsRegionKey]
+	creds.AccessKeyID = credsMap[awsKeyID]
+	creds.SecretAccessKey = credsMap[awsKey]
+	creds.SessionToken = credsMap[awsSessionToken]
 	return &creds, nil
+}
+func getCreds(v VariablesClient) (map[string]string, error) {
+	m := make(map[string]string)
+	region, err := v.Get(awsRegionKey)
+	if err != nil {
+		region = defaultAWSRegion
+		v.Set(awsRegionKey, region)
+	}
+	m[awsRegionKey] = region
+	keys := []string{awsKeyID, awsKey, awsSessionToken}
+	g := &errgroup.Group{}
+	for _, key := range keys {
+		g.Go(func() error {
+			value, err := v.Get(key)
+			if err != nil {
+				return err
+			}
+			m[key] = value
+			return nil
+		})
+	}
+	if err = g.Wait(); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func awsInit(c Client, firstRun bool) error {
 	v := c.Variables()
+	creds, err := newAWSCreds(v)
+	if err != nil {
+		return err
+	}
 	if firstRun {
-		creds, err := newAWSCreds(v)
-		if err != nil {
-			return err
-		}
 		err = creds.setBase64EncodedAWSDefaultProfile(v)
 		if err != nil {
 			return err
 		}
 	}
 	t := bootstrap.NewTemplate()
-	sess, err := session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(creds.Region),
+		Credentials: credentials.NewStaticCredentials(
+			creds.AccessKeyID,
+			creds.SecretAccessKey,
+			creds.SessionToken,
+		),
 	})
 	if err != nil {
 		return err
