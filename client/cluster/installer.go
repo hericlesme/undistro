@@ -81,17 +81,6 @@ func installComponentsAndUpdateInventory(components repository.Components, provi
 		return err
 	}
 
-	installedProviders := providerList.FilterByProviderName(components.Name())
-	firstInstall := len(installedProviders) == 0
-	initFunc := components.GetInitFunc()
-	if initFunc != nil {
-		log.Info("executing init func", "component", components.Name())
-		err = initFunc(configClient, firstInstall)
-		if err != nil {
-			return err
-		}
-	}
-
 	installSharedComponents, err := shouldInstallSharedComponents(providerList, inventoryObject)
 	if err != nil {
 		return err

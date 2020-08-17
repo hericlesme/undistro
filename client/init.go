@@ -158,13 +158,18 @@ func (c *undistroClient) InitImages(options InitOptions) ([]string, error) {
 }
 
 func (c *undistroClient) setupInstaller(cluster cluster.Client, options InitOptions) (cluster.ProviderInstaller, error) {
+	installedProviders, err := cluster.ProviderInventory().List()
+	if err != nil {
+		return nil, err
+	}
 	installer := cluster.ProviderInstaller()
 
 	addOptions := addToInstallerOptions{
-		installer:         installer,
-		targetNamespace:   options.TargetNamespace,
-		watchingNamespace: options.WatchingNamespace,
-		skipVariables:     options.skipVariables,
+		installer:          installer,
+		targetNamespace:    options.TargetNamespace,
+		watchingNamespace:  options.WatchingNamespace,
+		skipVariables:      options.skipVariables,
+		installedProviders: installedProviders,
 	}
 
 	if options.UndistroProvider != "" {
@@ -222,10 +227,11 @@ func (c *undistroClient) addDefaultProviders(cluster cluster.Client, options *In
 }
 
 type addToInstallerOptions struct {
-	installer         cluster.ProviderInstaller
-	targetNamespace   string
-	watchingNamespace string
-	skipVariables     bool
+	installer          cluster.ProviderInstaller
+	installedProviders *undistrov1.ProviderList
+	targetNamespace    string
+	watchingNamespace  string
+	skipVariables      bool
 }
 
 // addToInstaller adds the components to the install queue and checks that the actual provider type match the target group
@@ -237,6 +243,18 @@ func (c *undistroClient) addToInstaller(options addToInstallerOptions, providerT
 				return errors.New("the '-' value can not be used for the core provider")
 			}
 			continue
+		}
+		installedProviders := options.installedProviders.FilterByProviderName(provider)
+		p, err := c.configClient.Providers().Get(provider, providerType)
+		if err != nil {
+			return errors.Errorf("failed to get provider config: %s-%s", provider, providerType)
+		}
+		initFunc := p.GetInitFunc()
+		if initFunc != nil {
+			err = initFunc(c.configClient, len(installedProviders) == 0)
+			if err != nil {
+				return errors.Errorf("failed to init func for %s", provider)
+			}
 		}
 		componentsOptions := repository.ComponentsOptions{
 			TargetNamespace:   options.targetNamespace,
