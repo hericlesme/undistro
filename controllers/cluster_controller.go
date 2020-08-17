@@ -72,7 +72,7 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 	if cluster.Status.Phase == undistrov1.NewPhase {
 		log.Info("ensure mangement cluster is initialized and updated", "name", req.NamespacedName)
-		if err = r.init(context.Background(), &cluster, undistroClient); client.IgnoreNotFound(err) != nil {
+		if err = r.init(ctx, &cluster, undistroClient); client.IgnoreNotFound(err) != nil {
 			log.Error(err, "couldn't initialize or update the mangement cluster", "name", req.NamespacedName)
 			return ctrl.Result{}, err
 		}
