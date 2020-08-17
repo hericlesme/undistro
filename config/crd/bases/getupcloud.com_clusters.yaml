@@ -18,7 +18,7 @@ spec:
     shortNames:
     - cl
     singular: cluster
-  scope: Namespaced
+  scope: Cluster
   versions:
   - additionalPrinterColumns:
     - jsonPath: .spec.infrastructureProvider.name
