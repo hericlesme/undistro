@@ -62,9 +62,10 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 
 	(&ClusterReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Cluster"),
-		Scheme: mgr.GetScheme(),
+		Client:     mgr.GetClient(),
+		Log:        ctrl.Log.WithName("controllers").WithName("Cluster"),
+		Scheme:     mgr.GetScheme(),
+		RestConfig: cfg,
 	}).SetupWithManager(mgr)
 	go func() {
 		err = mgr.Start(ctrl.SetupSignalHandler())

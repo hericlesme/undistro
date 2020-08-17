@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clusterApi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	utilresource "sigs.k8s.io/cluster-api/util/resource"
@@ -30,8 +31,9 @@ var (
 // ClusterReconciler reconciles a Cluster object
 type ClusterReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log        logr.Logger
+	Scheme     *runtime.Scheme
+	RestConfig *rest.Config
 }
 
 // +kubebuilder:rbac:groups=getupcloud.com,resources=clusters,verbs=get;list;watch;create;update;patch;delete
@@ -103,7 +105,9 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 func (r *ClusterReconciler) init(ctx context.Context, cl *undistrov1.Cluster, c uclient.Client) error {
 	log := r.Log
 	components, err := c.Init(uclient.InitOptions{
-		Kubeconfig:              uclient.Kubeconfig{},
+		Kubeconfig: uclient.Kubeconfig{
+			RestConfig: r.RestConfig,
+		},
 		InfrastructureProviders: []string{cl.Spec.InfrastructureProvider.NameVersion()},
 		TargetNamespace:         "undistro-system",
 		LogUsageInstructions:    false,
@@ -135,7 +139,9 @@ func (r *ClusterReconciler) init(ctx context.Context, cl *undistrov1.Cluster, c 
 
 func (r *ClusterReconciler) config(ctx context.Context, cl *undistrov1.Cluster, c uclient.Client) error {
 	tpl, err := c.GetClusterTemplate(uclient.GetClusterTemplateOptions{
-		Kubeconfig:               uclient.Kubeconfig{},
+		Kubeconfig: uclient.Kubeconfig{
+			RestConfig: r.RestConfig,
+		},
 		ClusterName:              cl.Name,
 		TargetNamespace:          cl.Namespace,
 		ListVariablesOnly:        false,
@@ -202,7 +208,9 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl *undistrov1.Clust
 	cniAddr := cl.GetCNITemplateURL()
 	log.Info("getting CNI", "name", cl.Spec.CniName, "URL", cniAddr)
 	tpl, err := c.GetClusterTemplate(uclient.GetClusterTemplateOptions{
-		Kubeconfig:      uclient.Kubeconfig{},
+		Kubeconfig: uclient.Kubeconfig{
+			RestConfig: r.RestConfig,
+		},
 		ClusterName:     cl.Name,
 		TargetNamespace: cl.Namespace,
 		URLSource: &uclient.URLSourceOptions{
@@ -213,7 +221,9 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl *undistrov1.Clust
 		return err
 	}
 	clKubeconfig, err := c.GetKubeconfig(uclient.GetKubeconfigOptions{
-		Kubeconfig:          uclient.Kubeconfig{},
+		Kubeconfig: uclient.Kubeconfig{
+			RestConfig: r.RestConfig,
+		},
 		WorkloadClusterName: cl.Name,
 		Namespace:           cl.Namespace,
 	})
