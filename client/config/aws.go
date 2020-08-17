@@ -93,7 +93,9 @@ func getCreds(v VariablesClient) (map[string]string, error) {
 		v.Set(awsRegionKey, region)
 	}
 	m[awsRegionKey] = region
-	keys := []string{awsKeyID, awsKey, awsSessionToken}
+	sessionToken, _ := v.Get(awsSessionToken) // session token is optional
+	m[awsSessionToken] = sessionToken
+	keys := []string{awsKeyID, awsKey}
 	g := &errgroup.Group{}
 	for _, key := range keys {
 		g.Go(func() error {
