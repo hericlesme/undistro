@@ -35,6 +35,8 @@ type Kubeconfig struct {
 	// Specify context within the kubeconfig file. If empty, cluster client
 	// will use the current context.
 	Context string
+	// for non CLI clients *rest.Config
+	RestConfig *rest.Config
 }
 
 // Client is used to interact with a management cluster.

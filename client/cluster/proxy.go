@@ -232,6 +232,7 @@ func newProxy(kubeconfig Kubeconfig, opts ...ProxyOption) Proxy {
 		kubeconfig:         kubeconfig,
 		timeout:            30 * time.Second,
 		configLoadingRules: rules,
+		config:             kubeconfig.RestConfig,
 	}
 
 	for _, o := range opts {
