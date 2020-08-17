@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
-	"golang.org/x/sync/errgroup"
 	"sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/cloudformation/bootstrap"
 	cloudformation "sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/cloudformation/service"
 )
@@ -112,21 +111,16 @@ func getCreds(v VariablesClient) (map[string]string, error) {
 	m[awsRegionKey] = region
 	sessionToken, _ := v.Get(awsSessionToken) // session token is optional
 	m[awsSessionToken] = sessionToken
-	keys := []string{awsKeyID, awsKey}
-	g := &errgroup.Group{}
-	for _, key := range keys {
-		g.Go(func() error {
-			value, err := v.Get(key)
-			if err != nil {
-				return err
-			}
-			m[key] = value
-			return nil
-		})
-	}
-	if err = g.Wait(); err != nil {
+	accessKeyID, err := v.Get(awsKeyID)
+	if err != nil {
 		return nil, err
 	}
+	accessKey, err := v.Get(awsKey)
+	if err != nil {
+		return nil, err
+	}
+	m[awsKeyID] = accessKeyID
+	m[awsKey] = accessKey
 	return m, nil
 }
 
