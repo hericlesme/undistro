@@ -78,7 +78,7 @@ func Test_undistroClient_InitImages(t *testing.T) {
 				config.NewProvider("some-core-provider", "some-core-url", undistrov1.CoreProviderType, nil, nil),
 			},
 			wantErr:              true,
-			expectedErrorMessage: "name cluster-api must be used with the CoreProvider type",
+			expectedErrorMessage: "undistro-UndistroProvider",
 		},
 		{
 			name: "return no error when core provider as the correct name",
@@ -99,7 +99,7 @@ func Test_undistroClient_InitImages(t *testing.T) {
 				kubeconfigContext: "mgmt-context",
 			},
 			wantErr:              true,
-			expectedErrorMessage: "failed to get configuration for the BootstrapProvider with name not-provided",
+			expectedErrorMessage: "not-provided-BootstrapProvider",
 		},
 		{
 			name: "returns error when a control plane provider is not present",
@@ -108,7 +108,7 @@ func Test_undistroClient_InitImages(t *testing.T) {
 				kubeconfigContext:    "mgmt-context",
 			},
 			wantErr:              true,
-			expectedErrorMessage: "failed to get configuration for the ControlPlaneProvider with name not-provided",
+			expectedErrorMessage: "not-provided-ControlPlaneProvider",
 		},
 		{
 			name: "returns error when a infrastructure provider is not present",
@@ -117,7 +117,7 @@ func Test_undistroClient_InitImages(t *testing.T) {
 				kubeconfigContext:      "mgmt-context",
 			},
 			wantErr:              true,
-			expectedErrorMessage: "failed to get configuration for the InfrastructureProvider with name not-provided",
+			expectedErrorMessage: "not-provided-InfrastructureProvider",
 		},
 		{
 			name: "returns certificate manager images when required",
