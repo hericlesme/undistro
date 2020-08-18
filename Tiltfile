@@ -23,7 +23,7 @@ local_resource('crd', manifests() + 'kustomize build config/crd | kubectl apply 
 
 k8s_yaml(yaml())
 
-local_resource('recompile', generate() + binary(), deps=['controllers', 'client', 'main.go'])
+local_resource('recompile', generate() + binary(), deps=['controllers', 'client/...', 'main.go'])
 
 docker_build_with_restart(IMG, '.', 
  dockerfile='tilt.docker',

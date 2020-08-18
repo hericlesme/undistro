@@ -5,6 +5,8 @@ Copyright 2020 Getup Cloud. All rights reserved.
 package cluster
 
 import (
+	"strings"
+
 	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
 	"github.com/getupcloud/undistro/client/config"
 	"github.com/getupcloud/undistro/client/repository"
@@ -156,10 +158,26 @@ func (i *providerInstaller) Validate() error {
 	// During this operation following checks are performed:
 	// - There must be only one instance of the same provider per namespace
 	// - Instances of the same provider must not be fighting for objects (no watching overlap)
-	for _, components := range i.installQueue {
+	alreadyInstalled := make([]int, 0)
+	for i, components := range i.installQueue {
 		if providerList, err = simulateInstall(providerList, components); err != nil {
+			if strings.Contains(err.Error(), "there is already an instance of the") {
+				p := providerList.FilterByProviderNameAndType(components.Name(), components.Type())
+				if len(p) > 0 {
+					if p[0].Namespace == components.TargetNamespace() {
+						alreadyInstalled = append(alreadyInstalled, i)
+						continue
+					}
+				}
+			}
 			return errors.Wrapf(err, "installing provider %q can lead to a non functioning management cluster", components.ManifestLabel())
 		}
+	}
+	// remove already installed components
+	for _, index := range alreadyInstalled {
+		copy(i.installQueue[index:], i.installQueue[index+1:])
+		i.installQueue[len(i.installQueue)-1] = nil
+		i.installQueue = i.installQueue[:len(i.installQueue)-1]
 	}
 
 	// Now that the provider list contains all the providers that are scheduled for install, gets the resulting management groups.

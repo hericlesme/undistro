@@ -14,6 +14,7 @@ import (
 
 	"github.com/getupcloud/undistro/internal/test"
 	. "github.com/onsi/gomega"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cluster-api/cmd/version"
 )
 
@@ -157,6 +158,7 @@ func TestKUBECONFIGEnvVar(t *testing.T) {
 func TestProxyCurrentNamespace(t *testing.T) {
 	tests := []struct {
 		name               string
+		withRestConfig     bool
 		kubeconfigPath     string
 		kubeconfigContents string
 		kubeconfigContext  string
@@ -202,6 +204,13 @@ func TestProxyCurrentNamespace(t *testing.T) {
 			kubeconfigContext:  "workload",
 			expectedNamespace:  "workload-ns",
 		},
+		{
+			name:               "return default when restConfig is not nil",
+			kubeconfigContents: kubeconfig("", ""),
+			withRestConfig:     true,
+			expectErr:          false,
+			expectedNamespace:  "default",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -216,8 +225,11 @@ func TestProxyCurrentNamespace(t *testing.T) {
 				configFile = filepath.Join(dir, ".test-kubeconfig.yaml")
 				g.Expect(ioutil.WriteFile(configFile, []byte(tt.kubeconfigContents), 0600)).To(Succeed())
 			}
-
-			proxy := newProxy(Kubeconfig{Path: configFile, Context: tt.kubeconfigContext})
+			cfg := Kubeconfig{Path: configFile, Context: tt.kubeconfigContext}
+			if tt.withRestConfig {
+				cfg.RestConfig = &rest.Config{}
+			}
+			proxy := newProxy(cfg)
 			ns, err := proxy.CurrentNamespace()
 			if tt.expectErr {
 				g.Expect(err).To(HaveOccurred())

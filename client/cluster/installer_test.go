@@ -118,7 +118,7 @@ func Test_providerInstaller_Validate(t *testing.T) {
 					newFakeComponents("infra1", undistrov1.InfrastructureProviderType, "v1.0.0", "n1", ""),
 				},
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "install another instance of infra1 on a cluster already initialized with core + infra1, watching overlap with the existing infra1",
@@ -209,6 +209,7 @@ func Test_providerInstaller_Validate(t *testing.T) {
 type fakeComponents struct {
 	config.Provider
 	inventoryObject undistrov1.Provider
+	namespace       string
 }
 
 func (c *fakeComponents) Version() string {
@@ -224,7 +225,7 @@ func (c *fakeComponents) Images() []string {
 }
 
 func (c *fakeComponents) TargetNamespace() string {
-	panic("not implemented")
+	return c.namespace
 }
 
 func (c *fakeComponents) WatchingNamespace() string {
@@ -252,6 +253,7 @@ func newFakeComponents(name string, providerType undistrov1.ProviderType, versio
 	return &fakeComponents{
 		Provider:        config.NewProvider(inventoryObject.ProviderName, "", undistrov1.ProviderType(inventoryObject.Type), nil, nil),
 		inventoryObject: inventoryObject,
+		namespace:       targetNamespace,
 	}
 }
 
