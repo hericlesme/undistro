@@ -30,7 +30,6 @@ type proxy struct {
 	kubeconfig         Kubeconfig
 	timeout            time.Duration
 	configLoadingRules *clientcmd.ClientConfigLoadingRules
-	config             *rest.Config
 }
 
 var _ Proxy = &proxy{}
@@ -38,6 +37,9 @@ var _ Proxy = &proxy{}
 // CurrentNamespace returns the namespace for the specified context or the
 // first valid context as determined by the default config loading rules.
 func (k *proxy) CurrentNamespace() (string, error) {
+	if k.kubeconfig.RestConfig != nil {
+		return "default", nil
+	}
 	config, err := k.configLoadingRules.Load()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to load Kubeconfig")
@@ -90,8 +92,8 @@ func (k *proxy) ValidateKubernetesVersion() error {
 
 // GetConfig returns the config for a kubernetes client.
 func (k *proxy) GetConfig() (*rest.Config, error) {
-	if k.config != nil {
-		return k.config, nil
+	if k.kubeconfig.RestConfig != nil {
+		return k.kubeconfig.RestConfig, nil
 	}
 	config, err := k.configLoadingRules.Load()
 	if err != nil {
@@ -114,12 +116,11 @@ func (k *proxy) GetConfig() (*rest.Config, error) {
 	// Set QPS and Burst to a threshold that ensures the controller runtime client/client go does't generate throttling log messages
 	restConfig.QPS = 20
 	restConfig.Burst = 100
-	k.config = restConfig
-	return k.config, nil
+	return restConfig, nil
 }
 
 func (k *proxy) SetConfig(cfg *rest.Config) {
-	k.config = cfg
+	k.kubeconfig.RestConfig = cfg
 }
 
 func (k *proxy) NewClient() (client.Client, error) {
@@ -232,7 +233,6 @@ func newProxy(kubeconfig Kubeconfig, opts ...ProxyOption) Proxy {
 		kubeconfig:         kubeconfig,
 		timeout:            30 * time.Second,
 		configLoadingRules: rules,
-		config:             kubeconfig.RestConfig,
 	}
 
 	for _, o := range opts {
