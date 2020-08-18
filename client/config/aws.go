@@ -26,13 +26,12 @@ const (
 	awsSessionToken               = "AWS_SESSION_TOKEN"
 
 	awsCredentialsTemplate = `[default]
-	aws_access_key_id = {{ .AccessKeyID }}
-	aws_secret_access_key = {{ .SecretAccessKey }}
-	region = {{ .Region }}
-	{{if .SessionToken }}
-	aws_session_token = {{ .SessionToken }}
-	{{end}}
-	`
+aws_access_key_id = {{ .AccessKeyID }}
+aws_secret_access_key = {{ .SecretAccessKey }}
+region = {{ .Region }}
+{{if .SessionToken }}
+aws_session_token = {{ .SessionToken }}
+{{end}}`
 )
 
 type awsCredentials struct {
