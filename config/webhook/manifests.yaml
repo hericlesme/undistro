@@ -12,7 +12,7 @@ webhooks:
       name: webhook-service
       namespace: system
       path: /mutate-getupcloud-com-v1alpha1-cluster
-  failurePolicy: Fail
+  failurePolicy: Ignore
   name: mcluster.getupcloud.com
   rules:
   - apiGroups:
