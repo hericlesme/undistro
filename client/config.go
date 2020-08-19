@@ -82,6 +82,18 @@ type ProcessYAMLOptions struct {
 	ListVariablesOnly bool
 }
 
+func (c *undistroClient) GetLogs(kubeconfig Kubeconfig) (Logs, error) {
+	cluster, err := c.clusterClientFactory(
+		ClusterClientFactoryInput{
+			kubeconfig: kubeconfig,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return cluster.LogStreamer(), nil
+}
+
 func (c *undistroClient) ProcessYAML(options ProcessYAMLOptions) (YamlPrinter, error) {
 	if options.ReaderSource != nil {
 		// NOTE: Beware of potentially reading in large files all at once

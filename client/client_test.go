@@ -146,6 +146,10 @@ func newFakeClient(configClient config.Client) *fakeClient {
 	return fake
 }
 
+func (f *fakeClient) GetLogs(_ Kubeconfig) (Logs, error) {
+	panic("not implemented")
+}
+
 func (f *fakeClient) WithCluster(clusterClient cluster.Client) *fakeClient {
 	input := clusterClient.Kubeconfig()
 	f.clusters[input] = clusterClient
@@ -222,6 +226,10 @@ type fakeClusterClient struct {
 }
 
 var _ cluster.Client = &fakeClusterClient{}
+
+func (f fakeClusterClient) LogStreamer() cluster.LogStreamer {
+	panic("not implemented")
+}
 
 func (f fakeClusterClient) Kubeconfig() cluster.Kubeconfig {
 	return f.kubeconfig

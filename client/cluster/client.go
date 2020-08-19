@@ -79,6 +79,8 @@ type Client interface {
 
 	// WorkloadCluster has methods for fetching kubeconfig of workload cluster from management cluster.
 	WorkloadCluster() WorkloadCluster
+
+	LogStreamer() LogStreamer
 }
 
 // PollImmediateWaiter tries a condition func until it returns true, an error, or the timeout is reached.
@@ -92,12 +94,17 @@ type clusterClient struct {
 	repositoryClientFactory RepositoryClientFactory
 	pollImmediateWaiter     PollImmediateWaiter
 	processor               yaml.Processor
+	logStreamer             LogStreamer
 }
 
 type RepositoryClientFactory func(provider config.Provider, configClient config.Client, options ...repository.Option) (repository.Client, error)
 
 // ensure clusterClient implements Client.
 var _ Client = &clusterClient{}
+
+func (c *clusterClient) LogStreamer() LogStreamer {
+	return c.logStreamer
+}
 
 func (c *clusterClient) Kubeconfig() Kubeconfig {
 	return c.kubeconfig
@@ -185,6 +192,7 @@ func newClusterClient(kubeconfig Kubeconfig, configClient config.Client, options
 		configClient: configClient,
 		kubeconfig:   kubeconfig,
 		processor:    yaml.NewSimpleProcessor(),
+		logStreamer:  NewLogStreamer(),
 	}
 	for _, o := range options {
 		o(client)
