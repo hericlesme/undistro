@@ -6,6 +6,8 @@ package controllers
 
 import (
 	"context"
+	"io/ioutil"
+	"net/http"
 	"time"
 
 	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
@@ -19,6 +21,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clusterApi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	utilresource "sigs.k8s.io/cluster-api/util/resource"
+	"sigs.k8s.io/cluster-api/util/yaml"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -68,6 +71,9 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		log.Error(err, "couldn't get object", "name", req.NamespacedName)
 		return ctrl.Result{}, err
 	}
+	if !cluster.DeletionTimestamp.IsZero() {
+		return ctrl.Result{}, nil
+	}
 	undistroClient, err := uclient.New("")
 	if err != nil {
 		return ctrl.Result{}, err
@@ -81,7 +87,7 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	if cluster.Status.Phase == undistrov1.NewPhase {
+	if cluster.Status.Phase == undistrov1.NewPhase && cluster.DeletionTimestamp.IsZero() {
 		log.Info("ensure mangement cluster is initialized and updated", "name", req.NamespacedName)
 		if err = r.init(ctx, &cluster, undistroClient); client.IgnoreNotFound(err) != nil {
 			log.Error(err, "couldn't initialize or update the mangement cluster", "name", req.NamespacedName)
@@ -168,9 +174,11 @@ func (r *ClusterReconciler) config(ctx context.Context, cl *undistrov1.Cluster, 
 	}
 	objs := utilresource.SortForCreate(tpl.Objs())
 	for _, o := range objs {
-		err = ctrl.SetControllerReference(cl, &o, r.Scheme)
-		if err != nil {
-			return errors.Errorf("couldn't set reference: %v", err)
+		if o.GetKind() == "Cluster" && o.GroupVersionKind().GroupVersion().String() == clusterApi.GroupVersion.String() {
+			err = ctrl.SetControllerReference(cl, &o, r.Scheme)
+			if err != nil {
+				return errors.Errorf("couldn't set reference: %v", err)
+			}
 		}
 		err = r.Create(ctx, &o)
 		if err != nil {
@@ -220,17 +228,27 @@ func (r *ClusterReconciler) provisioning(ctx context.Context, cl *undistrov1.Clu
 func (r *ClusterReconciler) installCNI(ctx context.Context, cl *undistrov1.Cluster, c uclient.Client) error {
 	log := r.Log
 	cniAddr := cl.GetCNITemplateURL()
+	if cniAddr == "" {
+		return errors.Errorf("CNI %s is not supported", cl.Spec.CniName)
+	}
 	log.Info("getting CNI", "name", cl.Spec.CniName, "URL", cniAddr)
-	tpl, err := c.GetClusterTemplate(uclient.GetClusterTemplateOptions{
-		Kubeconfig: uclient.Kubeconfig{
-			RestConfig: r.RestConfig,
-		},
-		ClusterName:     cl.Name,
-		TargetNamespace: cl.Namespace,
-		URLSource: &uclient.URLSourceOptions{
-			URL: cniAddr,
-		},
-	})
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cniAddr, nil)
+	if err != nil {
+		return err
+	}
+	httpClient := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	byt, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	objs, err := yaml.ToUnstructured(byt)
 	if err != nil {
 		return err
 	}
@@ -256,7 +274,7 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl *undistrov1.Clust
 	if err != nil {
 		return err
 	}
-	objs := utilresource.SortForCreate(tpl.Objs())
+	objs = utilresource.SortForCreate(objs)
 	for _, o := range objs {
 		err = workloadClient.Create(ctx, &o)
 		if err != nil {
