@@ -41,3 +41,6 @@ type Variables config.VariablesClient
 
 // Proxy is the cluster proxy
 type Proxy cluster.Proxy
+
+// Logs of providers controller
+type Logs cluster.LogStreamer

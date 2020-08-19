@@ -2,22 +2,25 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 
 	"github.com/getupcloud/undistro/client"
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/types"
 	utilresource "sigs.k8s.io/cluster-api/util/resource"
 	"sigs.k8s.io/cluster-api/util/yaml"
 )
 
 type createClusterOptions struct {
-	url string
+	url        string
+	kubeconfig string
 }
 
 var ccOpts = &createClusterOptions{}
 
-var createCluterCmd = &cobra.Command{
+var createClusterCmd = &cobra.Command{
 	Use:   "cluster",
 	Short: "Create a cluster",
 	Long:  "Create a cluster",
@@ -42,10 +45,12 @@ var createCluterCmd = &cobra.Command{
 
 func init() {
 	// flags for the url source
-	createCluterCmd.Flags().StringVarP(&ccOpts.url, "from", "f", "-",
+	createClusterCmd.Flags().StringVarP(&ccOpts.url, "from", "f", "-",
 		"The URL to read the template from. It defaults to '-' which reads from stdin.")
+	createClusterCmd.Flags().StringVar(&ccOpts.kubeconfig, "kubeconfig", "",
+		"Path to a kubeconfig file to use for the management cluster. If empty, default discovery rules apply.")
 
-	createCmd.AddCommand(createCluterCmd)
+	createCmd.AddCommand(createClusterCmd)
 }
 
 func createCluster(r io.Reader, w io.Writer) error {
@@ -87,11 +92,35 @@ func createCluster(r io.Reader, w io.Writer) error {
 		return err
 	}
 	objs = utilresource.SortForCreate(objs)
-	for _, o := range objs {
-		err = k8sClient.Create(context.TODO(), &o)
+	nm := types.NamespacedName{}
+	for i, o := range objs {
+		if i == 0 {
+			nm.Name = o.GetName()
+			nm.Namespace = o.GetNamespace()
+		}
+		err = k8sClient.Create(context.Background(), &o)
 		if err != nil {
 			return err
 		}
 	}
+	logStreamer, err := c.GetLogs(client.Kubeconfig{
+		Path: ccOpts.kubeconfig,
+	})
+	if err != nil {
+		return err
+	}
+	logChan := make(chan string)
+	cfg, err := proxy.GetConfig()
+	if err != nil {
+		return err
+	}
+	go logStreamer.Stream(context.Background(), cfg, logChan, nm)
+	for str := range logChan {
+		fmt.Fprint(os.Stdout, str)
+	}
+	if nm.Namespace == "" {
+		nm.Namespace = "default"
+	}
+	fmt.Fprintf(os.Stdout, "\n\nCluster %s is ready. \nRun undistro get kubeconfig %s -n %s to get the Kubeconfig\n\n", nm.String(), nm.Name, nm.Namespace)
 	return nil
 }

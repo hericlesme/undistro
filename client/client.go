@@ -56,6 +56,9 @@ type Client interface {
 
 	// GetProxy provider a way to get proxy
 	GetProxy() (Proxy, error)
+
+	// GetLogs of controller providers
+	GetLogs(Kubeconfig) (Logs, error)
 }
 
 // YamlPrinter exposes methods that prints the processed template and
