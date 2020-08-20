@@ -6,8 +6,6 @@ import (
 	"io"
 	"os"
 
-	"log"
-
 	"github.com/getupcloud/undistro/client"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/types"
@@ -118,8 +116,7 @@ func createCluster(r io.Reader, w io.Writer) error {
 	if nm.Namespace == "" {
 		nm.Namespace = "default"
 	}
-	logger := log.New(os.Stdout, nm.String(), 0)
-	err = logStreamer.Stream(context.Background(), cfg, logger.Writer(), nm)
+	err = logStreamer.Stream(context.Background(), cfg, os.Stdout, nm)
 	if err != nil {
 		return err
 	}
