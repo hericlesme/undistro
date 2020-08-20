@@ -15,6 +15,7 @@ import (
 	"github.com/getupcloud/undistro/internal/util"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
@@ -67,11 +68,17 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("cluster", req.NamespacedName)
 	var cluster undistrov1.Cluster
-	if err := r.Get(ctx, req.NamespacedName, &cluster); client.IgnoreNotFound(err) != nil {
-		log.Error(err, "couldn't get object", "name", req.NamespacedName)
-		return ctrl.Result{}, err
+	if err := r.Get(ctx, req.NamespacedName, &cluster); err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			log.Error(err, "couldn't get object", "name", req.NamespacedName)
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
 	}
 	if !cluster.DeletionTimestamp.IsZero() {
+		if err := r.delete(ctx, &cluster); err != nil {
+			return ctrl.Result{}, err
+		}
 		return ctrl.Result{}, nil
 	}
 	undistroClient, err := uclient.New("")
@@ -87,11 +94,14 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	if cluster.Status.Phase == undistrov1.NewPhase && cluster.DeletionTimestamp.IsZero() {
+	if cluster.Status.Phase == undistrov1.NewPhase {
 		log.Info("ensure mangement cluster is initialized and updated", "name", req.NamespacedName)
-		if err = r.init(ctx, &cluster, undistroClient); client.IgnoreNotFound(err) != nil {
-			log.Error(err, "couldn't initialize or update the mangement cluster", "name", req.NamespacedName)
-			return ctrl.Result{}, err
+		if err = r.init(ctx, &cluster, undistroClient); err != nil {
+			if client.IgnoreNotFound(err) != nil {
+				log.Error(err, "couldn't initialize or update the mangement cluster", "name", req.NamespacedName)
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{}, nil
 		}
 		if err = r.Status().Update(ctx, &cluster); client.IgnoreNotFound(err) != nil {
 			log.Error(err, "couldn't update status", "name", req.NamespacedName)
@@ -101,9 +111,12 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 	if cluster.Status.Phase == undistrov1.InitializedPhase {
 		log.Info("generanting cluster-api configuration", "name", req.NamespacedName)
-		if err = r.config(ctx, &cluster, undistroClient); client.IgnoreNotFound(err) != nil {
-			log.Error(err, "couldn't initialize or update the mangement cluster", "name", req.NamespacedName)
-			return ctrl.Result{}, err
+		if err = r.config(ctx, &cluster, undistroClient); err != nil {
+			if client.IgnoreNotFound(err) != nil {
+				log.Error(err, "couldn't initialize or update the mangement cluster", "name", req.NamespacedName)
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{}, nil
 		}
 		if err = r.Status().Update(ctx, &cluster); client.IgnoreNotFound(err) != nil {
 			log.Error(err, "couldn't update status", "name", req.NamespacedName)
@@ -120,6 +133,10 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return res, nil
 	}
 	return ctrl.Result{}, nil
+}
+
+func (r *ClusterReconciler) delete(ctx context.Context, cl *undistrov1.Cluster) error {
+	return nil
 }
 
 func (r *ClusterReconciler) init(ctx context.Context, cl *undistrov1.Cluster, c uclient.Client) error {
@@ -277,7 +294,7 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl *undistrov1.Clust
 	objs = utilresource.SortForCreate(objs)
 	for _, o := range objs {
 		err = workloadClient.Create(ctx, &o)
-		if err != nil {
+		if err != nil && !k8serrors.IsAlreadyExists(err) {
 			return err
 		}
 	}
