@@ -15,9 +15,11 @@ import (
 	"github.com/getupcloud/undistro/internal/util"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clusterApi "sigs.k8s.io/cluster-api/api/v1alpha3"
@@ -77,7 +79,10 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 	if !cluster.DeletionTimestamp.IsZero() {
 		if err := r.delete(ctx, &cluster); err != nil {
-			return ctrl.Result{}, err
+			return scheduledResult, err
+		}
+		if cluster.Status.Phase == undistrov1.DeletingPhase {
+			return scheduledResult, nil
 		}
 		return ctrl.Result{}, nil
 	}
@@ -136,6 +141,30 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 }
 
 func (r *ClusterReconciler) delete(ctx context.Context, cl *undistrov1.Cluster) error {
+	log := r.Log
+	capiNM := types.NamespacedName{
+		Name:      cl.Status.ClusterAPIRef.Name,
+		Namespace: cl.Status.ClusterAPIRef.Namespace,
+	}
+	var capi clusterApi.Cluster
+	if err := r.Get(ctx, capiNM, &capi); err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			log.Error(err, "couldn't get capi", "name", capiNM)
+			return err
+		}
+		cl.Status.Phase = undistrov1.DeletedPhase
+		return nil
+	}
+	cl.Status.Phase = undistrov1.DeletingPhase
+	if capi.Status.Phase != string(clusterApi.ClusterPhaseDeleting) {
+		if err := r.Delete(ctx, &capi); err != nil {
+			if client.IgnoreNotFound(err) != nil {
+				return err
+			}
+			cl.Status.Phase = undistrov1.DeletedPhase
+			return nil
+		}
+	}
 	return nil
 }
 
@@ -200,6 +229,14 @@ func (r *ClusterReconciler) config(ctx context.Context, cl *undistrov1.Cluster, 
 		err = r.Create(ctx, &o)
 		if err != nil {
 			return err
+		}
+		cl.Status.ClusterAPIRef = &corev1.ObjectReference{
+			Kind:            o.GetKind(),
+			Namespace:       o.GetNamespace(),
+			Name:            o.GetName(),
+			UID:             o.GetUID(),
+			ResourceVersion: o.GetResourceVersion(),
+			APIVersion:      o.GetAPIVersion(),
 		}
 	}
 	cl.Status.Phase = undistrov1.ProvisioningPhase
