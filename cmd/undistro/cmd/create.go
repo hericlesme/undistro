@@ -10,8 +10,8 @@ import (
 
 var createCmd = &cobra.Command{
 	Use:   "create",
-	Short: "Create workload clusters.",
-	Long:  `Create workload clusters.`,
+	Short: "Create things in undistro",
+	Long:  `Create things in undistro`,
 }
 
 func init() {
