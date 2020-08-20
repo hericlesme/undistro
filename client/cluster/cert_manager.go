@@ -32,7 +32,7 @@ var (
 	// You can either generate the SHA256 hash of the file, or alternatively
 	// run `go test` against this package. THe Test_VersionMarkerUpToDate will output
 	// the expected hash if it does not match the hash here.
-	embeddedCertManagerManifestVersion = map[string]string{"v0.16.1": "0835866ae02e61ca464d818d78cc54eeb9c2dbdd150d4b7210564e78b4789c85"}
+	embeddedCertManagerManifestVersion = map[string]string{"v0.16.1": "8ec4044a01741e77ce50ca7d4bbc5bf60691faaf097baa519d46ba0eaba57baa"}
 )
 
 const (

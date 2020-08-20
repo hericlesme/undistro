@@ -65,9 +65,10 @@ type InstalledComponent struct {
 
 // ClusterStatus defines the observed state of Cluster
 type ClusterStatus struct {
-	Phase               ClusterPhase         `json:"phase,omitempty"`
-	InstalledComponents []InstalledComponent `json:"installedComponents,omitempty"`
-	Ready               bool                 `json:"ready,omitempty"`
+	Phase               ClusterPhase            `json:"phase,omitempty"`
+	InstalledComponents []InstalledComponent    `json:"installedComponents,omitempty"`
+	Ready               bool                    `json:"ready,omitempty"`
+	ClusterAPIRef       *corev1.ObjectReference `json:"clusterAPIRef,omitempty"`
 }
 
 // +kubebuilder:object:root=true
