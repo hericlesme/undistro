@@ -159,6 +159,7 @@ func (r *ClusterReconciler) delete(ctx context.Context, cl *undistrov1.Cluster) 
 	if capi.Status.Phase != string(clusterApi.ClusterPhaseDeleting) {
 		if err := r.Delete(ctx, &capi); err != nil {
 			if client.IgnoreNotFound(err) != nil {
+				log.Error(err, "couldn't delete capi", "name", capiNM)
 				return err
 			}
 			cl.Status.Phase = undistrov1.DeletedPhase
