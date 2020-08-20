@@ -12,7 +12,6 @@ import (
 
 	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
 	"github.com/getupcloud/undistro/internal/scheme"
-	"github.com/getupcloud/undistro/log"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
@@ -55,7 +54,7 @@ func (l *logStreamer) Stream(ctx context.Context, c *rest.Config, w io.Writer, n
 		cancel()
 		return err
 	}
-	logs := l.getLogs(podList.Items)
+	logs := l.getLogs(ctx, podList.Items)
 	cerr := make(chan error, 1)
 	go func(ctx context.Context, cancel context.CancelFunc) {
 		ready, err := l.clusterIsReady(ctx, nm)
@@ -87,24 +86,25 @@ func (l *logStreamer) Stream(ctx context.Context, c *rest.Config, w io.Writer, n
 func (l *logStreamer) streamLogs(ctx context.Context, reqs []logRequest, writer io.Writer) error {
 	wg := &sync.WaitGroup{}
 	wg.Add(len(reqs))
+	r, w := io.Pipe()
 	for _, req := range reqs {
 		reader, err := req.req.Stream()
 		if err != nil {
 			return err
 		}
-		go l.readLog(ctx, reader, writer)
+		go l.readLog(ctx, reader, w)
 	}
-	wg.Wait()
-	return nil
+	go func(ctx context.Context) {
+		wg.Wait()
+		w.Close()
+	}(ctx)
+	_, err := io.Copy(writer, r)
+	return err
 }
 
 func (l *logStreamer) readLog(ctx context.Context, reader io.ReadCloser, writer io.Writer) {
-	_, err := io.Copy(writer, reader)
-	if err != nil && err != context.DeadlineExceeded {
-		log.Log.Error(err, "fail to copy")
-		return
-	}
 	defer reader.Close()
+	io.Copy(writer, reader)
 }
 
 func (l *logStreamer) clusterIsReady(ctx context.Context, nm types.NamespacedName) (bool, error) {
@@ -116,7 +116,7 @@ func (l *logStreamer) clusterIsReady(ctx context.Context, nm types.NamespacedNam
 	return cl.Status.Ready, nil
 }
 
-func (l *logStreamer) getLogs(pods []corev1.Pod) []logRequest {
+func (l *logStreamer) getLogs(ctx context.Context, pods []corev1.Pod) []logRequest {
 	reqs := make([]logRequest, len(pods))
 	for i, pod := range pods {
 		req := l.client.
@@ -125,7 +125,7 @@ func (l *logStreamer) getLogs(pods []corev1.Pod) []logRequest {
 			GetLogs(pod.Name, &corev1.PodLogOptions{
 				Container: "manager",
 				Follow:    true,
-			})
+			}).Context(ctx)
 		reqs[i] = logRequest{
 			podName: pod.Name,
 			req:     req,
