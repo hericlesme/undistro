@@ -10,8 +10,8 @@ import (
 
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
-	Short: "Delete workload clusters.",
-	Long:  `Delete workload clusters.`,
+	Short: "Delete things in undistro.",
+	Long:  `Delete things in undistro.`,
 }
 
 func init() {
