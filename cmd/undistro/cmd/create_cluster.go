@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 
+	"log"
+
 	"github.com/getupcloud/undistro/client"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/types"
@@ -109,17 +111,17 @@ func createCluster(r io.Reader, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	logChan := make(chan string)
 	cfg, err := proxy.GetConfig()
 	if err != nil {
 		return err
 	}
-	go logStreamer.Stream(context.Background(), cfg, logChan, nm)
-	for str := range logChan {
-		fmt.Fprint(os.Stdout, str)
-	}
 	if nm.Namespace == "" {
 		nm.Namespace = "default"
+	}
+	logger := log.New(os.Stdout, nm.String(), 0)
+	err = logStreamer.Stream(context.Background(), cfg, logger.Writer(), nm)
+	if err != nil {
+		return err
 	}
 	fmt.Fprintf(os.Stdout, "\n\nCluster %s is ready. \nRun undistro get kubeconfig %s -n %s to get the Kubeconfig\n\n", nm.String(), nm.Name, nm.Namespace)
 	return nil
