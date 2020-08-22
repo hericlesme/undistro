@@ -102,6 +102,8 @@ func (f *metadataClient) getEmbeddedMetadata() *undistrov1.Metadata {
 				Kind:       "Metadata",
 			},
 			ReleaseSeries: []undistrov1.ReleaseSeries{
+				{Major: 0, Minor: 4, Contract: "v1alpha1"},
+				{Major: 0, Minor: 5, Contract: "v1alpha1"},
 				{Major: 0, Minor: 6, Contract: "v1alpha1"},
 			},
 		}
