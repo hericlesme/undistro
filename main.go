@@ -13,6 +13,7 @@ import (
 	"github.com/getupcloud/undistro/internal/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	// +kubebuilder:scaffold:imports
 )
@@ -22,8 +23,12 @@ var (
 )
 
 func main() {
-	var metricsAddr string
-	var enableLeaderElection bool
+	var (
+		metricsAddr          string
+		enableLeaderElection bool
+		maxConcurrency       int
+	)
+	flag.IntVar(&maxConcurrency, "concurrency", 10, "Number of clusters to process simultaneously")
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
@@ -50,13 +55,16 @@ func main() {
 		Log:        ctrl.Log.WithName("controllers").WithName("Cluster"),
 		Scheme:     mgr.GetScheme(),
 		RestConfig: restCfg,
-	}).SetupWithManager(mgr); err != nil {
+	}).SetupWithManager(mgr, concurrency(maxConcurrency)); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Cluster")
 		os.Exit(1)
 	}
-	if err = (&getupcloudcomv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "Cluster")
-		os.Exit(1)
+	_, ok := os.LookupEnv("UNDISTRO_DEBUG")
+	if !ok {
+		if err = (&getupcloudcomv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Cluster")
+			os.Exit(1)
+		}
 	}
 	// +kubebuilder:scaffold:builder
 
@@ -65,4 +73,8 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+func concurrency(c int) controller.Options {
+	return controller.Options{MaxConcurrentReconciles: c}
 }

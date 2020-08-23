@@ -38,8 +38,9 @@ func (i *InfrastructureProvider) NameVersion() string {
 type CNI string
 
 const (
-	CalicoCNI = CNI("calico")
-	EmptyCNI  = CNI("")
+	CalicoCNI        = CNI("calico")
+	EmptyCNI         = CNI("")
+	ClusterFinalizer = "getupcloud.com"
 )
 
 var cniMapAddr = map[CNI]string{
