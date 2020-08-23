@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -66,7 +67,7 @@ var _ = BeforeSuite(func(done Done) {
 		Log:        ctrl.Log.WithName("controllers").WithName("Cluster"),
 		Scheme:     mgr.GetScheme(),
 		RestConfig: cfg,
-	}).SetupWithManager(mgr)
+	}).SetupWithManager(mgr, controller.Options{})
 	go func() {
 		err = mgr.Start(ctrl.SetupSignalHandler())
 		Expect(err).ToNot(HaveOccurred())

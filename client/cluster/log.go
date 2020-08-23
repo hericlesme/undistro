@@ -16,6 +16,8 @@ import (
 	"github.com/getupcloud/undistro/internal/scheme"
 	"github.com/getupcloud/undistro/log"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -26,8 +28,10 @@ const (
 	undistroNamespace = "undistro-system"
 )
 
+type StopConditionFunc func(context.Context, client.Client, types.NamespacedName) (bool, error)
+
 type LogStreamer interface {
-	Stream(context.Context, *rest.Config, io.Writer, types.NamespacedName) error
+	Stream(context.Context, *rest.Config, io.Writer, types.NamespacedName, StopConditionFunc) error
 }
 
 type logStreamer struct {
@@ -35,7 +39,7 @@ type logStreamer struct {
 	kubeClient client.Client
 }
 
-func (l *logStreamer) Stream(ctx context.Context, c *rest.Config, w io.Writer, nm types.NamespacedName) error {
+func (l *logStreamer) Stream(ctx context.Context, c *rest.Config, w io.Writer, nm types.NamespacedName, fn StopConditionFunc) error {
 	var (
 		err    error
 		cancel context.CancelFunc
@@ -60,14 +64,14 @@ func (l *logStreamer) Stream(ctx context.Context, c *rest.Config, w io.Writer, n
 	}
 	logs := l.getLogs(ctx, podList.Items)
 	cerr := make(chan error, 1)
-	go func(ctx context.Context, cancel context.CancelFunc) {
-		ready, err := l.clusterIsReady(ctx, nm)
+	go func(ctx context.Context, cancel context.CancelFunc, fn StopConditionFunc) {
+		ready, err := fn(ctx, l.kubeClient, nm)
 		if err != nil {
 			cerr <- err
 			return
 		}
 		for !ready {
-			ready, err = l.clusterIsReady(ctx, nm)
+			ready, err = fn(ctx, l.kubeClient, nm)
 			if err != nil {
 				cerr <- err
 				return
@@ -75,7 +79,7 @@ func (l *logStreamer) Stream(ctx context.Context, c *rest.Config, w io.Writer, n
 			<-time.After(10 * time.Second)
 		}
 		cancel()
-	}(ctx, cancel)
+	}(ctx, cancel, fn)
 	go func(ctx context.Context) {
 		cerr <- l.streamLogs(ctx, logs, w)
 	}(ctx)
@@ -133,13 +137,19 @@ func (l *logStreamer) readLog(ctx context.Context, reader io.ReadCloser, writer 
 	}
 }
 
-func (l *logStreamer) clusterIsReady(ctx context.Context, nm types.NamespacedName) (bool, error) {
+func IsReady(ctx context.Context, c client.Client, nm types.NamespacedName) (bool, error) {
 	var cl undistrov1.Cluster
-	err := l.kubeClient.Get(ctx, nm, &cl)
+	err := c.Get(ctx, nm, &cl)
 	if err != nil {
 		return false, err
 	}
 	return cl.Status.Ready, nil
+}
+
+func IsDeleted(ctx context.Context, c client.Client, nm types.NamespacedName) (bool, error) {
+	var cl undistrov1.Cluster
+	err := c.Get(ctx, nm, &cl)
+	return apierrors.IsNotFound(err), nil
 }
 
 func (l *logStreamer) getLogs(ctx context.Context, pods []corev1.Pod) []logRequest {
@@ -151,6 +161,9 @@ func (l *logStreamer) getLogs(ctx context.Context, pods []corev1.Pod) []logReque
 			GetLogs(pod.Name, &corev1.PodLogOptions{
 				Container: "manager",
 				Follow:    true,
+				SinceTime: &metav1.Time{
+					Time: time.Now(),
+				},
 			}).Context(ctx)
 		reqs[i] = logRequest{
 			podName: pod.Name,

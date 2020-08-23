@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/getupcloud/undistro/client"
+	"github.com/getupcloud/undistro/client/cluster"
 	"github.com/getupcloud/undistro/internal/util"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/types"
@@ -115,7 +116,7 @@ func deleteCluster(r io.Reader, w io.Writer) error {
 	if nm.Namespace == "" {
 		nm.Namespace = "default"
 	}
-	err = logStreamer.Stream(context.Background(), cfg, os.Stdout, nm)
+	err = logStreamer.Stream(context.Background(), cfg, os.Stdout, nm, cluster.IsDeleted)
 	if err != nil {
 		return err
 	}
