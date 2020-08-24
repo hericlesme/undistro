@@ -1,1 +1,1 @@
-# UnDristro Kubernetes distribution
+# UnDistro Kubernetes distribution
