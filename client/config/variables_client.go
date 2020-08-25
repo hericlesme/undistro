@@ -6,7 +6,7 @@ package config
 
 const (
 	// GitHubTokenVariable defines a variable hosting the GitHub access token
-	GitHubTokenVariable = "GITHUB_TOKEN"
+	GitHubTokenVariable = "github-token"
 )
 
 // VariablesClient has methods to work with environment variables and with variables defined in the undistro configuration file.
