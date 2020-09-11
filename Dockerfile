@@ -21,7 +21,7 @@ WORKDIR /app
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 COPY --from=builder --chown=nonroot:nonroot /app /app
-COPY --from=builder /workspace/manager /app
+COPY --from=builder /workspace/manager /app/manager
 USER nonroot:nonroot
-
+WORKDIR /app
 ENTRYPOINT ["/app/manager"]
