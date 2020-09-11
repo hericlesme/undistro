@@ -40,6 +40,7 @@ GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/golangci-lint)
 # Bindata.
 GOBINDATA := $(abspath $(TOOLS_BIN_DIR)/go-bindata)
 GOBINDATA_UNDISTRO_DIR := config
+GOBINDATA_TEMPLATES_DIR := templates
 
 GINKGO_NODES ?= 1
 
@@ -78,7 +79,7 @@ test-cover: ## Run tests with code coverage and code generate reports
 
 .PHONY: undistro
 undistro: ## Build undistro binary
-	go build -ldflags "$(LDFLAGS)" -o bin/undistro ./cmd/undistro 
+	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o bin/undistro ./cmd/undistro 
 
 # $(KUSTOMIZE): $(TOOLS_DIR)/go.mod # Build kustomize from tools folder.
 # 	cd $(TOOLS_DIR); go build -tags=tools -o $(BIN_DIR)/kustomize sigs.k8s.io/kustomize/kustomize/v3
@@ -128,6 +129,10 @@ generate-bindata: $(KUSTOMIZE) $(GOBINDATA) clean-bindata  ## Generate code for 
 	$(GOBINDATA) -mode=420 -modtime=1 -pkg=config -o=$(GOBINDATA_UNDISTRO_DIR)/zz_generated.bindata.go $(GOBINDATA_UNDISTRO_DIR)/manifest/ $(GOBINDATA_UNDISTRO_DIR)/assets
 	cat ./hack/boilerplate.go.txt $(GOBINDATA_UNDISTRO_DIR)/zz_generated.bindata.go > $(GOBINDATA_UNDISTRO_DIR)/manifest/manifests.go
 	cp $(GOBINDATA_UNDISTRO_DIR)/manifest/manifests.go $(GOBINDATA_UNDISTRO_DIR)/zz_generated.bindata.go
+	# template
+	$(GOBINDATA) -mode=420 -modtime=1 -pkg=templates -o=$(GOBINDATA_TEMPLATES_DIR)/zz_generated.bindata.go  $(GOBINDATA_TEMPLATES_DIR)/yaml/...
+	cat ./hack/boilerplate.go.txt $(GOBINDATA_TEMPLATES_DIR)/zz_generated.bindata.go > $(GOBINDATA_TEMPLATES_DIR)/templates.go
+	rm $(GOBINDATA_TEMPLATES_DIR)/zz_generated.bindata.go 
 	# Cleanup the manifest folder.
 	$(MAKE) clean-bindata
 
@@ -145,6 +150,14 @@ generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 		paths=./api/... \
 		crd:crdVersions=v1 \
 		output:crd:dir=./config/crd/bases
+
+# Install CRDs into a cluster
+install: generate
+	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+
+# Uninstall CRDs from a cluster
+uninstall: generate
+	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
 .PHONY: modules
 modules: ## Runs go mod to ensure modules are up to date.
