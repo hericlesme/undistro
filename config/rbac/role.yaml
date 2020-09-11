@@ -212,7 +212,7 @@ rules:
 - apiGroups:
   - getupcloud.com
   resources:
-  - clusters
+  - '*'
   verbs:
   - create
   - delete
@@ -229,18 +229,6 @@ rules:
   - get
   - patch
   - update
-- apiGroups:
-  - getupcloud.com
-  resources:
-  - providers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
 - apiGroups:
   - getupcloud.com
   resources:

@@ -6,6 +6,7 @@ resources:
 #- bases/getupcloud.com_metadata.yaml excluding metadata from the CRD manifest generation because metadata will be used as a ComponentConfig file only
 
 - bases/getupcloud.com_clusters.yaml
+- bases/getupcloud.com_helmreleases.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

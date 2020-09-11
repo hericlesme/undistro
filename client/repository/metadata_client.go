@@ -5,6 +5,8 @@ Copyright 2020 Getup Cloud. All rights reserved.
 package repository
 
 import (
+	"strings"
+
 	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
 	"github.com/getupcloud/undistro/client/config"
 	"github.com/getupcloud/undistro/internal/scheme"
@@ -13,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"sigs.k8s.io/cluster-api/util/yaml"
 )
 
 // MetadataClient has methods to work with metadata hosted on a provider repository.
@@ -63,12 +66,21 @@ func (f *metadataClient) Get() (*undistrov1.Metadata, error) {
 		log.V(5).Info("Fetching", "File", name, "Provider", f.provider.ManifestLabel(), "Version", version)
 		file, err = f.repository.GetFile(version, name)
 		if err != nil {
-			// if there are problems in reading the metadata file from the repository, check if there are embedded metadata for the provider, if yes use them
 			if obj := f.getEmbeddedMetadata(); obj != nil {
 				return obj, nil
 			}
-
 			return nil, errors.Wrapf(err, "failed to read %q from the repository for provider %q", name, f.provider.ManifestLabel())
+		}
+		objs, err := yaml.ToUnstructured(file)
+		if err != nil {
+			return nil, err
+		}
+		for _, o := range objs {
+			if !strings.Contains(o.GetAPIVersion(), "getupcloud.com") {
+				if obj := f.getEmbeddedMetadata(); obj != nil {
+					return obj, nil
+				}
+			}
 		}
 	} else {
 		log.V(1).Info("Using", "Override", name, "Provider", f.provider.ManifestLabel(), "Version", version)
@@ -107,6 +119,7 @@ func (f *metadataClient) getEmbeddedMetadata() *undistrov1.Metadata {
 				{Major: 0, Minor: 6, Contract: "v1alpha1"},
 				{Major: 0, Minor: 7, Contract: "v1alpha1"},
 				{Major: 0, Minor: 8, Contract: "v1alpha1"},
+				{Major: 0, Minor: 9, Contract: "v1alpha1"},
 			},
 		}
 	case undistrov1.CoreProviderType:
@@ -200,6 +213,8 @@ func (f *metadataClient) getEmbeddedMetadata() *undistrov1.Metadata {
 				},
 				ReleaseSeries: []undistrov1.ReleaseSeries{
 					// v1alpha3 release series
+					{Major: 0, Minor: 6, Contract: "v1alpha3"},
+
 					{Major: 0, Minor: 5, Contract: "v1alpha3"},
 					// v1alpha2 release series are supported only for upgrades
 					{Major: 0, Minor: 4, Contract: "v1alpha2"},

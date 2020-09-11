@@ -21,7 +21,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 	clusterApi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	utilresource "sigs.k8s.io/cluster-api/util/resource"
 	"sigs.k8s.io/cluster-api/util/yaml"
@@ -57,9 +56,8 @@ type ClusterReconciler struct {
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=*,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=*,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=getupcloud.com,resources=clusters,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=getupcloud.com,resources=*,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=getupcloud.com,resources=clusters/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=getupcloud.com,resources=providers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=getupcloud.com,resources=providers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;patch
 // +kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;watch;create;patch
@@ -93,10 +91,7 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		if err := r.delete(ctx, &cluster); err != nil {
 			return ctrl.Result{}, err
 		}
-		if err := r.Status().Update(ctx, &cluster); client.IgnoreNotFound(err) != nil {
-			log.Error(err, "couldn't update status", "name", req.NamespacedName)
-			return ctrl.Result{}, err
-		}
+		r.Status().Update(ctx, &cluster)
 		if cluster.Status.Phase == undistrov1.DeletingPhase {
 			return ctrl.Result{Requeue: true}, nil
 		}
@@ -139,7 +134,7 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		log.Info("generanting cluster-api configuration", "name", req.NamespacedName)
 		if err = r.config(ctx, &cluster, undistroClient); err != nil {
 			if client.IgnoreNotFound(err) != nil {
-				log.Error(err, "couldn't initialize or update the mangement cluster", "name", req.NamespacedName)
+				log.Error(err, "couldn't install cluster config", "name", req.NamespacedName)
 				return ctrl.Result{}, err
 			}
 			return ctrl.Result{}, nil
@@ -238,6 +233,10 @@ func (r *ClusterReconciler) init(ctx context.Context, cl *undistrov1.Cluster, c 
 		cl.Status.InstalledComponents[i] = ic
 	}
 	cl.Status.Phase = undistrov1.InitializedPhase
+	cl.Status.KubernetesVersion = cl.Spec.KubernetesVersion
+	cl.Status.WorkerNode = cl.Spec.WorkerNode
+	cl.Status.ControlPlaneNode = cl.Spec.ControlPlaneNode
+	cl.Status.InfrastructureName = cl.Spec.InfrastructureProvider.Name
 	return nil
 }
 
@@ -266,7 +265,7 @@ func (r *ClusterReconciler) config(ctx context.Context, cl *undistrov1.Cluster, 
 				return errors.Errorf("couldn't set reference: %v", err)
 			}
 		}
-		err = r.Create(ctx, &o)
+		err = r.Patch(ctx, &o, client.Apply, client.FieldOwner("undistro"))
 		if err != nil {
 			return err
 		}
@@ -348,21 +347,13 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl *undistrov1.Clust
 	if err != nil {
 		return err
 	}
-	clKubeconfig, err := c.GetKubeconfig(uclient.GetKubeconfigOptions{
-		Kubeconfig: uclient.Kubeconfig{
-			RestConfig: r.RestConfig,
-		},
-		WorkloadClusterName: cl.Name,
-		Namespace:           cl.Namespace,
+	wc, err := c.GetWorkloadCluster(uclient.Kubeconfig{
+		RestConfig: r.RestConfig,
 	})
 	if err != nil {
 		return err
 	}
-	cfg, err := clientcmd.NewClientConfigFromBytes([]byte(clKubeconfig))
-	if err != nil {
-		return err
-	}
-	workloadCfg, err := cfg.ClientConfig()
+	workloadCfg, err := wc.GetRestConfig(cl.Name, cl.Namespace)
 	if err != nil {
 		return err
 	}
@@ -372,18 +363,13 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl *undistrov1.Clust
 	}
 	objs = utilresource.SortForCreate(objs)
 	for _, o := range objs {
-		_, err = controllerutil.CreateOrUpdate(ctx, workloadClient, &o, func() error {
-			return nil
-		})
-		if err != nil {
-			return err
-		}
+		workloadClient.Patch(ctx, &o, client.Apply, client.FieldOwner("undistro"))
 	}
 	return nil
 }
 
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager, opts controller.Options) error {
-	if err := mgr.GetFieldIndexer().IndexField(&clusterApi.Cluster{}, jobOwnerKey, func(rawObj runtime.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &clusterApi.Cluster{}, jobOwnerKey, func(rawObj runtime.Object) []string {
 		cluster := rawObj.(*clusterApi.Cluster)
 		owner := metav1.GetControllerOf(cluster)
 		if owner == nil {
