@@ -1,5 +1,5 @@
 FROM golang:alpine
 WORKDIR /
 RUN apk --update add ca-certificates
-COPY ./bin/manager /
-CMD ["/manager"]
+COPY ./bin/manager /app
+CMD ["/app/manager"]
