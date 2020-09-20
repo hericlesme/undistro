@@ -13,6 +13,7 @@ import (
 
 	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
 	uclient "github.com/getupcloud/undistro/client"
+	"github.com/getupcloud/undistro/client/config"
 	"github.com/getupcloud/undistro/internal/util"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
@@ -44,6 +45,7 @@ type ClusterReconciler struct {
 	RestConfig *rest.Config
 }
 
+// +kubebuilder:rbac:urls=/metrics,verbs=get;
 // +kubebuilder:rbac:groups=route.openshift.io,resources=routes/custom-host,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
@@ -65,7 +67,7 @@ type ClusterReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;patch
 // +kubebuilder:rbac:groups=core,resources=nodes,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io;bootstrap.cluster.x-k8s.io;controlplane.cluster.x-k8s.io,resources=*,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=cluster.x-k8s.io,resources=clusters;clusters/status,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=cluster.x-k8s.io,resources=*,verbs=get;list;watch;create;update;patch;delete
 
 func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
@@ -112,6 +114,10 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		NamespacedName:  req.NamespacedName,
 		EnvVars:         cluster.Spec.InfrastructureProvider.Env,
 	})
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	err = config.TrySetCustomTemplates(&cluster, undistroClient.GetVariables())
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -192,15 +198,21 @@ func (r *ClusterReconciler) delete(ctx context.Context, cl *undistrov1.Cluster) 
 }
 
 func (r *ClusterReconciler) init(ctx context.Context, cl *undistrov1.Cluster, c uclient.Client) error {
-	log := r.Log
-	components, err := c.Init(uclient.InitOptions{
+	opts := uclient.InitOptions{
 		Kubeconfig: uclient.Kubeconfig{
 			RestConfig: r.RestConfig,
 		},
 		InfrastructureProviders: []string{cl.Spec.InfrastructureProvider.NameVersion()},
 		TargetNamespace:         "undistro-system",
 		LogUsageInstructions:    false,
-	})
+	}
+	if cl.Spec.BootstrapProvider != nil {
+		opts.BootstrapProviders = []string{cl.Spec.BootstrapProvider.NameVersion()}
+	}
+	if cl.Spec.ControlPlaneProvider != nil {
+		opts.ControlPlaneProviders = []string{cl.Spec.ControlPlaneProvider.NameVersion()}
+	}
+	components, err := c.Init(opts)
 	if err != nil {
 		return err
 	}
@@ -216,14 +228,6 @@ func (r *ClusterReconciler) init(ctx context.Context, cl *undistrov1.Cluster, c 
 	}
 	cl.Status.InstalledComponents = make([]undistrov1.InstalledComponent, len(components))
 	for i, component := range components {
-		preConfigFunc := component.GetPreConfigFunc()
-		if preConfigFunc != nil {
-			log.Info("executing pre config func", "component", component.Name())
-			err = preConfigFunc(cl, c.GetVariables())
-			if err != nil {
-				return err
-			}
-		}
 		ic := undistrov1.InstalledComponent{
 			Name:    component.Name(),
 			Version: component.Version(),
@@ -241,7 +245,22 @@ func (r *ClusterReconciler) init(ctx context.Context, cl *undistrov1.Cluster, c 
 }
 
 func (r *ClusterReconciler) config(ctx context.Context, cl *undistrov1.Cluster, c uclient.Client) error {
-	tpl, err := c.GetClusterTemplate(uclient.GetClusterTemplateOptions{
+	log := r.Log
+	for _, ic := range cl.Status.InstalledComponents {
+		comp, err := uclient.GetProvider(c, ic.Name, ic.Type)
+		if err != nil {
+			return err
+		}
+		preConfigFunc := comp.GetPreConfigFunc()
+		if preConfigFunc != nil {
+			log.Info("executing pre config func", "component", comp.Name())
+			err = preConfigFunc(ctx, cl, c.GetVariables(), r.Client)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	opts := uclient.GetClusterTemplateOptions{
 		Kubeconfig: uclient.Kubeconfig{
 			RestConfig: r.RestConfig,
 		},
@@ -251,7 +270,19 @@ func (r *ClusterReconciler) config(ctx context.Context, cl *undistrov1.Cluster, 
 		KubernetesVersion:        cl.Spec.KubernetesVersion,
 		ControlPlaneMachineCount: cl.Spec.ControlPlaneNode.Replicas,
 		WorkerMachineCount:       cl.Spec.WorkerNode.Replicas,
-	})
+	}
+	if cl.Spec.Template != nil {
+		opts.URLSource = &uclient.URLSourceOptions{
+			URL: *cl.Spec.Template,
+		}
+	}
+	if cl.Spec.BootstrapProvider != nil && cl.Spec.Template == nil {
+		opts.ProviderRepositorySource = &uclient.ProviderRepositorySourceOptions{
+			InfrastructureProvider: cl.Spec.InfrastructureProvider.Name,
+			Flavor:                 cl.Spec.BootstrapProvider.Name,
+		}
+	}
+	tpl, err := c.GetClusterTemplate(opts)
 	if err != nil {
 		return err
 	}
@@ -303,7 +334,7 @@ func (r *ClusterReconciler) provisioning(ctx context.Context, cl *undistrov1.Clu
 		}
 		return ctrl.Result{}, nil
 	}
-	if capi.Status.ControlPlaneInitialized && !capi.Status.ControlPlaneReady {
+	if capi.Status.ControlPlaneInitialized && !capi.Status.ControlPlaneReady && cl.Spec.CniName != undistrov1.ProviderCNI {
 		if err := r.installCNI(ctx, cl, c); err != nil {
 			return ctrl.Result{}, err
 		}
