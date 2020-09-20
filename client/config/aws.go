@@ -2,7 +2,10 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
+	"io/ioutil"
+	"os"
 	"text/template"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,11 +13,19 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
+	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/cloudformation/bootstrap"
 	cloudformation "sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/cloudformation/service"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
+	undistroNamespace             = "undistro-system"
+	secretName                    = "capa-manager-bootstrap-credentials"
+	secretKey                     = "credentials"
+	filePath                      = "/home/.aws/credentials"
 	defaultAWSRegion              = "us-east-1"
 	awsSshKeyNameKey              = "AWS_SSH_KEY_NAME"
 	awsControlPlaneMachineTypeKey = "AWS_CONTROL_PLANE_MACHINE_TYPE"
@@ -81,10 +92,34 @@ func (c awsCredentials) createCloudFormation() error {
 	return cfnSvc.ReconcileBootstrapStack(t.Spec.StackName, *t.RenderCloudFormation())
 }
 
-func awsPreConfig(cl *undistrov1.Cluster, v VariablesClient) error {
+func awsPreConfig(ctx context.Context, cl *undistrov1.Cluster, v VariablesClient, c client.Client) error {
 	v.Set(awsSshKeyNameKey, cl.Spec.InfrastructureProvider.SSHKey)
 	v.Set(awsControlPlaneMachineTypeKey, cl.Spec.ControlPlaneNode.MachineType)
 	v.Set(awsWorkerMachineTypeKey, cl.Spec.WorkerNode.MachineType)
+	_, err := v.Get(awsRegionKey)
+	if err != nil {
+		v.Set(awsRegionKey, defaultAWSRegion)
+	}
+	nm := types.NamespacedName{
+		Name:      secretName,
+		Namespace: undistroNamespace,
+	}
+	_, err = os.Stat(filePath)
+	if err != nil && os.IsNotExist(err) {
+		s := corev1.Secret{}
+		err = c.Get(ctx, nm, &s)
+		if err != nil {
+			return err
+		}
+		v, ok := s.Data[secretKey]
+		if !ok {
+			return errors.New("capa secret not found")
+		}
+		err = ioutil.WriteFile(filePath, v, 0644)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
