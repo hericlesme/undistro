@@ -45,7 +45,6 @@ jobs:
         DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
-        curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.17.9/2020-08-04/bin/linux/amd64/aws-iam-authenticator && chmod +x aws-iam-authenticator
         echo $DOCKER_PASSWORD | docker login -u $DOCKER_LOGIN --password-stdin
         docker build -t getupcloud/undistro:$GIT_VERSION .
         docker push getupcloud/undistro:$GIT_VERSION
