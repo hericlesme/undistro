@@ -373,8 +373,7 @@ func (r *ClusterReconciler) upgrade(ctx context.Context, cl *undistrov1.Cluster,
 }
 
 func (r *ClusterReconciler) upgradeInstance(ctx context.Context, cl *undistrov1.Cluster, capi *clusterApi.Cluster, actual *undistrov1.ClusterStatus) error {
-	switch {
-	case actual.ControlPlaneNode.MachineType != cl.Spec.ControlPlaneNode.MachineType:
+	if actual.ControlPlaneNode.MachineType != cl.Spec.ControlPlaneNode.MachineType {
 		nm := types.NamespacedName{
 			Name:      capi.Spec.ControlPlaneRef.Name,
 			Namespace: capi.Spec.ControlPlaneRef.Namespace,
@@ -406,8 +405,12 @@ func (r *ClusterReconciler) upgradeInstance(ctx context.Context, cl *undistrov1.
 		}
 		kubeadmCP.Spec.InfrastructureTemplate.Name = newObj.GetName()
 		kubeadmCP.Spec.InfrastructureTemplate.Namespace = newObj.GetNamespace()
-		return r.Update(ctx, &kubeadmCP)
-	case actual.WorkerNode.MachineType != cl.Spec.WorkerNode.MachineType:
+		err = r.Update(ctx, &kubeadmCP)
+		if err != nil {
+			return err
+		}
+	}
+	if actual.WorkerNode.MachineType != cl.Spec.WorkerNode.MachineType {
 		md := clusterApi.MachineDeployment{}
 		nm := types.NamespacedName{
 			Name:      fmt.Sprintf("%s-md-0", cl.Name),
@@ -442,7 +445,10 @@ func (r *ClusterReconciler) upgradeInstance(ctx context.Context, cl *undistrov1.
 		}
 		md.Spec.Template.Spec.InfrastructureRef.Name = newObj.GetName()
 		md.Spec.Template.Spec.InfrastructureRef.Namespace = newObj.GetNamespace()
-		return r.Update(ctx, &md)
+		err = r.Update(ctx, &md)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
