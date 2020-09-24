@@ -398,7 +398,6 @@ func (r *ClusterReconciler) upgradeInstance(ctx context.Context, cl *undistrov1.
 		if err != nil {
 			return err
 		}
-
 		err = r.Create(ctx, newObj)
 		if err != nil {
 			return err
@@ -434,10 +433,6 @@ func (r *ClusterReconciler) upgradeInstance(ctx context.Context, cl *undistrov1.
 		err = unstructured.SetNestedField(newObj.Object, cl.Spec.WorkerNode.MachineType, "spec", "template", "spec", "instanceType")
 		if err != nil {
 			return err
-		}
-		err = ctrl.SetControllerReference(cl, newObj, r.Scheme)
-		if err != nil {
-			return errors.Errorf("couldn't set reference: %v", err)
 		}
 		err = r.Create(ctx, newObj)
 		if err != nil {
