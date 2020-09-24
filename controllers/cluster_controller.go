@@ -16,13 +16,17 @@ import (
 	"github.com/getupcloud/undistro/client/config"
 	"github.com/getupcloud/undistro/internal/util"
 	"github.com/go-logr/logr"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	clusterApi "sigs.k8s.io/cluster-api/api/v1alpha3"
+	kubeadmApi "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha3"
 	utilresource "sigs.k8s.io/cluster-api/util/resource"
 	"sigs.k8s.io/cluster-api/util/yaml"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -159,7 +163,25 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 		return res, nil
 	}
+	if r.hasDiff(ctx, &cluster) {
+		return r.upgrade(ctx, &cluster, undistroClient)
+	}
 	return ctrl.Result{}, nil
+}
+
+func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *undistrov1.Cluster) bool {
+	diffCP := cmp.Diff(cl.Spec.ControlPlaneNode, cl.Status.ControlPlaneNode)
+	diffW := cmp.Diff(cl.Spec.WorkerNode, cl.Status.WorkerNode)
+	switch {
+	case cl.Spec.KubernetesVersion != cl.Status.KubernetesVersion:
+		return true
+	case diffCP != "":
+		return true
+	case diffW != "":
+		return true
+	default:
+		return false
+	}
 }
 
 func (r *ClusterReconciler) delete(ctx context.Context, cl *undistrov1.Cluster) error {
@@ -315,6 +337,170 @@ func (r *ClusterReconciler) config(ctx context.Context, cl *undistrov1.Cluster, 
 	return nil
 }
 
+func (r *ClusterReconciler) upgrade(ctx context.Context, cl *undistrov1.Cluster, uc uclient.Client) (ctrl.Result, error) {
+	if cl.Status.ClusterAPIRef == nil {
+		return ctrl.Result{}, errors.New("cluster API reference is nil")
+	}
+	capi := clusterApi.Cluster{}
+	nm := types.NamespacedName{
+		Name:      cl.Status.ClusterAPIRef.Name,
+		Namespace: cl.Status.ClusterAPIRef.Namespace,
+	}
+	if err := r.Get(ctx, nm, &capi); err != nil {
+		return ctrl.Result{}, err
+	}
+	actual := cl.Status.DeepCopy()
+	cl.Status.KubernetesVersion = cl.Spec.KubernetesVersion
+	cl.Status.WorkerNode = cl.Spec.WorkerNode
+	cl.Status.ControlPlaneNode = cl.Spec.ControlPlaneNode
+	cl.Status.InfrastructureName = cl.Spec.InfrastructureProvider.Name
+	if err := r.Status().Update(ctx, cl); err != nil {
+		return ctrl.Result{}, err
+	}
+	if cl.Namespace == "" {
+		cl.Namespace = "default"
+	}
+	switch {
+	case actual.KubernetesVersion != cl.Spec.KubernetesVersion,
+		actual.ControlPlaneNode.Replicas != cl.Spec.ControlPlaneNode.Replicas,
+		actual.WorkerNode.Replicas != cl.Spec.WorkerNode.Replicas:
+		return ctrl.Result{}, r.upgradeRefs(ctx, cl, &capi, uc)
+	case actual.ControlPlaneNode.MachineType != cl.Spec.ControlPlaneNode.MachineType,
+		actual.WorkerNode.MachineType != cl.Spec.WorkerNode.MachineType:
+		return ctrl.Result{}, r.upgradeInstance(ctx, cl, &capi, actual)
+	}
+	return ctrl.Result{}, nil
+}
+
+func (r *ClusterReconciler) upgradeInstance(ctx context.Context, cl *undistrov1.Cluster, capi *clusterApi.Cluster, actual *undistrov1.ClusterStatus) error {
+	switch {
+	case actual.ControlPlaneNode.MachineType != cl.Spec.ControlPlaneNode.MachineType:
+		nm := types.NamespacedName{
+			Name:      capi.Spec.ControlPlaneRef.Name,
+			Namespace: capi.Spec.ControlPlaneRef.Namespace,
+		}
+		kubeadmCP := kubeadmApi.KubeadmControlPlane{}
+		err := r.Get(ctx, nm, &kubeadmCP)
+		if err != nil {
+			return err
+		}
+		nm.Name = kubeadmCP.Spec.InfrastructureTemplate.Name
+		nm.Namespace = kubeadmCP.Spec.InfrastructureTemplate.Namespace
+		o := unstructured.Unstructured{}
+		o.SetGroupVersionKind(kubeadmCP.Spec.InfrastructureTemplate.GroupVersionKind())
+		err = r.Get(ctx, nm, &o)
+		if err != nil {
+			return err
+		}
+		newObj := o.DeepCopy()
+		newObj.SetName(fmt.Sprintf("%s-control-plane-%s", cl.Name, uuid.New().String()))
+		newObj.SetNamespace(cl.Namespace)
+		err = unstructured.SetNestedField(newObj.Object, cl.Spec.ControlPlaneNode.MachineType, "spec", "template", "spec", "instanceType")
+		if err != nil {
+			return err
+		}
+
+		err = r.Create(ctx, newObj)
+		if err != nil {
+			return err
+		}
+		kubeadmCP.Spec.InfrastructureTemplate.Name = newObj.GetName()
+		kubeadmCP.Spec.InfrastructureTemplate.Namespace = newObj.GetNamespace()
+		return r.Update(ctx, &kubeadmCP)
+	case actual.WorkerNode.MachineType != cl.Spec.WorkerNode.MachineType:
+		md := clusterApi.MachineDeployment{}
+		nm := types.NamespacedName{
+			Name:      fmt.Sprintf("%s-md-0", cl.Name),
+			Namespace: cl.Namespace,
+		}
+		err := r.Get(ctx, nm, &md)
+		if err != nil {
+			return err
+		}
+		nm.Name = md.Spec.Template.Spec.InfrastructureRef.Name
+		nm.Namespace = md.Spec.Template.Spec.InfrastructureRef.Namespace
+		o := unstructured.Unstructured{}
+		o.SetGroupVersionKind(md.Spec.Template.Spec.InfrastructureRef.GroupVersionKind())
+		err = r.Get(ctx, nm, &o)
+		if err != nil {
+			return err
+		}
+		newObj := o.DeepCopy()
+		newObj.SetName(fmt.Sprintf("%s-md-0-%s", cl.Name, uuid.New().String()))
+		newObj.SetNamespace(cl.Namespace)
+		err = unstructured.SetNestedField(newObj.Object, cl.Spec.WorkerNode.MachineType, "spec", "template", "spec", "instanceType")
+		if err != nil {
+			return err
+		}
+		err = ctrl.SetControllerReference(cl, newObj, r.Scheme)
+		if err != nil {
+			return errors.Errorf("couldn't set reference: %v", err)
+		}
+		err = r.Create(ctx, newObj)
+		if err != nil {
+			return err
+		}
+		md.Spec.Template.Spec.InfrastructureRef.Name = newObj.GetName()
+		md.Spec.Template.Spec.InfrastructureRef.Namespace = newObj.GetNamespace()
+		return r.Update(ctx, &md)
+	}
+	return nil
+}
+
+func (r *ClusterReconciler) upgradeRefs(ctx context.Context, cl *undistrov1.Cluster, capi *clusterApi.Cluster, uc uclient.Client) error {
+	log := r.Log
+	p, err := uclient.GetProvider(uc, cl.Spec.InfrastructureProvider.Name, undistrov1.InfrastructureProviderType)
+	if err != nil {
+		return err
+	}
+	upgradeFunc := p.GetUpgradeFunc()
+	if upgradeFunc != nil {
+		log.Info("executing upgrade func", "component", p.Name())
+		err = upgradeFunc(ctx, cl, capi, r.Client)
+		if err != nil {
+			return err
+		}
+	} else {
+		o := unstructured.Unstructured{}
+		o.SetGroupVersionKind(capi.Spec.ControlPlaneRef.GroupVersionKind())
+		nm := types.NamespacedName{
+			Name:      capi.Spec.ControlPlaneRef.Name,
+			Namespace: capi.Spec.ControlPlaneRef.Namespace,
+		}
+		err := r.Get(ctx, nm, &o)
+		if err != nil {
+			return err
+		}
+		err = unstructured.SetNestedField(o.Object, cl.Spec.KubernetesVersion, "spec", "version")
+		if err != nil {
+			return err
+		}
+		err = unstructured.SetNestedField(o.Object, cl.Spec.ControlPlaneNode.Replicas, "spec", "replicas")
+		if err != nil {
+			return err
+		}
+		o.SetResourceVersion(capi.Spec.ControlPlaneRef.ResourceVersion)
+		err = r.Update(ctx, &o)
+		if err != nil {
+			return err
+		}
+	}
+	// upgrade worker nodes
+	md := clusterApi.MachineDeployment{}
+	nm := types.NamespacedName{
+		Name:      fmt.Sprintf("%s-md-0", cl.Name),
+		Namespace: cl.Namespace,
+	}
+	err = r.Get(ctx, nm, &md)
+	if err != nil {
+		return err
+	}
+	md.Spec.Template.Spec.Version = &cl.Spec.KubernetesVersion
+	workerReplicas := int32(*cl.Spec.WorkerNode.Replicas)
+	md.Spec.Replicas = &workerReplicas
+	return r.Update(ctx, &md)
+}
+
 func (r *ClusterReconciler) provisioning(ctx context.Context, cl *undistrov1.Cluster, c uclient.Client) (ctrl.Result, error) {
 	log := r.Log
 	log.Info("provisioning cluster", "name", cl.Name, "namespace", cl.Namespace)
@@ -445,6 +631,9 @@ func (r *ClusterReconciler) capiToUndistro(o handler.MapObject) []ctrl.Request {
 		if client.IgnoreNotFound(err) != nil {
 			r.Log.Error(err, "couldn't get undistro cluster")
 		}
+		return nil
+	}
+	if uc.Status.Phase == undistrov1.ClusterPhase(c.Status.Phase) {
 		return nil
 	}
 	uc.Status.Phase = undistrov1.ClusterPhase(c.Status.Phase)
