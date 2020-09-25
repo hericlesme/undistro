@@ -409,6 +409,14 @@ type HelmReleaseSpec struct {
 	// Values holds the values for this Helm release.
 	// +optional
 	Values *apiextensionsv1.JSON `json:"values,omitempty"`
+	// BeforeApplyObjects holds the objects that will be applied
+	// before this helm release installation
+	// +optional
+	BeforeApplyObjects []apiextensionsv1.JSON `json:"beforeApplyObjects,omitempty"`
+	// AfterApplyObjects holds the objects that will be applied
+	// after this helm release installation
+	// +optional
+	AfterApplyObjects []apiextensionsv1.JSON `json:"afterApplyObjects,omitempty"`
 }
 
 // HelmReleaseStatus contains status information about an HelmRelease.
