@@ -362,8 +362,8 @@ func (r *ClusterReconciler) upgrade(ctx context.Context, cl *undistrov1.Cluster,
 	}
 	switch {
 	case actual.KubernetesVersion != cl.Spec.KubernetesVersion,
-		actual.ControlPlaneNode.Replicas != cl.Spec.ControlPlaneNode.Replicas,
-		actual.WorkerNode.Replicas != cl.Spec.WorkerNode.Replicas:
+		*actual.ControlPlaneNode.Replicas != *cl.Spec.ControlPlaneNode.Replicas,
+		*actual.WorkerNode.Replicas != *cl.Spec.WorkerNode.Replicas:
 		return ctrl.Result{}, r.upgradeRefs(ctx, cl, &capi, uc)
 	case actual.ControlPlaneNode.MachineType != cl.Spec.ControlPlaneNode.MachineType,
 		actual.WorkerNode.MachineType != cl.Spec.WorkerNode.MachineType:
@@ -398,6 +398,7 @@ func (r *ClusterReconciler) upgradeInstance(ctx context.Context, cl *undistrov1.
 		if err != nil {
 			return err
 		}
+		newObj.SetResourceVersion("")
 		err = r.Create(ctx, newObj)
 		if err != nil {
 			return err
@@ -419,6 +420,9 @@ func (r *ClusterReconciler) upgradeInstance(ctx context.Context, cl *undistrov1.
 		if err != nil {
 			return err
 		}
+		if md.Spec.Template.Spec.InfrastructureRef.Namespace == "" {
+			md.Spec.Template.Spec.InfrastructureRef.Namespace = "default"
+		}
 		nm.Name = md.Spec.Template.Spec.InfrastructureRef.Name
 		nm.Namespace = md.Spec.Template.Spec.InfrastructureRef.Namespace
 		o := unstructured.Unstructured{}
@@ -434,6 +438,7 @@ func (r *ClusterReconciler) upgradeInstance(ctx context.Context, cl *undistrov1.
 		if err != nil {
 			return err
 		}
+		newObj.SetResourceVersion("")
 		err = r.Create(ctx, newObj)
 		if err != nil {
 			return err
