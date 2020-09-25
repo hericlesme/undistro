@@ -1,6 +1,6 @@
 module github.com/getupcloud/undistro
 
-go 1.13
+go 1.15
 
 require (
 	github.com/MakeNowJust/heredoc/v2 v2.0.1
@@ -18,7 +18,7 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.1
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
-	helm.sh/helm/v3 v3.3.3
+	helm.sh/helm/v3 v3.3.4
 	k8s.io/api v0.18.9
 	k8s.io/apiextensions-apiserver v0.18.9
 	k8s.io/apimachinery v0.18.9
