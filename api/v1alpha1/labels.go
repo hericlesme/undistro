@@ -7,11 +7,6 @@ package v1alpha1
 import "fmt"
 
 const (
-	HelmApplyAfter  = "getupcloud.com/apply-after-deploy"
-	HelmApplyBefore = "getupcloud.com/apply-before-deploy"
-)
-
-const (
 	// ClusterctlLabelName is applied to all components managed by undistro.
 	ClusterctlLabelName = "clusterctl.cluster.x-k8s.io"
 

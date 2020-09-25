@@ -16,6 +16,8 @@ import (
 	"github.com/getupcloud/undistro/client/cluster/helm"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -43,19 +45,39 @@ func (r *HelmReleaseReconciler) clusterClient(ctx context.Context, wc cluster.Wo
 	return client.New(workloadCfg, client.Options{Scheme: r.Scheme})
 }
 
-func (r *HelmReleaseReconciler) execAnnotation(ctx context.Context, c client.Client, hr *undistrov1.HelmRelease, annot string) error {
-	if v, ok := hr.GetAnnotations()[annot]; ok {
-		objs, err := yaml.ToUnstructured([]byte(v))
-		if err != nil {
-			return err
-		}
-		for _, o := range objs {
-			if o.GetNamespace() == "" {
-				o.SetNamespace("default")
-			}
-			err = c.Patch(ctx, &o, client.Apply, client.FieldOwner("undistro"))
+func (r *HelmReleaseReconciler) execObjs(ctx context.Context, c client.Client, objs []apiextensionsv1.JSON) error {
+	if len(objs) > 0 {
+		for _, obj := range objs {
+			st, err := yaml.ToUnstructured(obj.Raw)
 			if err != nil {
 				return err
+			}
+			for _, o := range st {
+				old := unstructured.Unstructured{}
+				namespace := o.GetNamespace()
+				if namespace == "" {
+					namespace = "default"
+				}
+				nm := types.NamespacedName{
+					Name:      o.GetName(),
+					Namespace: o.GetNamespace(),
+				}
+				err = c.Get(ctx, nm, &old)
+				if err != nil {
+					if client.IgnoreNotFound(err) != nil {
+						return err
+					}
+					o.SetNamespace(namespace)
+					err = c.Create(ctx, &o)
+					if err != nil {
+						return err
+					}
+					continue
+				}
+				err = c.Patch(ctx, &o, client.MergeFrom(&old))
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -186,9 +208,9 @@ func (r *HelmReleaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		}
 		return ctrl.Result{}, err
 	}
-	err = r.execAnnotation(ctx, wClient, &hr, undistrov1.HelmApplyBefore)
+	err = r.execObjs(ctx, wClient, hr.Spec.BeforeApplyObjects)
 	if err != nil {
-		log.Error(err, "failed to exec annotation", "name", hr.Name, "annotation", undistrov1.HelmApplyBefore)
+		log.Error(err, "failed to exec before", "name", hr.Name)
 		hr.Status.Phase = undistrov1.HelmReleasePhaseFailed
 		hr.Status.LastAttemptedRevision = ""
 		serr := r.Status().Update(ctx, &hr)
@@ -293,9 +315,9 @@ func (r *HelmReleaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		}
 		return ctrl.Result{}, err
 	}
-	err = r.execAnnotation(ctx, wClient, &hr, undistrov1.HelmApplyAfter)
+	err = r.execObjs(ctx, wClient, hr.Spec.AfterApplyObjects)
 	if err != nil {
-		log.Error(err, "failed to exec annotation", "name", hr.Name, "annotation", undistrov1.HelmApplyAfter)
+		log.Error(err, "failed to exec after", "name", hr.Name)
 		hr.Status.Phase = undistrov1.HelmReleasePhaseFailed
 		serr := r.Status().Update(ctx, &hr)
 		if serr != nil {

@@ -55,6 +55,16 @@ spec:
             type: object
           spec:
             properties:
+              afterApplyObjects:
+                description: AfterApplyObjects holds the objects that will be applied after this helm release installation
+                items:
+                  x-kubernetes-preserve-unknown-fields: true
+                type: array
+              beforeApplyObjects:
+                description: BeforeApplyObjects holds the objects that will be applied before this helm release installation
+                items:
+                  x-kubernetes-preserve-unknown-fields: true
+                type: array
               chart:
                 properties:
                   name:
