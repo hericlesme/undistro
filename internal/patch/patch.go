@@ -153,3 +153,14 @@ func (h *Helper) calculateChanges(after runtime.Object) (map[string]bool, error)
 	}
 	return res, nil
 }
+
+func ControllerObject(ctx context.Context, h *Helper, obj runtime.Object, reterr error) error {
+	err := h.Patch(ctx, obj)
+	if client.IgnoreNotFound(err) != nil {
+		return kerrors.NewAggregate([]error{err, reterr})
+	}
+	if client.IgnoreNotFound(reterr) != nil {
+		return reterr
+	}
+	return nil
+}

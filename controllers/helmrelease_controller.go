@@ -20,7 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cluster-api/util/yaml"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -106,14 +105,7 @@ func (r *HelmReleaseReconciler) Reconcile(req ctrl.Request) (res ctrl.Result, er
 		return ctrl.Result{}, err
 	}
 	defer func() {
-		kerr := patchHelper.Patch(ctx, &hr)
-		if kerr != nil {
-			if client.IgnoreNotFound(kerr) != nil || client.IgnoreNotFound(err) != nil {
-				err = kerrors.NewAggregate([]error{err, kerr})
-				return
-			}
-			err = nil
-		}
+		err = patch.ControllerObject(ctx, patchHelper, &hr, err)
 	}()
 	undistroClient, err := uclient.New("")
 	if err != nil {
