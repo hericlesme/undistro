@@ -22,8 +22,8 @@ type ChartState struct {
 }
 
 func PrepareChart(h Client, hr *undistrov1.HelmRelease) (ChartState, error) {
-	if hr.Spec.RepoChartSource != nil && hr.Spec.RepoURL != "" && hr.Spec.Name != "" && hr.Spec.Version != "" {
-		chartPath, _, err := h.EnsureChartFetched(hr.GetClusterNamespacedName().String(), hr.Spec.RepoChartSource)
+	if hr.Spec.RepoURL != "" && hr.Spec.Name != "" && hr.Spec.Version != "" {
+		chartPath, _, err := h.EnsureChartFetched(hr.GetClusterNamespacedName().String(), &hr.Spec.RepoChartSource)
 		if err != nil {
 			return ChartState{}, err
 		}

@@ -14,6 +14,7 @@ import (
 	undistrov1 "github.com/getupcloud/undistro/api/v1alpha1"
 	uclient "github.com/getupcloud/undistro/client"
 	"github.com/getupcloud/undistro/client/config"
+	"github.com/getupcloud/undistro/internal/patch"
 	"github.com/getupcloud/undistro/internal/util"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
@@ -24,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/rest"
 	clusterApi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	kubeadmApi "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha3"
@@ -73,7 +75,7 @@ type ClusterReconciler struct {
 // +kubebuilder:rbac:groups=infrastructure.cluster.x-k8s.io;bootstrap.cluster.x-k8s.io;controlplane.cluster.x-k8s.io,resources=*,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=cluster.x-k8s.io,resources=*,verbs=get;list;watch;create;update;patch;delete
 
-func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ClusterReconciler) Reconcile(req ctrl.Request) (res ctrl.Result, err error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("cluster", req.NamespacedName)
 	var cluster undistrov1.Cluster
@@ -84,12 +86,23 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 		return ctrl.Result{}, nil
 	}
+	// Initialize the patch helper.
+	patchHelper, err := patch.NewHelper(&cluster, r.Client)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	defer func() {
+		kerr := patchHelper.Patch(ctx, &cluster)
+		if kerr != nil {
+			if client.IgnoreNotFound(kerr) != nil || client.IgnoreNotFound(err) != nil {
+				err = kerrors.NewAggregate([]error{err, kerr})
+				return
+			}
+			err = nil
+		}
+	}()
 	if !controllerutil.ContainsFinalizer(&cluster, undistrov1.ClusterFinalizer) {
 		controllerutil.AddFinalizer(&cluster, undistrov1.ClusterFinalizer)
-		if err := r.Update(ctx, &cluster); client.IgnoreNotFound(err) != nil {
-			log.Error(err, "couldn't update status", "name", req.NamespacedName)
-			return ctrl.Result{}, err
-		}
 		return ctrl.Result{}, nil
 	}
 	if !cluster.DeletionTimestamp.IsZero() {
@@ -97,15 +110,10 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		if err := r.delete(ctx, &cluster); err != nil {
 			return ctrl.Result{}, err
 		}
-		r.Status().Update(ctx, &cluster)
 		if cluster.Status.Phase == undistrov1.DeletingPhase {
 			return ctrl.Result{Requeue: true}, nil
 		}
 		controllerutil.RemoveFinalizer(&cluster, undistrov1.ClusterFinalizer)
-		if err := r.Update(ctx, &cluster); client.IgnoreNotFound(err) != nil {
-			log.Error(err, "couldn't update status", "name", req.NamespacedName)
-			return ctrl.Result{}, err
-		}
 		return ctrl.Result{}, nil
 	}
 	undistroClient, err := uclient.New("")
@@ -134,10 +142,6 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			}
 			return ctrl.Result{}, nil
 		}
-		if err = r.Status().Update(ctx, &cluster); client.IgnoreNotFound(err) != nil {
-			log.Error(err, "couldn't update status", "name", req.NamespacedName)
-			return ctrl.Result{}, err
-		}
 		return ctrl.Result{Requeue: true}, nil
 	}
 	if cluster.Status.Phase == undistrov1.InitializedPhase {
@@ -147,11 +151,6 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 				log.Error(err, "couldn't install cluster config", "name", req.NamespacedName)
 				return ctrl.Result{}, err
 			}
-			return ctrl.Result{}, nil
-		}
-		if err = r.Status().Update(ctx, &cluster); client.IgnoreNotFound(err) != nil {
-			log.Error(err, "couldn't update status", "name", req.NamespacedName)
-			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
 	}
@@ -520,10 +519,6 @@ func (r *ClusterReconciler) provisioning(ctx context.Context, cl *undistrov1.Clu
 	capi := &clusterList.Items[0]
 	if undistrov1.ClusterPhase(capi.Status.Phase) == undistrov1.FailedPhase {
 		cl.Status.Phase = undistrov1.FailedPhase
-		if err := r.Status().Update(ctx, cl); client.IgnoreNotFound(err) != nil {
-			log.Error(err, "couldn't update status", "name", cl.Name, "namespace", cl.Namespace)
-			return ctrl.Result{}, err
-		}
 		return ctrl.Result{}, nil
 	}
 	if capi.Status.ControlPlaneInitialized && !capi.Status.ControlPlaneReady && cl.Spec.CniName != undistrov1.ProviderCNI {
@@ -534,11 +529,6 @@ func (r *ClusterReconciler) provisioning(ctx context.Context, cl *undistrov1.Clu
 	if capi.Status.ControlPlaneReady && capi.Status.InfrastructureReady && undistrov1.ClusterPhase(capi.Status.Phase) == undistrov1.ProvisionedPhase {
 		cl.Status.Phase = undistrov1.ProvisionedPhase
 		cl.Status.Ready = true
-		if err := r.Status().Update(ctx, cl); client.IgnoreNotFound(err) != nil {
-			log.Error(err, "couldn't update status", "name", cl.Name, "namespace", cl.Namespace)
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
 	}
 	return ctrl.Result{}, nil
 }

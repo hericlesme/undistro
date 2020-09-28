@@ -169,7 +169,7 @@ type HelmReleaseList struct {
 
 type ChartSource struct {
 	// +optional
-	*RepoChartSource `json:",inline"`
+	RepoChartSource `json:",inline"`
 }
 
 // RepoChartSources describes a Helm chart sourced from a Helm
