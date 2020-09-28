@@ -25,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/rest"
 	clusterApi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	kubeadmApi "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha3"
@@ -92,14 +91,7 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (res ctrl.Result, err er
 		return ctrl.Result{}, err
 	}
 	defer func() {
-		kerr := patchHelper.Patch(ctx, &cluster)
-		if kerr != nil {
-			if client.IgnoreNotFound(kerr) != nil || client.IgnoreNotFound(err) != nil {
-				err = kerrors.NewAggregate([]error{err, kerr})
-				return
-			}
-			err = nil
-		}
+		err = patch.ControllerObject(ctx, patchHelper, &cluster, err)
 	}()
 	if !controllerutil.ContainsFinalizer(&cluster, undistrov1.ClusterFinalizer) {
 		controllerutil.AddFinalizer(&cluster, undistrov1.ClusterFinalizer)
