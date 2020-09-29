@@ -85,6 +85,42 @@ func (r *HelmReleaseReconciler) execObjs(ctx context.Context, c client.Client, o
 	return nil
 }
 
+func (r *HelmReleaseReconciler) hasNonDeployedDeps(ctx context.Context, hr *undistrov1.HelmRelease) bool {
+	log := r.Log
+	if len(hr.Spec.Dependencies) > 0 {
+		for _, d := range hr.Spec.Dependencies {
+			namespace := d.Namespace
+			if namespace == "" {
+				namespace = "default"
+			}
+			nm := types.NamespacedName{
+				Name:      d.Name,
+				Namespace: namespace,
+			}
+			o := unstructured.Unstructured{}
+			o.SetGroupVersionKind(d.GroupVersionKind())
+			err := r.Get(ctx, nm, &o)
+			if err != nil {
+				log.Error(err, "error when check dependency", "name", d.Name)
+				return true
+			}
+			if o.GroupVersionKind() == hr.GroupVersionKind() {
+				dep := undistrov1.HelmRelease{}
+				err := runtime.DefaultUnstructuredConverter.FromUnstructured(o.Object, &dep)
+				if err != nil {
+					log.Error(err, "error when convert helmrelease")
+					return true
+				}
+				if dep.Status.Phase != undistrov1.HelmReleasePhaseDeployed {
+					log.Info("wait dependency to be deployed", "name", d.Name)
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 // +kubebuilder:rbac:groups=getupcloud.com,resources=*,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=getupcloud.com,resources=*,verbs=get;update;patch
 
@@ -122,6 +158,11 @@ func (r *HelmReleaseReconciler) Reconcile(req ctrl.Request) (res ctrl.Result, er
 		log.Info("cluster is not ready yet", "namespaced name", nm.String())
 		hr.Status.Phase = undistrov1.HelmReleasePhaseWaitClusterReady
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
+	}
+	if r.hasNonDeployedDeps(ctx, &hr) {
+		log.Info("wating all dependencies to be deployed", "namespaced name", nm.String())
+		hr.Status.Phase = undistrov1.HelmReleasePhaseWaitDependency
+		return ctrl.Result{Requeue: true}, nil
 	}
 	wClient, err := r.clusterClient(ctx, wc, nm)
 	if err != nil {

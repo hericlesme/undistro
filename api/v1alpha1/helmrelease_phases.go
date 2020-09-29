@@ -1,21 +1,6 @@
 package v1alpha1
 
 // HelmReleasePhase represents the phase a HelmRelease is in.
-// Valid HelmReleasePhase values are:
-// "ChartFetched",
-// "ChartFetchFailed",
-// "Installing",
-// "Upgrading",
-// "Deployed",
-// "DeployFailed",
-// "Testing",
-// "TestFailed",
-// "Tested",
-// "Succeeded",
-// "Failed",
-// "RollingBack",
-// "RolledBack",
-// "RollbackFailed",
 // +optional
 type HelmReleasePhase string
 
@@ -63,4 +48,6 @@ const (
 
 	// WaitClusterReady wait cluster to be ready
 	HelmReleasePhaseWaitClusterReady HelmReleasePhase = "ClusterNotReady"
+	// HelmReleasePhaseWaitDependency wait dependencies to be installed
+	HelmReleasePhaseWaitDependency HelmReleasePhase = "WaitingDependencies"
 )

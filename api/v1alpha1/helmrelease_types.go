@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/getupcloud/undistro/log"
+	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -417,6 +418,10 @@ type HelmReleaseSpec struct {
 	// after this helm release installation
 	// +optional
 	AfterApplyObjects []apiextensionsv1.JSON `json:"afterApplyObjects,omitempty"`
+	// Dependencies holds the referencies of objects
+	// this HelmRelease depends on
+	// +optional
+	Dependencies []corev1.ObjectReference `json:"dependencies,omitempty"`
 }
 
 // HelmReleaseStatus contains status information about an HelmRelease.
