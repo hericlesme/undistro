@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/json"
 	"reflect"
+	"strings"
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -156,11 +157,15 @@ func (h *Helper) calculateChanges(after runtime.Object) (map[string]bool, error)
 
 func ControllerObject(ctx context.Context, h *Helper, obj runtime.Object, reterr error) error {
 	err := h.Patch(ctx, obj)
-	if client.IgnoreNotFound(err) != nil {
-		return kerrors.NewAggregate([]error{err, reterr})
+	if err != nil {
+		if !strings.Contains(err.Error(), "not found") {
+			return kerrors.NewAggregate([]error{err, reterr})
+		}
 	}
-	if client.IgnoreNotFound(reterr) != nil {
-		return reterr
+	if reterr != nil {
+		if !strings.Contains(reterr.Error(), "not found") {
+			return reterr
+		}
 	}
 	return nil
 }
