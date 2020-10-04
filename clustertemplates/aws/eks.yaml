@@ -1,0 +1,96 @@
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: "{{.Name}}"
+  namespace: "{{.Namespace}}"
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks: ["192.168.0.0/16"]
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    kind: AWSManagedCluster
+    name: "{{.Name}}"
+    namespace: "{{.Namespace}}"
+  controlPlaneRef:
+    kind: AWSManagedControlPlane
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    name: "{{.Name}}-control-plane"
+    namespace: "{{.Namespace}}"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSManagedCluster
+metadata:
+  name: "{{.Name}}"
+  namespace: "{{.Namespace}}"
+
+---
+kind: AWSManagedControlPlane
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+metadata:
+  name: "{{.Name}}-control-plane"
+  namespace: "{{.Namespace}}"
+spec:
+  sshKeyName: "{{.Spec.InfrastructureProvider.SSHKey}}"
+  region: '{{variable "AWS_REGION"}}'
+  version: "{{.Spec.KubernetesVersion}}"
+  {{if .Spec.Network}}
+  networkSpec:
+    vpc:
+      id: {{.Spec.Network.VPC}}
+    subnets:
+    {{range .Spec.Network.Subnets}}
+    - id: {{.}}
+    {{end}}
+  {{end}}
+---
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: MachineDeployment
+metadata:
+  name: "{{.Name}}-md-0"
+  namespace: "{{.Namespace}}"
+spec:
+  clusterName: "{{.Name}}"
+  replicas: {{.Spec.WorkerNode.Replicas}}
+  selector:
+    matchLabels:
+  template:
+    spec:
+      clusterName: "{{.Name}}"
+      version: "{{.Spec.KubernetesVersion}}"
+      bootstrap:
+        configRef:
+          name: "{{.Name}}-md-0"
+          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+          kind: EKSConfigTemplate
+          namespace: "{{.Namespace}}"
+      infrastructureRef:
+        name: "{{.Name}}-md-0"
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+        kind: AWSMachineTemplate
+        namespace: "{{.Namespace}}"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSMachineTemplate
+metadata:
+  name: "{{.Name}}-md-0"
+  namespace: "{{.Namespace}}"
+spec:
+  template:
+    spec:
+      instanceType: "{{.Spec.WorkerNode.MachineType}}"
+      iamInstanceProfile: "nodes.cluster-api-provider-aws.sigs.k8s.io"
+      sshKeyName: "{{.Spec.InfrastructureProvider.SSHKey}}"
+      {{if .Spec.WorkerNode.Subnet}}
+      subnet: {{.Spec.WorkerNode.Subnet}}
+      {{end}}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: EKSConfigTemplate
+metadata:
+  name: "{{.Name}}-md-0"
+  namespace: "{{.Namespace}}"
+spec:
+  template: {}
