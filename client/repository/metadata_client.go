@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"sigs.k8s.io/cluster-api/util/yaml"
+	apiyaml "sigs.k8s.io/yaml"
 )
 
 // MetadataClient has methods to work with metadata hosted on a provider repository.
@@ -77,8 +78,10 @@ func (f *metadataClient) Get() (*undistrov1.Metadata, error) {
 		}
 		for _, o := range objs {
 			if !strings.Contains(o.GetAPIVersion(), "getupcloud.com") {
-				if obj := f.getEmbeddedMetadata(); obj != nil {
-					return obj, nil
+				o.SetAPIVersion(undistrov1.GroupVersion.String())
+				file, err = apiyaml.Marshal(o.Object)
+				if err != nil {
+					return nil, err
 				}
 			}
 		}
@@ -210,6 +213,17 @@ func (f *metadataClient) getEmbeddedMetadata() *undistrov1.Metadata {
 					// v1alpha3 release series
 					{Major: 0, Minor: 1, Contract: "v1alpha3"},
 					// there are no older version for Talos controlplane
+				},
+			}
+		case config.EKSControlPlaneProviderName:
+			return &undistrov1.Metadata{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: undistrov1.GroupVersion.String(),
+					Kind:       "Metadata",
+				},
+				ReleaseSeries: []undistrov1.ReleaseSeries{
+					// v1alpha3 release series
+					{Major: 0, Minor: 6, Contract: "v1alpha3"},
 				},
 			}
 		default:
