@@ -3,7 +3,8 @@ area:
   - 'helm'
   - 'cluster-api'
   - 'CLI'
-  - 'Security'
+  - 'security'
+  - 'docs'
 
 kind:
   - 'bug'
