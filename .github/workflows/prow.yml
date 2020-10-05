@@ -2,6 +2,8 @@ name: "Prow github actions"
 on:
   issue_comment:
     types: [created, edited]
+  issues:
+    types: [opened, edited, reopened]
 
 
 jobs:
