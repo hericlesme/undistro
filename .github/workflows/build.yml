@@ -58,7 +58,7 @@ jobs:
     - name: kustomise build
       if: startsWith(github.ref, 'refs/tags/')
       run: |
-        cd config/manager && kustomize edit set image controller=getupio-undistro/undistro:$GIT_VERSION && cd ../..
+        cd config/manager && kustomize edit set image controller=getupioundistro/undistro:$GIT_VERSION && cd ../..
         kustomize build config/default > core-components.yaml
         git checkout .
     
