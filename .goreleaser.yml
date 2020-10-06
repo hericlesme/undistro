@@ -14,7 +14,7 @@ builds:
 
 release:
   github:
-    owner: getupcloud
+    owner: getupio-undistro
     name: undistro
   extra_files:
     - glob: ./core-components.yaml
