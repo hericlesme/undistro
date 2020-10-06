@@ -254,6 +254,7 @@ func (r *ClusterReconciler) init(ctx context.Context, cl *undistrov1.Cluster, c 
 	cl.Status.WorkerNodes = cl.Spec.WorkerNodes
 	cl.Status.ControlPlaneNode = cl.Spec.ControlPlaneNode
 	cl.Status.InfrastructureName = cl.Spec.InfrastructureProvider.Name
+	cl.Status.TotalWorkerPools = int64(len(cl.Spec.WorkerNodes))
 	cl.Status.TotalWorkerReplicas = 0
 	for _, w := range cl.Spec.WorkerNodes {
 		cl.Status.TotalWorkerReplicas += *w.Replicas
