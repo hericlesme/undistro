@@ -213,34 +213,6 @@ rules:
   - update
   - watch
 - apiGroups:
-  - getupcloud.com
-  resources:
-  - '*'
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - getupcloud.com
-  resources:
-  - clusters/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - getupcloud.com
-  resources:
-  - providers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
   - rbac.authorization.k8s.io
   resources:
   - '*'
@@ -264,3 +236,31 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - undistro.io
+  resources:
+  - '*'
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - undistro.io
+  resources:
+  - clusters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - undistro.io
+  resources:
+  - providers/status
+  verbs:
+  - get
+  - patch
+  - update
