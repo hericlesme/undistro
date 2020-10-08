@@ -66,6 +66,10 @@ spec:
     spec:
       clusterName: "{{$name}}"
       version: "{{$k8s}}"
+      {{if $element.Subnet}}
+      subnet: 
+        id: {{$element.Subnet}}
+      {{end}}
       bootstrap:
         configRef:
           name: "{{$name}}-md-{{$index}}"
@@ -89,9 +93,6 @@ spec:
       instanceType: "{{$element.MachineType}}"
       iamInstanceProfile: "nodes.cluster-api-provider-aws.sigs.k8s.io"
       sshKeyName: "{{$sshKey}}"
-      {{if $element.Subnet}}
-      subnet: {{$element.Subnet}}
-      {{end}}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
 kind: EKSConfigTemplate
