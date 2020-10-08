@@ -63,6 +63,9 @@ spec:
       controllerManager:
         extraArgs:
           cloud-provider: aws
+          {{if .Spec.Network}}
+          configure-cloud-routes: 'false'
+          {{end}}
     joinConfiguration:
       nodeRegistration:
         name: {{"'{{ ds.meta_data.local_hostname }}'"}}
@@ -82,7 +85,8 @@ spec:
       iamInstanceProfile: "control-plane.cluster-api-provider-aws.sigs.k8s.io"
       sshKeyName: "{{.Spec.InfrastructureProvider.SSHKey}}"
       {{if .Spec.ControlPlaneNode.Subnet}}
-      subnet: {{.Spec.ControlPlaneNode.Subnet}}
+      subnet:
+        id: {{.Spec.ControlPlaneNode.Subnet}}
       {{end}}
 
 {{$name := .Name}}
@@ -105,6 +109,10 @@ spec:
     spec:
       clusterName: "{{$name}}"
       version: "{{$k8s}}"
+      {{if $element.Subnet}}
+      subnet:
+        id: {{$element.Subnet}}
+      {{end}}
       bootstrap:
         configRef:
           name: "{{$name}}-{{$uuid}}-md-{{$index}}"
@@ -128,9 +136,6 @@ spec:
       instanceType: "{{$element.MachineType}}"
       iamInstanceProfile: "nodes.cluster-api-provider-aws.sigs.k8s.io"
       sshKeyName: "{{$sshKey}}"
-      {{if $element.Subnet}}
-      subnet: {{$element.Subnet}}
-      {{end}}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
 kind: KubeadmConfigTemplate

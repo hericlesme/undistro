@@ -23,7 +23,6 @@ import (
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -302,7 +301,7 @@ func (r *ClusterReconciler) config(ctx context.Context, cl *undistrov1.Cluster, 
 				return errors.Errorf("couldn't set reference: %v", err)
 			}
 		}
-		err = r.Create(ctx, &o)
+		err = util.CreateOrUpdate(ctx, r.Client, o)
 		if err != nil {
 			return err
 		}
@@ -351,35 +350,7 @@ func (r *ClusterReconciler) upgrade(ctx context.Context, cl *undistrov1.Cluster,
 			// skip capi because is imutable, we will update provider cluster
 			continue
 		}
-		old := unstructured.Unstructured{}
-		old.SetGroupVersionKind(o.GroupVersionKind())
-		nm := client.ObjectKey{
-			Name:      o.GetName(),
-			Namespace: o.GetNamespace(),
-		}
-		err = r.Get(ctx, nm, &old)
-		if err != nil {
-			if client.IgnoreNotFound(err) != nil {
-				return ctrl.Result{}, err
-			}
-			err = r.Create(ctx, &o)
-			if err != nil {
-				return ctrl.Result{}, err
-			}
-			continue
-		}
-		o.SetResourceVersion(old.GetResourceVersion())
-		endpoint, ok, err := unstructured.NestedMap(old.Object, "spec", "controlPlaneEndpoint")
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		if ok {
-			err = unstructured.SetNestedMap(o.Object, endpoint, "spec", "controlPlaneEndpoint")
-			if err != nil {
-				return ctrl.Result{}, err
-			}
-		}
-		err = r.Patch(ctx, &o, client.MergeFrom(&old))
+		err = util.CreateOrUpdate(ctx, r.Client, o)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -466,7 +437,10 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl *undistrov1.Clust
 	}
 	objs = utilresource.SortForCreate(objs)
 	for _, o := range objs {
-		workloadClient.Patch(ctx, &o, client.Apply, client.FieldOwner("undistro"))
+		err = util.CreateOrUpdate(ctx, workloadClient, o)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -5,11 +5,14 @@ Copyright 2020 Getup Cloud. All rights reserved.
 package util
 
 import (
+	"context"
+
 	undistrov1 "github.com/getupio-undistro/undistro/api/v1alpha1"
 	"github.com/getupio-undistro/undistro/internal/scheme"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -141,4 +144,36 @@ func ReverseObjs(s []unstructured.Unstructured) []unstructured.Unstructured {
 		a[i], a[opp] = a[opp], a[i]
 	}
 	return a
+}
+
+func CreateOrUpdate(ctx context.Context, r client.Client, o unstructured.Unstructured) error {
+	old := unstructured.Unstructured{}
+	old.SetGroupVersionKind(o.GroupVersionKind())
+	nm := client.ObjectKey{
+		Name:      o.GetName(),
+		Namespace: o.GetNamespace(),
+	}
+	err := r.Get(ctx, nm, &old)
+	if err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			return err
+		}
+		err = r.Create(ctx, &o)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	o.SetResourceVersion(old.GetResourceVersion())
+	endpoint, ok, err := unstructured.NestedMap(old.Object, "spec", "controlPlaneEndpoint")
+	if err != nil {
+		return err
+	}
+	if ok {
+		err = unstructured.SetNestedMap(o.Object, endpoint, "spec", "controlPlaneEndpoint")
+		if err != nil {
+			return err
+		}
+	}
+	return r.Patch(ctx, &o, client.MergeFrom(&old))
 }
