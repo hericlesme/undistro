@@ -8,12 +8,10 @@ import (
 	"strings"
 
 	"github.com/getupio-undistro/undistro/client"
+	"github.com/getupio-undistro/undistro/internal/util"
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/types"
 	utilresource "sigs.k8s.io/cluster-api/util/resource"
 	"sigs.k8s.io/cluster-api/util/yaml"
-	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type applyClusterOptions struct {
@@ -94,18 +92,7 @@ func applyCluster(r io.Reader, w io.Writer) error {
 		if o.GetNamespace() == "" {
 			o.SetNamespace("default")
 		}
-		nm := types.NamespacedName{
-			Name:      o.GetName(),
-			Namespace: o.GetNamespace(),
-		}
-		old := unstructured.Unstructured{}
-		old.SetGroupVersionKind(o.GroupVersionKind())
-		err = k8sClient.Get(context.Background(), nm, &old)
-		if err != nil {
-			return err
-		}
-		o.SetResourceVersion(old.GetResourceVersion())
-		err = k8sClient.Patch(context.Background(), &o, ctrlclient.MergeFrom(&old))
+		err = util.CreateOrUpdate(context.Background(), k8sClient, o)
 		if err != nil {
 			return err
 		}
