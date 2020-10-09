@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	defaultKubernetesVersion          = "v1.18.2"
+	defaultKubernetesVersion          = "v1.19.1"
 	defaultControlPlaneReplicas int64 = 1
 	defaultWorkerReplicas       int64 = 0
 )
