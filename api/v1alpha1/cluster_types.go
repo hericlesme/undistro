@@ -157,7 +157,8 @@ func (c *Cluster) GetCNITemplateURL() string {
 func (c Cluster) GetBastion() Bastion {
 	if c.Spec.Bastion == nil {
 		return Bastion{
-			Enabled: true,
+			Enabled:             true,
+			DisableIngressRules: true,
 		}
 	}
 	return *c.Spec.Bastion

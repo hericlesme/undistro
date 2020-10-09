@@ -54,7 +54,8 @@ func (r *Cluster) Default() {
 	}
 	if r.Spec.Bastion == nil {
 		r.Spec.Bastion = &Bastion{
-			Enabled: true,
+			Enabled:             true,
+			DisableIngressRules: true,
 		}
 	}
 }
