@@ -47,7 +47,7 @@ const (
 	// You can either generate the SHA256 hash of the file, or alternatively
 	// run `go test` against this package. THe Test_VersionMarkerUpToDate will output
 	// the expected hash if it does not match the hash here.
-	embeddedCertManagerManifestHash = "8ec4044a01741e77ce50ca7d4bbc5bf60691faaf097baa519d46ba0eaba57baa"
+	embeddedCertManagerManifestHash = "e4f4010e650c75b49b3bafb4db16b7d4ee42de3933fc4dec8fa8bb87f59cc9ea"
 )
 
 // CertManagerUpgradePlan defines the upgrade plan if cert-manager needs to be
