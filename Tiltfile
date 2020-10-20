@@ -1,10 +1,7 @@
 load('ext://restart_process', 'docker_build_with_restart')
-load('ext://cert_manager', 'deploy_cert_manager')
 
 
 IMG = 'controller:latest'
-
-deploy_cert_manager()
 
 def yaml():
     return local('cd config/manager; kustomize edit set image controller=' + IMG + '; cd ../..; kustomize build config/default')
