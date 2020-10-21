@@ -13,9 +13,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	undistrov1 "github.com/getupio-undistro/undistro/api/v1alpha1"
+	manifests "github.com/getupio-undistro/undistro/config"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
+	awsbootstrapschemev1 "sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/api/bootstrap/v1alpha1/scheme"
 	"sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/cloudformation/bootstrap"
 	cloudformation "sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/cloudformation/service"
 	"sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/configreader"
@@ -36,6 +38,7 @@ const (
 	awsKeyID                      = "AWS_ACCESS_KEY_ID"
 	awsKey                        = "AWS_SECRET_ACCESS_KEY"
 	awsSessionToken               = "AWS_SESSION_TOKEN"
+	iamConfigPath                 = "config/assets/eksconfig.yaml"
 
 	awsCredentialsTemplate = `[default]
 aws_access_key_id = {{ .AccessKeyID }}
@@ -77,7 +80,15 @@ func (c awsCredentials) setBase64EncodedAWSDefaultProfile(v VariablesClient) err
 }
 
 func (c awsCredentials) createCloudFormation() error {
-	iamConfiguration, err := configreader.LoadConfigFile("config/assets/eksconfig.yaml")
+	_, codec, err := awsbootstrapschemev1.NewSchemeAndCodecs()
+	if err != nil {
+		return err
+	}
+	byt, err := manifests.Asset(iamConfigPath)
+	if err != nil {
+		return err
+	}
+	iamConfiguration, err := configreader.DecodeBootstrapConfiguration(codec, byt)
 	if err != nil {
 		return err
 	}
