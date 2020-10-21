@@ -85,7 +85,7 @@ Download the latest release from releases page https://github.com/getupio-undist
 
 ### Initialize the management cluster
 
-Now that we've got clusterctl installed and all the prerequisites in place, let's transform the Kubernetes cluster
+Now that we've got undistro installed and all the prerequisites in place, let's transform the Kubernetes cluster
 into a management cluster by using `undistro init`.
 
 ```bash
@@ -103,11 +103,34 @@ and then
 undistro --config undistro.yaml init
 ```
 
-### Adding SSH key on AWS account
+### vSphere Requirements
 
-Follow the AWS documentation https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
+Your vSphere environment should be configured with a **DHCP service** in the primary VM Network for your workload Kubernetes clusters.
+You will also need to configure one resource pool across the hosts onto which the workload clusters will be provisioned. Every host
+in the resource pool will need access to shared storage, such as VSAN in order to be able to make use of MachineDeployments and
+high-availability control planes.
 
-### Creating a self hosted kubernetes on AWS
+To use PersistentVolumes (PV), your cluster needs support for Cloud Native Storage (CNS), which is available in **vSphere 6.7 Update 3** and later.
+CNS relies on a shared datastore, such as VSAN.
+
+In addition, to use undistro, you should have a SSH public key that will be inserted into the node VMs for
+administrative access, and a VM folder configured in vCenter.
+
+#### vCenter Credentials
+
+In order for `undistro` to bootstrap a management cluster on vSphere, it must be able to connect and authenticate to
+vCenter. Ensure you have credentials to your vCenter server (user, password and server URL).
+
+#### Uploading the machine images
+
+It is required that machines provisioned by UnDistro have cloudinit, kubeadm and a container runtime pre-installed.
+
+The machine images are retrievable from public URLs. UnDistro currently supports machine images based on Ubuntu 18.04 and
+CentOS 7. A list of published machine images is available ovas. For this guide we'll be deploying Kubernetes
+v1.19.1 on Ubuntu 18.04 (link to [machine image][default-machine-image]).
+
+
+### Creating a self hosted kubernetes on Vsphere
 
 We will create a cluster with 3 controlplane node and 3 worker nodes
 
@@ -120,21 +143,35 @@ metadata:
 spec:
   kubernetesVersion: v1.19.1
   cniName: calico
+  network:
+    vpc: network1
   controlPlaneNode:
     replicas: 3
-    machineType: t3.large
+    machineType: ubuntu-1804-kube-v1.19.1
+    endpointIP: "" # the IP used for k8s API
   workerNodes:
     - replicas: 3
-      machineType: t3.large
+      machineType: ubuntu-1804-kube-v1.19.1
   infrastructureProvider:
-    name: aws
-    sshKey: <YOUR SSH KEY NAME>
+    name: vsphere
     env:
-      - name: AWS_ACCESS_KEY_ID
+      - name: VSPHERE_USERNAME # The username used to access the remote vSphere endpoint
         value: ""
-      - name: AWS_SECRET_ACCESS_KEY
+      - name: VSPHERE_PASSWORD # The password used to access the remote vSphere endpoint
+        value: ""
+      - name: VSPHERE_SERVER # The vCenter server IP or FQDN
+        value: ""
+      - name: VSPHERE_DATACENTER # The vSphere datacenter to deploy
+        value: ""
+      - name: VSPHERE_DATASTORE # The vSphere datastore to deploy
+        value: ""
+      - name: VSPHERE_RESOURCE_POOL # The vSphere resource pool for your VMs
+        value: ""
+      - name: VSPHERE_SSH_AUTHORIZED_KEY # The public ssh authorized key on all machines
         value: ""
 ```
+
+replace empty string to values that satisfies your environment
 
 ### Installing Helm Charts on the cluster
 
@@ -197,7 +234,7 @@ spec:
 create a file with content above.
 
 ```
-undistro create cluster -f cluster-aws.yaml
+undistro create cluster -f cluster-vsphere.yaml
 ```
 
 ### Getting cluster kubeconfig
@@ -206,24 +243,16 @@ undistro create cluster -f cluster-aws.yaml
 undistro get kubeconfig undistro-quickstart -n default
 ```
 
-### Bastion
-
-UnDistro creates a bastion host by default, but the ingress are disabled. To be able to access the cluster nodes add your CIDR block and enable ingress traffic in the bastion section of cluster YAML. If bastion section doesn't exists create it inside spec.
-
-```yaml
-bastion:
-  enabled: true
-  disableIngressRules: false
-  allowedCIDRBlocks:
-    - <YOUR CIDR> OR 0.0.0.0/0 TO ACCEPT ALL
-```
-**friendly remainder** the SSH with name that referenced in YAML is always necessary to access the nodes via SSH.
-
 ### Cleanup
 
-We'll delete all resources created by this cluster on AWS
+We'll delete all resources created by this cluster on Vsphere
 
 
 ```bash
-ubdistro delete cluster -f cluster-aws.yaml
+ubdistro delete cluster -f cluster-vsphere.yaml
 ```
+
+<!-- References -->
+[vm-template]: https://docs.vmware.com/en/VMware-vSphere/6.7/com.vmware.vsphere.vm_admin.doc/GUID-17BEDA21-43F6-41F4-8FB2-E01D275FE9B4.html
+[default-machine-image]: https://storage.googleapis.com/capv-images/release/v1.19.1/ubuntu-1804-kube-v1.19.1.ova
+[govc]: https://github.com/vmware/govmomi/tree/master/govc
