@@ -20,16 +20,17 @@ require (
 	github.com/spf13/viper v1.7.1
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	helm.sh/helm/v3 v3.1.0-rc.1.0.20201005141519-fc9b46067f8f
-	k8s.io/api v0.19.2
-	k8s.io/apiextensions-apiserver v0.19.2
-	k8s.io/apimachinery v0.19.2
-	k8s.io/cli-runtime v0.19.2
-	k8s.io/client-go v0.19.2
-	k8s.io/kubectl v0.19.2
+	k8s.io/api v0.19.3
+	k8s.io/apiextensions-apiserver v0.19.3
+	k8s.io/apimachinery v0.19.3
+	k8s.io/cli-runtime v0.19.3
+	k8s.io/client-go v0.19.3
+	k8s.io/kubectl v0.19.3
 	k8s.io/utils v0.0.0-20201015054608-420da100c033
 	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/cluster-api v0.3.11-0.20201016161926-0008b5ba109e
 	sigs.k8s.io/cluster-api-provider-aws v0.6.1
+	sigs.k8s.io/cluster-api-provider-vsphere v0.7.1
 	sigs.k8s.io/controller-runtime v0.7.0-alpha.3
 	sigs.k8s.io/yaml v1.2.0
 

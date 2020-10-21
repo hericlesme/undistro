@@ -15,7 +15,9 @@ import (
 	awsbotstrapv1 "sigs.k8s.io/cluster-api-provider-aws/bootstrap/eks/api/v1alpha3"
 	awscontrolplanev1 "sigs.k8s.io/cluster-api-provider-aws/controlplane/eks/api/v1alpha3"
 	awsexpinfrav1 "sigs.k8s.io/cluster-api-provider-aws/exp/api/v1alpha3"
+	vspherev1 "sigs.k8s.io/cluster-api-provider-vsphere/api/v1alpha3"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	kuneadmbv1 "sigs.k8s.io/cluster-api/bootstrap/kubeadm/api/v1alpha3"
 	kubeadmcpv1 "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha3"
 	addonsv1alpha3 "sigs.k8s.io/cluster-api/exp/addons/api/v1alpha3"
 	expv1alpha3 "sigs.k8s.io/cluster-api/exp/api/v1alpha3"
@@ -41,5 +43,7 @@ func init() {
 	_ = awsbotstrapv1.AddToScheme(Scheme)
 	_ = awscontrolplanev1.AddToScheme(Scheme)
 	_ = awsexpinfrav1.AddToScheme(Scheme)
+	_ = vspherev1.AddToScheme(Scheme)
+	_ = kuneadmbv1.AddToScheme(Scheme)
 	// +kubebuilder:scaffold:scheme
 }
