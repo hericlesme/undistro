@@ -12,9 +12,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	awsv1 "sigs.k8s.io/cluster-api-provider-aws/api/v1alpha3"
+	awsbotstrapv1 "sigs.k8s.io/cluster-api-provider-aws/bootstrap/eks/api/v1alpha3"
+	awscontrolplanev1 "sigs.k8s.io/cluster-api-provider-aws/controlplane/eks/api/v1alpha3"
+	awsexpinfrav1 "sigs.k8s.io/cluster-api-provider-aws/exp/api/v1alpha3"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	kubeadmcpv1 "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha3"
 	addonsv1alpha3 "sigs.k8s.io/cluster-api/exp/addons/api/v1alpha3"
+	expv1alpha3 "sigs.k8s.io/cluster-api/exp/api/v1alpha3"
 )
 
 var (
@@ -32,5 +36,10 @@ func init() {
 	_ = awsv1.AddToScheme(Scheme)
 	_ = admissionregistration.AddToScheme(Scheme)
 	_ = admissionregistrationv1beta1.AddToScheme(Scheme)
+	_ = expv1alpha3.AddToScheme(Scheme)
+	_ = addonsv1alpha3.AddToScheme(Scheme)
+	_ = awsbotstrapv1.AddToScheme(Scheme)
+	_ = awscontrolplanev1.AddToScheme(Scheme)
+	_ = awsexpinfrav1.AddToScheme(Scheme)
 	// +kubebuilder:scaffold:scheme
 }
