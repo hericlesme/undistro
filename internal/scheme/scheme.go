@@ -6,6 +6,7 @@ package scheme
 
 import (
 	undistrov1 "github.com/getupio-undistro/undistro/api/v1alpha1"
+	admission "k8s.io/api/admission/v1"
 	admissionregistration "k8s.io/api/admissionregistration/v1"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -45,5 +46,6 @@ func init() {
 	_ = awsexpinfrav1.AddToScheme(Scheme)
 	_ = vspherev1.AddToScheme(Scheme)
 	_ = kuneadmbv1.AddToScheme(Scheme)
+	_ = admission.AddToScheme(Scheme)
 	// +kubebuilder:scaffold:scheme
 }
