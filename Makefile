@@ -148,15 +148,11 @@ generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 	$(CONTROLLER_GEN) \
 		paths=./api/... \
 		paths=./controllers/... \
-		crd:crdVersions=v1beta1 \
+		crd:crdVersions=v1 \
 		rbac:roleName=manager-role \
 		output:crd:dir=./config/crd/bases \
 		output:webhook:dir=./config/webhook \
 		webhook
-	$(CONTROLLER_GEN) \
-		paths=./api/... \
-		crd:crdVersions=v1 \
-		output:crd:dir=./config/crd/bases
 
 # Install CRDs into a cluster
 install: generate

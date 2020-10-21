@@ -1,12 +1,13 @@
 
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   creationTimestamp: null
   name: mutating-webhook-configuration
 webhooks:
 - admissionReviewVersions:
+  - v1
   - v1beta1
   clientConfig:
     caBundle: Cg==
@@ -14,7 +15,7 @@ webhooks:
       name: webhook-service
       namespace: system
       path: /mutate-undistro-io-v1alpha1-cluster
-  failurePolicy: Fail
+  failurePolicy: Ignore
   name: mcluster.undistro.io
   rules:
   - apiGroups:
