@@ -5,6 +5,7 @@ Copyright 2020 Getup Cloud. All rights reserved.
 // config/manifest/undistro-api.yaml
 // config/assets/cert-manager-test-resources.yaml
 // config/assets/cert-manager.yaml
+// config/assets/eksconfig.yaml
 package config
 
 import (
@@ -141,6 +142,26 @@ func configAssetsCertManagerYaml() (*asset, error) {
 	return a, nil
 }
 
+var _configAssetsEksconfigYaml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x4c\xcd\x3d\x4b\x04\x31\x10\x06\xe0\x7e\x7f\xc5\x0b\xd6\x46\xae\x93\xed\x8e\xad\x2c\x04\xf1\x40\xeb\xb9\xec\xc4\x0b\x1b\x33\x61\x66\xa2\xfe\x7c\xd9\x0f\xc1\x6a\x98\xaf\xe7\xa5\x96\xdf\x58\x2d\x4b\x1d\x71\x15\x71\x73\xa5\x16\xe8\xdb\x42\xae\x49\xc9\x5c\x7b\xf4\xae\x1c\x62\xe9\xe6\xac\xe1\xe7\x7e\x79\xb4\x90\xe5\xe1\xeb\x44\xa5\xdd\xe8\x34\x2c\xb9\xce\x23\xce\xef\x97\xa7\xf3\xf3\x24\x35\xe5\x8f\xae\xe4\x59\xea\x60\x8d\xe3\x38\x00\xbc\xd8\x5a\x00\xae\x74\x2d\x3c\xc2\xb5\xf3\x36\xc8\xf4\xf9\x2a\x85\x27\xe5\xed\xe3\xdf\x66\xe6\x44\xbd\xf8\x24\xd5\x55\xca\x4b\xa1\xca\xeb\xe5\xee\x00\x73\xb6\x9d\x4a\x54\x8c\x71\x87\x0b\x3b\x5c\x8e\xd6\xe5\x88\x42\x3c\x64\x48\x82\xdf\xf8\x8f\x45\xdc\x5d\xb4\x15\x86\x4a\xe1\xdf\x00\x00\x00\xff\xff\x81\xb1\x9b\x96\x0a\x01\x00\x00")
+
+func configAssetsEksconfigYamlBytes() ([]byte, error) {
+	return bindataRead(
+		_configAssetsEksconfigYaml,
+		"config/assets/eksconfig.yaml",
+	)
+}
+
+func configAssetsEksconfigYaml() (*asset, error) {
+	bytes, err := configAssetsEksconfigYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "config/assets/eksconfig.yaml", size: 266, mode: os.FileMode(420), modTime: time.Unix(1, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -196,6 +217,7 @@ var _bindata = map[string]func() (*asset, error){
 	"config/manifest/undistro-api.yaml":              configManifestUndistroApiYaml,
 	"config/assets/cert-manager-test-resources.yaml": configAssetsCertManagerTestResourcesYaml,
 	"config/assets/cert-manager.yaml":                configAssetsCertManagerYaml,
+	"config/assets/eksconfig.yaml":                   configAssetsEksconfigYaml,
 }
 
 // AssetDir returns the file names below a certain
@@ -243,6 +265,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"assets": &bintree{nil, map[string]*bintree{
 			"cert-manager-test-resources.yaml": &bintree{configAssetsCertManagerTestResourcesYaml, map[string]*bintree{}},
 			"cert-manager.yaml":                &bintree{configAssetsCertManagerYaml, map[string]*bintree{}},
+			"eksconfig.yaml":                   &bintree{configAssetsEksconfigYaml, map[string]*bintree{}},
 		}},
 		"manifest": &bintree{nil, map[string]*bintree{
 			"undistro-api.yaml": &bintree{configManifestUndistroApiYaml, map[string]*bintree{}},

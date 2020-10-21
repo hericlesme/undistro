@@ -18,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/cloudformation/bootstrap"
 	cloudformation "sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/cloudformation/service"
+	"sigs.k8s.io/cluster-api-provider-aws/cmd/clusterawsadm/configreader"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -76,7 +77,13 @@ func (c awsCredentials) setBase64EncodedAWSDefaultProfile(v VariablesClient) err
 }
 
 func (c awsCredentials) createCloudFormation() error {
-	t := bootstrap.NewTemplate()
+	iamConfiguration, err := configreader.LoadConfigFile("config/assets/eksconfig.yaml")
+	if err != nil {
+		return err
+	}
+	t := &bootstrap.Template{
+		Spec: &iamConfiguration.Spec,
+	}
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(c.Region),
 		Credentials: credentials.NewStaticCredentials(
