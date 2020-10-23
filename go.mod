@@ -31,7 +31,7 @@ require (
 	sigs.k8s.io/cluster-api v0.3.11-0.20201016161926-0008b5ba109e
 	sigs.k8s.io/cluster-api-provider-aws v0.6.1
 	sigs.k8s.io/cluster-api-provider-vsphere v0.7.1
-	sigs.k8s.io/controller-runtime v0.7.0-alpha.3
+	sigs.k8s.io/controller-runtime v0.7.0-alpha.4
 	sigs.k8s.io/yaml v1.2.0
 
 )
