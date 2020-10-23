@@ -233,57 +233,65 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		hr.Status.LastAttemptedRevision = ""
 		return ctrl.Result{}, err
 	}
+	status, _ := h.Status(hr.GetReleaseName(), helm.StatusOptions{
+		Namespace: hr.GetTargetNamespace(),
+	})
 	rollback := false
-	if curRel == nil {
-		log.Info("running instalation")
-		_, err = h.UpgradeFromPath(ch.ChartPath, hr.GetReleaseName(), values, helm.UpgradeOptions{
-			Namespace:         hr.GetTargetNamespace(),
-			Timeout:           hr.GetTimeout(),
-			Install:           true,
-			Force:             hr.Spec.ForceUpgrade,
-			SkipCRDs:          hr.Spec.SkipCRDs,
-			MaxHistory:        hr.GetMaxHistory(),
-			Wait:              hr.GetWait(),
-			DisableValidation: false,
-		})
-	} else {
-		log.Info("running upgrade")
-		_, err = h.UpgradeFromPath(ch.ChartPath, hr.GetReleaseName(), values, helm.UpgradeOptions{
-			Namespace:         hr.GetTargetNamespace(),
-			Timeout:           hr.GetTimeout(),
-			Install:           false,
-			Force:             hr.Spec.ForceUpgrade,
-			SkipCRDs:          hr.Spec.SkipCRDs,
-			MaxHistory:        hr.GetMaxHistory(),
-			Wait:              hr.GetWait(),
-			DisableValidation: false,
-		})
-	}
-	if err != nil {
+	switch status {
+	case helm.StatusPendingUpgrade, helm.StatusPendingRollback, helm.StatusPendingInstall:
+		return ctrl.Result{Requeue: true}, nil
+	default:
 		if curRel == nil {
-			log.Error(err, "fail to install")
-			hr.Status.Phase = undistrov1.HelmReleasePhaseDeployFailed
-			hr.Status.Revision = ""
-			hr.Status.LastAttemptedRevision = ""
+			log.Info("running instalation")
+			_, err = h.UpgradeFromPath(ch.ChartPath, hr.GetReleaseName(), values, helm.UpgradeOptions{
+				Namespace:         hr.GetTargetNamespace(),
+				Timeout:           hr.GetTimeout(),
+				Install:           true,
+				Force:             hr.Spec.ForceUpgrade,
+				SkipCRDs:          hr.Spec.SkipCRDs,
+				MaxHistory:        hr.GetMaxHistory(),
+				Wait:              hr.GetWait(),
+				DisableValidation: false,
+			})
+		} else {
+			log.Info("running upgrade")
+			_, err = h.UpgradeFromPath(ch.ChartPath, hr.GetReleaseName(), values, helm.UpgradeOptions{
+				Namespace:         hr.GetTargetNamespace(),
+				Timeout:           hr.GetTimeout(),
+				Install:           false,
+				Force:             hr.Spec.ForceUpgrade,
+				SkipCRDs:          hr.Spec.SkipCRDs,
+				MaxHistory:        hr.GetMaxHistory(),
+				Wait:              hr.GetWait(),
+				DisableValidation: false,
+			})
 		}
-		rollback = true
-		_, err = h.Rollback(hr.GetReleaseName(), helm.RollbackOptions{
-			Namespace:    hr.GetTargetNamespace(),
-			Timeout:      hr.Spec.Rollback.GetTimeout(),
-			Wait:         hr.Spec.Rollback.Wait,
-			DisableHooks: hr.Spec.Rollback.DisableHooks,
-			Recreate:     hr.Spec.Rollback.Recreate,
-			Force:        hr.Spec.Rollback.Force,
-		})
 		if err != nil {
-			hr.Status.Phase = undistrov1.HelmReleasePhaseRollbackFailed
-			hr.Status.Revision = ""
-			hr.Status.LastAttemptedRevision = ""
-			return ctrl.Result{}, err
-		}
+			if curRel == nil {
+				log.Error(err, "fail to install")
+				hr.Status.Phase = undistrov1.HelmReleasePhaseDeployFailed
+				hr.Status.Revision = ""
+				hr.Status.LastAttemptedRevision = ""
+			}
+			rollback = true
+			_, err = h.Rollback(hr.GetReleaseName(), helm.RollbackOptions{
+				Namespace:    hr.GetTargetNamespace(),
+				Timeout:      hr.Spec.Rollback.GetTimeout(),
+				Wait:         hr.Spec.Rollback.Wait,
+				DisableHooks: hr.Spec.Rollback.DisableHooks,
+				Recreate:     hr.Spec.Rollback.Recreate,
+				Force:        hr.Spec.Rollback.Force,
+			})
+			if err != nil {
+				hr.Status.Phase = undistrov1.HelmReleasePhaseRollbackFailed
+				hr.Status.Revision = ""
+				hr.Status.LastAttemptedRevision = ""
+				return ctrl.Result{}, err
+			}
 
+		}
 	}
-	status, err := h.Status(hr.GetReleaseName(), helm.StatusOptions{
+	status, err = h.Status(hr.GetReleaseName(), helm.StatusOptions{
 		Namespace: hr.GetTargetNamespace(),
 	})
 	if err != nil {
@@ -329,6 +337,10 @@ func (r *HelmReleaseReconciler) updateFilter(e event.UpdateEvent) bool {
 		return false
 	}
 	if !controllerutil.ContainsFinalizer(oldHr, undistrov1.Finalizer) && controllerutil.ContainsFinalizer(newHr, undistrov1.Finalizer) {
+		return true
+	}
+	switch helm.Status(newHr.Status.ReleaseStatus) {
+	case helm.StatusPendingUpgrade, helm.StatusPendingRollback, helm.StatusPendingInstall:
 		return true
 	}
 	if newHr.Status.Phase == undistrov1.HelmReleasePhaseChartFetched || newHr.Status.Phase == undistrov1.HelmReleasePhaseWaitClusterReady {
