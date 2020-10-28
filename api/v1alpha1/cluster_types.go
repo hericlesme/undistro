@@ -155,6 +155,14 @@ type Cluster struct {
 	Status ClusterStatus `json:"status,omitempty"`
 }
 
+func (c *Cluster) GetManagedProvidersInfra() (bootstrap []string, controlplane []string) {
+	switch c.Spec.InfrastructureProvider.Name {
+	case "aws":
+		return []string{"eks"}, []string{"eks"}
+	}
+	return nil, nil
+}
+
 func (c *Cluster) GetCNITemplateURL() string {
 	return cniMapAddr[c.Spec.CniName]
 }
