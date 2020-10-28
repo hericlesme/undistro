@@ -225,11 +225,12 @@ func (r *ClusterReconciler) init(ctx context.Context, cl *undistrov1.Cluster, c 
 		TargetNamespace:         "undistro-system",
 		LogUsageInstructions:    false,
 	}
-	if cl.Spec.BootstrapProvider != nil {
-		opts.BootstrapProviders = []string{cl.Spec.BootstrapProvider.NameVersion()}
+	bp, cp := cl.GetManagedProvidersInfra()
+	if bp != nil {
+		opts.BootstrapProviders = bp
 	}
-	if cl.Spec.ControlPlaneProvider != nil {
-		opts.ControlPlaneProviders = []string{cl.Spec.ControlPlaneProvider.NameVersion()}
+	if cp != nil {
+		opts.ControlPlaneProviders = cp
 	}
 	components, err := c.Init(opts)
 	if err != nil {
@@ -414,9 +415,7 @@ func (r *ClusterReconciler) provisioning(ctx context.Context, cl *undistrov1.Clu
 		cl.Status.Ready = true
 		cl.Status.BastionPublicIP = bastionIP
 	}
-	if len(capi.Status.Conditions) > 0 {
-		record.Event(cl, capi.Status.Conditions[len(capi.Status.Conditions)-1].Reason, capi.Status.Conditions[len(capi.Status.Conditions)-1].Message)
-	}
+	record.Event(cl, "ClusterCreated", "cluster successfully created")
 	return ctrl.Result{}, nil
 }
 
