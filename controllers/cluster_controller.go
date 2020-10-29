@@ -397,6 +397,9 @@ func (r *ClusterReconciler) provisioning(ctx context.Context, cl *undistrov1.Clu
 		}
 		return ctrl.Result{}, nil
 	}
+	if len(capi.Status.Conditions) > 0 {
+		record.Event(cl, capi.Status.Conditions[len(capi.Status.Conditions)-1].Reason, capi.Status.Conditions[len(capi.Status.Conditions)-1].Message)
+	}
 	if capi.Status.ControlPlaneInitialized && !capi.Status.ControlPlaneReady && cl.Spec.CniName != undistrov1.ProviderCNI {
 		if err := r.installCNI(ctx, cl, c); err != nil {
 			return ctrl.Result{}, err
@@ -415,7 +418,7 @@ func (r *ClusterReconciler) provisioning(ctx context.Context, cl *undistrov1.Clu
 		cl.Status.Ready = true
 		cl.Status.BastionPublicIP = bastionIP
 	}
-	record.Event(cl, "ClusterCreated", "cluster successfully created")
+	record.Event(cl, "ClusterCreated", "Cluster successfully created")
 	return ctrl.Result{}, nil
 }
 
