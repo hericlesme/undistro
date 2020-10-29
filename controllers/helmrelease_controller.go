@@ -204,6 +204,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			return ctrl.Result{}, err
 		}
 		if hr.Status.Phase == undistrov1.HelmReleasePhaseUninstalled {
+			record.Event(&hr, "ChartDeleted", "Chart deleted")
 			controllerutil.RemoveFinalizer(&hr, undistrov1.Finalizer)
 			os.RemoveAll(ch.ChartPath)
 			return ctrl.Result{}, nil

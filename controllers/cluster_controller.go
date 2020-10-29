@@ -199,6 +199,7 @@ func (r *ClusterReconciler) delete(ctx context.Context, cl *undistrov1.Cluster) 
 			log.Error(err, "couldn't get capi", "name", capiNM)
 			return err
 		}
+		record.Event(cl, "ClusterDeleted", "Cluster deleted")
 		cl.Status.Phase = undistrov1.DeletedPhase
 		return nil
 	}
@@ -208,9 +209,13 @@ func (r *ClusterReconciler) delete(ctx context.Context, cl *undistrov1.Cluster) 
 				log.Error(err, "couldn't delete capi", "name", capiNM)
 				return err
 			}
+			record.Event(cl, "ClusterDeleted", "Cluster deleted")
 			cl.Status.Phase = undistrov1.DeletedPhase
 			return nil
 		}
+	}
+	if len(capi.Status.Conditions) > 0 {
+		record.Event(cl, capi.Status.Conditions[len(capi.Status.Conditions)-1].Reason, capi.Status.Conditions[len(capi.Status.Conditions)-1].Message)
 	}
 	cl.Status.Phase = undistrov1.DeletingPhase
 	return nil
@@ -418,7 +423,7 @@ func (r *ClusterReconciler) provisioning(ctx context.Context, cl *undistrov1.Clu
 		cl.Status.Ready = true
 		cl.Status.BastionPublicIP = bastionIP
 	}
-	record.Event(cl, "ClusterCreated", "Cluster successfully created")
+	record.Event(cl, "ClusterReady", "Cluster ready")
 	return ctrl.Result{}, nil
 }
 
