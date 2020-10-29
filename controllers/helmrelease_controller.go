@@ -169,6 +169,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	if ok, _ := cluster.IsReady(ctx, r.Client, nm); !ok {
 		if !hr.DeletionTimestamp.IsZero() {
+			record.Event(&hr, "ChartDeleted", "Chart deleted")
 			controllerutil.RemoveFinalizer(&hr, undistrov1.Finalizer)
 			return ctrl.Result{}, nil
 		}
