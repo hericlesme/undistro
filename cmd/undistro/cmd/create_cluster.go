@@ -120,7 +120,7 @@ func createCluster(r io.Reader, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = logStreamer.Stream(context.Background(), cfg, os.Stdout, nm, cluster.IsReady)
+	err = logStreamer.Stream(context.Background(), cfg, os.Stdout, nm, cluster.IsReady, false)
 	if err != nil {
 		return err
 	}
