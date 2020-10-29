@@ -9,9 +9,14 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
+	"github.com/fatih/color"
 	undistrov1 "github.com/getupio-undistro/undistro/api/v1alpha1"
 	"github.com/getupio-undistro/undistro/internal/scheme"
 	"github.com/getupio-undistro/undistro/log"
@@ -26,6 +31,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 const (
 	undistroNamespace = "undistro-system"
 )
@@ -33,7 +42,7 @@ const (
 type StopConditionFunc func(context.Context, client.Client, types.NamespacedName) (bool, error)
 
 type LogStreamer interface {
-	Stream(context.Context, *rest.Config, io.Writer, types.NamespacedName, StopConditionFunc) error
+	Stream(context.Context, *rest.Config, io.Writer, types.NamespacedName, StopConditionFunc, bool) error
 }
 
 type logStreamer struct {
@@ -41,7 +50,7 @@ type logStreamer struct {
 	kubeClient client.Client
 }
 
-func (l *logStreamer) Stream(ctx context.Context, c *rest.Config, w io.Writer, nm types.NamespacedName, fn StopConditionFunc) error {
+func (l *logStreamer) Stream(ctx context.Context, c *rest.Config, w io.Writer, nm types.NamespacedName, fn StopConditionFunc, fs bool) error {
 	var (
 		err    error
 		cancel context.CancelFunc
@@ -64,31 +73,37 @@ func (l *logStreamer) Stream(ctx context.Context, c *rest.Config, w io.Writer, n
 		cancel()
 		return err
 	}
-	logs := l.getLogs(ctx, podList.Items)
+	logs := l.getLogs(ctx, podList.Items, fs)
 	cerr := make(chan error, 1)
 	go func(ctx context.Context, cancel context.CancelFunc, fn StopConditionFunc) {
-		ready, err := fn(ctx, l.kubeClient, nm)
-		if err != nil {
-			cerr <- err
-			return
-		}
-		for !ready {
-			ready, err = fn(ctx, l.kubeClient, nm)
+		if fn != nil {
+			ready, err := fn(ctx, l.kubeClient, nm)
 			if err != nil {
 				cerr <- err
 				return
 			}
-			<-time.After(10 * time.Second)
+			for !ready {
+				ready, err = fn(ctx, l.kubeClient, nm)
+				if err != nil {
+					cerr <- err
+					return
+				}
+				<-time.After(10 * time.Second)
+			}
+			cancel()
 		}
-		cancel()
 	}(ctx, cancel, fn)
 	go func(ctx context.Context) {
 		cerr <- l.streamLogs(ctx, logs, w)
 	}(ctx)
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
 	select {
 	case err = <-cerr:
 		return err
 	case <-ctx.Done():
+		return nil
+	case <-ch:
 		return nil
 	}
 }
@@ -140,17 +155,17 @@ func (l *logStreamer) streamLogs(ctx context.Context, reqs []logRequest, writer 
 				return
 			}
 			wg.Add(1)
-			go l.streamLog(ctx, wg, reader, w, pod.Name)
+			go l.streamLog(ctx, wg, rand.Intn(10), reader, w, pod.Name)
 		},
 	})
 	stop := make(chan struct{})
 	kubeInformerFactory.Start(stop)
-	for _, req := range reqs {
+	for i, req := range reqs {
 		reader, err := req.req.Stream(ctx)
 		if err != nil {
 			return err
 		}
-		go l.streamLog(ctx, wg, reader, w, req.podName)
+		go l.streamLog(ctx, wg, i, reader, w, req.podName)
 	}
 	go func(ctx context.Context) {
 		wg.Wait()
@@ -193,11 +208,13 @@ func IsDeleted(ctx context.Context, c client.Client, nm types.NamespacedName) (b
 	return apierrors.IsNotFound(err), nil
 }
 
-func (l logStreamer) streamLog(ctx context.Context, wg *sync.WaitGroup, reader io.ReadCloser, w io.Writer, pod string) {
+func (l logStreamer) streamLog(ctx context.Context, wg *sync.WaitGroup, index int, reader io.ReadCloser, w io.Writer, pod string) {
 	defer wg.Done()
+	colour := color.FgHiBlack + color.Attribute(index)
 	pw := &prefixingWriter{
 		writer: w,
 		prefix: []byte(fmt.Sprintf("[%s] ", pod)),
+		color:  color.Attribute(colour),
 	}
 	err := l.readLog(ctx, reader, pw)
 	if err != nil {
@@ -205,19 +222,23 @@ func (l logStreamer) streamLog(ctx context.Context, wg *sync.WaitGroup, reader i
 	}
 }
 
-func (l *logStreamer) getLogs(ctx context.Context, pods []corev1.Pod) []logRequest {
+func (l *logStreamer) getLogs(ctx context.Context, pods []corev1.Pod, fromstart bool) []logRequest {
 	reqs := make([]logRequest, len(pods))
+	opts := &corev1.PodLogOptions{
+		Container: "manager",
+		Follow:    true,
+		SinceTime: &metav1.Time{
+			Time: time.Now(),
+		},
+	}
+	if fromstart {
+		opts.SinceTime = nil
+	}
 	for i, pod := range pods {
 		req := l.client.
 			CoreV1().
 			Pods(undistroNamespace).
-			GetLogs(pod.Name, &corev1.PodLogOptions{
-				Container: "manager",
-				Follow:    true,
-				SinceTime: &metav1.Time{
-					Time: time.Now(),
-				},
-			})
+			GetLogs(pod.Name, opts)
 		reqs[i] = logRequest{
 			podName: pod.Name,
 			req:     req,
@@ -238,16 +259,17 @@ type logRequest struct {
 type prefixingWriter struct {
 	prefix []byte
 	writer io.Writer
+	color  color.Attribute
 }
 
 func (pw *prefixingWriter) Write(p []byte) (int, error) {
 	if len(p) == 0 {
 		return 0, nil
 	}
-
+	cc := color.New(pw.color).SprintFunc()
 	// Perform an "atomic" write of a prefix and p to make sure that it doesn't interleave
 	// sub-line when used concurrently with io.PipeWrite.
-	n, err := pw.writer.Write(append(pw.prefix, p...))
+	n, err := pw.writer.Write(append([]byte(cc(string(pw.prefix))), p...))
 	if n > len(p) {
 		// To comply with the io.Writer interface requirements we must
 		// return a number of bytes written from p (0 <= n <= len(p)),

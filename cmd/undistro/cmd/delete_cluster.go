@@ -125,7 +125,7 @@ func deleteCluster(r io.Reader, w io.Writer) error {
 	if nm.Namespace == "" {
 		nm.Namespace = "default"
 	}
-	err = logStreamer.Stream(context.Background(), cfg, os.Stdout, nm, cluster.IsDeleted)
+	err = logStreamer.Stream(context.Background(), cfg, os.Stdout, nm, cluster.IsDeleted, false)
 	if err != nil {
 		return err
 	}
