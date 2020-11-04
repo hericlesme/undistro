@@ -60,6 +60,9 @@ type Client interface {
 
 	// GetLogs of controller providers
 	GetLogs(Kubeconfig) (Logs, error)
+
+	// GetEventListener returns event listener
+	GetEventListener(Kubeconfig) (EventListener, error)
 }
 
 // YamlPrinter exposes methods that prints the processed template and
