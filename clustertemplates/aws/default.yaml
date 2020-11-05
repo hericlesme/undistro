@@ -17,7 +17,7 @@ spec:
   controlPlaneRef:
     kind: KubeadmControlPlane
     apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-    name: "{{.Name}}-control-plane"
+    name: "{{.Name}}"
     namespace: "{{.Namespace}}"
 
 {{$bastion := .GetBastion}}
@@ -51,14 +51,14 @@ spec:
 kind: KubeadmControlPlane
 apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
 metadata:
-  name: "{{.Name}}-control-plane"
+  name: "{{.Name}}"
   namespace: "{{.Namespace}}"
 spec:
   replicas: {{.Spec.ControlPlaneNode.Replicas}}
   infrastructureTemplate:
     kind: AWSMachineTemplate
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-    name: "{{.Name}}-{{$uuid}}-control-plane"
+    name: "{{.Name}}-{{$uuid}}"
     namespace: "{{.Namespace}}"
   kubeadmConfigSpec:
     initConfiguration:
@@ -86,7 +86,7 @@ spec:
 kind: AWSMachineTemplate
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 metadata:
-  name: "{{.Name}}-{{$uuid}}-control-plane"
+  name: "{{.Name}}-{{$uuid}}"
   namespace: "{{.Namespace}}"
 spec:
   template:
