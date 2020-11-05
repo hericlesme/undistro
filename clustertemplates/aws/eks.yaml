@@ -17,7 +17,7 @@ spec:
   controlPlaneRef:
     kind: AWSManagedControlPlane
     apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-    name: "{{.Name}}-control-plane"
+    name: "{{.Name}}"
     namespace: "{{.Namespace}}"
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
@@ -31,7 +31,7 @@ metadata:
 kind: AWSManagedControlPlane
 apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
 metadata:
-  name: "{{.Name}}-control-plane"
+  name: "{{.Name}}"
   namespace: "{{.Namespace}}"
 spec:
   sshKeyName: "{{.Spec.InfrastructureProvider.SSHKey}}"
