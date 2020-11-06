@@ -134,6 +134,8 @@ spec:
         value: ""
       - name: AWS_SECRET_ACCESS_KEY
         value: ""
+      - name: AWS_REGION
+        value: ""
 ```
 
 ### Installing Helm Charts on the cluster
