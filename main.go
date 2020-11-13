@@ -33,7 +33,7 @@ func main() {
 		maxConcurrencyHelm   int
 		syncPeriod           time.Duration
 	)
-	flag.DurationVar(&syncPeriod, "sync-period", 15*time.Minute,
+	flag.DurationVar(&syncPeriod, "sync-period", 10*time.Minute,
 		"The minimum interval at which watched resources are reconciled (e.g. 15m)")
 	flag.IntVar(&maxConcurrency, "concurrency", 10, "Number of clusters to process simultaneously")
 	flag.IntVar(&maxConcurrencyHelm, "helm-concurrency", 5, "Number of helm releases to process simultaneously")

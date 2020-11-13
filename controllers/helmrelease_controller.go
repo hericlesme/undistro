@@ -351,6 +351,9 @@ func (r *HelmReleaseReconciler) updateFilter(e event.UpdateEvent) bool {
 	if !ok {
 		return false
 	}
+	if newHr.Generation < oldHr.Generation {
+		return false
+	}
 	if !controllerutil.ContainsFinalizer(oldHr, undistrov1.Finalizer) && controllerutil.ContainsFinalizer(newHr, undistrov1.Finalizer) {
 		return true
 	}

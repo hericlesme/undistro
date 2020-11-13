@@ -36,7 +36,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -441,8 +443,9 @@ func (r *ClusterReconciler) provisioning(ctx context.Context, cl *undistrov1.Clu
 		cl.Status.Ready = true
 		cl.Status.BastionPublicIP = bastionIP
 		record.Event(cl, "ClusterReady", "Cluster ready")
+		return ctrl.Result{}, nil
 	}
-	return ctrl.Result{}, nil
+	return ctrl.Result{Requeue: true}, nil
 }
 
 func (r *ClusterReconciler) getClusterBastionIP(ctx context.Context, cl *undistrov1.Cluster, capi *clusterApi.Cluster) (string, error) {
@@ -569,7 +572,23 @@ func (r *ClusterReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Manag
 			&source.Kind{Type: &clusterApi.Cluster{}},
 			handler.EnqueueRequestsFromMapFunc(r.capiToUndistro),
 		).
+		WithEventFilter(predicate.Funcs{UpdateFunc: r.updateFilter}).
 		Complete(r)
+}
+
+func (r *ClusterReconciler) updateFilter(e event.UpdateEvent) bool {
+	newCl, ok := e.ObjectNew.(*undistrov1.Cluster)
+	if !ok {
+		return false
+	}
+	oldCl, ok := e.ObjectOld.(*undistrov1.Cluster)
+	if !ok {
+		return false
+	}
+	if newCl.Generation < oldCl.Generation {
+		return false
+	}
+	return true
 }
 
 func (r *ClusterReconciler) capiToUndistro(o client.Object) []ctrl.Request {
