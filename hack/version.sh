@@ -82,13 +82,13 @@ export_vars() {
 
     
 
-    echo ::set-env name=BUILD_DATE::$(date ${SOURCE_DATE_EPOCH:+"--date=@${SOURCE_DATE_EPOCH}"} -u +'%Y-%m-%dT%H:%M:%SZ')
-    echo ::set-env name=BUILD_COMMIT::${GIT_COMMIT}
-    echo ::set-env name=BUILD_STATE::${GIT_TREE_STATE}
-    echo ::set-env name=GIT_MAJOR::${GIT_MAJOR}
-    echo ::set-env name=GIT_MINOR::${GIT_MINOR}
-    echo ::set-env name=GIT_VERSION::${GIT_VERSION}
-    echo ::set-env name=RELEASE_COMMIT::${GIT_RELEASE_COMMIT}
+    echo $(date ${SOURCE_DATE_EPOCH:+"--date=@${SOURCE_DATE_EPOCH}"} -u +'%Y-%m-%dT%H:%M:%SZ') >> $BUILD_DATE
+    echo ${GIT_COMMIT} >> $BUILD_COMMIT
+    echo ${GIT_TREE_STATE} >> $BUILD_STATE
+    echo ${GIT_MAJOR} >> $GIT_MAJOR
+    echo ${GIT_MINOR} >> $GIT_MINOR
+    echo ${GIT_VERSION} >> $GIT_VERSION
+    echo ${GIT_RELEASE_COMMIT} >> $RELEASE_COMMIT
 
 }
 
