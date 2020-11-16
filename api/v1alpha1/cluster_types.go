@@ -63,13 +63,8 @@ type WorkerNode struct {
 type Autoscale struct {
 	Enabled bool `json:"enabled,omitempty"`
 	// The minimum size of the group.
-	// +kubebuilder:default=1
-	// +kubebuilder:validation:Minimum=1
 	MinSize int64 `json:"minSize,omitempty"`
-
 	// The maximum size of the group.
-	// +kubebuilder:default=1
-	// +kubebuilder:validation:Minimum=1
 	MaxSize int64 `json:"maxSize,omitempty"`
 }
 
