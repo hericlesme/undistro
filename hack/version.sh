@@ -82,7 +82,7 @@ export_vars() {
 
     
 
-    echo $(date ${SOURCE_DATE_EPOCH:+"--date=@${SOURCE_DATE_EPOCH}"} -u +'%Y-%m-%dT%H:%M:%SZ') >> $BUILD_DATE
+    echo $(date ${SOURCE_DATE_EPOCH:+"--date=@${SOURCE_DATE_EPOCH}"} -u +'%Y-%m-%dT%H:%M:%SZ') >> $BUILD_DATETIME
     echo ${GIT_COMMIT} >> $BUILD_COMMIT
     echo ${GIT_TREE_STATE} >> $BUILD_STATE
     echo ${GIT_MAJOR} >> $GIT_MAJOR
