@@ -80,7 +80,7 @@ version::get_version_vars() {
 export_vars() {
     version::get_version_vars
 
-    BUILD_DATETIME = $(date ${SOURCE_DATE_EPOCH:+"--date=@${SOURCE_DATE_EPOCH}"} -u +'%Y-%m-%dT%H:%M:%SZ')
+    BUILD_DATETIME=$(date ${SOURCE_DATE_EPOCH:+"--date=@${SOURCE_DATE_EPOCH}"} -u +'%Y-%m-%dT%H:%M:%SZ')
 
     echo ${BUILD_DATETIME} >> $BUILD_DATETIME
     echo ${GIT_COMMIT} >> $BUILD_COMMIT
