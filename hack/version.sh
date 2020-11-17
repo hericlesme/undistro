@@ -79,16 +79,14 @@ version::get_version_vars() {
 # Prints the value that needs to be passed to the -ldflags parameter of go build
 export_vars() {
     version::get_version_vars
-
     BUILD_DATETIME=$(date ${SOURCE_DATE_EPOCH:+"--date=@${SOURCE_DATE_EPOCH}"} -u +'%Y-%m-%dT%H:%M:%SZ')
-
-    echo ${BUILD_DATETIME} >> $BUILD_DATETIME
-    echo ${GIT_COMMIT} >> $BUILD_COMMIT
-    echo ${GIT_TREE_STATE} >> $BUILD_STATE
-    echo ${GIT_MAJOR} >> $GIT_MAJOR
-    echo ${GIT_MINOR} >> $GIT_MINOR
-    echo ${GIT_VERSION} >> $GIT_VERSION
-    echo ${GIT_RELEASE_COMMIT} >> $RELEASE_COMMIT
+    echo BUILD_DATETIME=${BUILD_DATETIME} >> $GITHUB_ENV
+    echo BUILD_COMMIT=${GIT_COMMIT} >> $GITHUB_ENV
+    echo BUILD_STATE=${GIT_TREE_STATE} >> $GITHUB_ENV
+    echo GIT_MAJOR=${GIT_MAJOR} >> $GITHUB_ENV
+    echo GIT_MINOR=${GIT_MINOR} >> $GITHUB_ENV
+    echo GIT_VERSION=${GIT_VERSION} >> $GITHUB_ENV
+    echo RELEASE_COMMIT=${GIT_RELEASE_COMMIT} >> $GITHUB_ENV
 
 }
 
