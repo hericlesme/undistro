@@ -16,6 +16,7 @@ import (
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/sets"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	utilyaml "sigs.k8s.io/cluster-api/util/yaml"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -57,6 +58,27 @@ type InventoryClient interface {
 
 	// GetManagementGroups returns the list of management groups defined in the management cluster.
 	GetManagementGroups() (ManagementGroupList, error)
+}
+
+type InventoryMove struct {
+	// CoreProvider version (e.g. cluster-api:v0.3.0) to add to the management cluster. If unspecified, the
+	// cluster-api core provider's latest release is used.
+	CoreProvider string
+
+	// UndistroProvider version (e.g. undistro:v0.3.0) to add to the management cluster. If unspecified, the
+	// undistro provider's latest release is used.
+	UndistroProvider string
+
+	// BootstrapProviders and versions (e.g. kubeadm:v0.3.0) to add to the management cluster.
+	// If unspecified, the kubeadm bootstrap provider's latest release is used.
+	BootstrapProviders []string
+
+	// InfrastructureProviders and versions (e.g. aws:v0.5.0) to add to the management cluster.
+	InfrastructureProviders []string
+
+	// ControlPlaneProviders and versions (e.g. kubeadm:v0.3.0) to add to the management cluster.
+	// If unspecified, the kubeadm control plane provider latest release is used.
+	ControlPlaneProviders []string
 }
 
 // inventoryClient implements InventoryClient.
@@ -198,6 +220,13 @@ func (p *inventoryClient) createObj(o unstructured.Unstructured) error {
 	}
 	labels[undistrov1.ClusterctlCoreLabelName] = "inventory"
 	labels[undistrov1.UndistroCoreLabelName] = "inventory"
+	kind, ok, _ := unstructured.NestedString(o.Object, "spec", "names", "kind")
+	// it is necessary because undistro CRD is embedded on CLI
+	if ok && kind == "Cluster" || ok && kind == "HelmRelease" {
+		labels[undistrov1.ClusterctlLabelName] = ""
+		labels[undistrov1.UndistroLabelName] = ""
+		labels[clusterv1.ProviderLabelName] = "undistro"
+	}
 	o.SetLabels(labels)
 
 	if err := c.Create(ctx, &o); err != nil {
