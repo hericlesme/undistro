@@ -106,8 +106,13 @@ func (c *undistroClient) Init(options InitOptions) ([]Components, error) {
 		return nil, err
 	}
 
+	cm, err := cluster.CertManager()
+	if err != nil {
+		return nil, err
+	}
+
 	// Before installing the providers, ensure the cert-manager Webhook is in place.
-	if err := cluster.CertManager().EnsureInstalled(); err != nil {
+	if err := cm.EnsureInstalled(); err != nil {
 		return nil, err
 	}
 
@@ -154,8 +159,13 @@ func (c *undistroClient) InitImages(options InitOptions) ([]string, error) {
 		return nil, err
 	}
 
+	cm, err := cluster.CertManager()
+	if err != nil {
+		return nil, err
+	}
+
 	// Gets the list of container images required for the cert-manager (if not already installed).
-	images, err := cluster.CertManager().Images()
+	images, err := cm.Images()
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +264,7 @@ func (c *undistroClient) addToInstaller(options addToInstallerOptions, providerT
 			}
 			continue
 		}
-		installedProviders := options.installedProviders.FilterByProviderName(provider)
+		installedProviders := options.installedProviders.FilterByProviderNameAndType(provider, providerType)
 		p, err := c.configClient.Providers().Get(provider, providerType)
 		if err != nil {
 			logf.Log.V(5).Info("failed to get provider config:", "provider", provider, "type", providerType, "error", err)

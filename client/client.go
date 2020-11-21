@@ -45,6 +45,9 @@ type Client interface {
 	//   - Upgrade to the latest version in the the v1alpha3 series: ....
 	PlanUpgrade(options PlanUpgradeOptions) ([]UpgradePlan, error)
 
+	// PlanCertManagerUpgrade returns a CertManagerUpgradePlan.
+	PlanCertManagerUpgrade(options PlanUpgradeOptions) (CertManagerUpgradePlan, error)
+
 	// ApplyUpgrade executes an upgrade plan.
 	ApplyUpgrade(options ApplyUpgradeOptions) error
 
@@ -56,7 +59,7 @@ type Client interface {
 	GetVariables() Variables
 
 	// GetProxy provider a way to get proxy
-	GetProxy() (Proxy, error)
+	GetProxy(Kubeconfig) (Proxy, error)
 
 	// GetLogs of controller providers
 	GetLogs(Kubeconfig) (Logs, error)
