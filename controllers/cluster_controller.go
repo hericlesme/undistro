@@ -200,7 +200,6 @@ func (r *ClusterReconciler) reconcileMove(ctx context.Context, cl *undistrov1.Cl
 	cl.Status.WorkerNodes = cl.Spec.WorkerNodes
 	cl.Status.KubernetesVersion = cl.Spec.KubernetesVersion
 	cl.Status.InfrastructureName = cl.Spec.InfrastructureProvider.Name
-	cl.Status.Ready = capi.Status.InfrastructureReady && capi.Status.ControlPlaneReady
 	cl.Status.TotalWorkerPools = int64(len(cl.Spec.WorkerNodes))
 	cl.Status.ClusterAPIRef = &corev1.ObjectReference{
 		Kind:            capi.Kind,
@@ -217,6 +216,10 @@ func (r *ClusterReconciler) reconcileMove(ctx context.Context, cl *undistrov1.Cl
 	for _, w := range cl.Spec.WorkerNodes {
 		cl.Status.TotalWorkerReplicas += *w.Replicas
 	}
+	if cl.Status.BastionPublicIP == "" || undistrov1.ClusterPhase(capi.Status.Phase) != undistrov1.ProvisionedPhase {
+		return errors.Errorf("cluster %s migration do not finish yet", cl.Name)
+	}
+	cl.Status.Ready = true
 	labels := cl.GetLabels()
 	delete(labels, undistrov1.UndistroClusterMoved)
 	cl.SetLabels(labels)
