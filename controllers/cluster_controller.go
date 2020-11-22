@@ -213,6 +213,7 @@ func (r *ClusterReconciler) reconcileMove(ctx context.Context, cl *undistrov1.Cl
 	if err != nil {
 		return err
 	}
+	cl.Status.TotalWorkerReplicas = 0
 	for _, w := range cl.Spec.WorkerNodes {
 		cl.Status.TotalWorkerReplicas += *w.Replicas
 	}
