@@ -122,6 +122,7 @@ type Bastion struct {
 }
 
 type Network struct {
+	MultiZone    bool          `json:"multiZone,omitempty"`
 	VPC          NetworkSpec   `json:"vpc,omitempty"`
 	Subnets      []NetworkSpec `json:"subnets,omitempty"`
 	PodsCIDR     []string      `json:"podsCIDR,omitempty"`
