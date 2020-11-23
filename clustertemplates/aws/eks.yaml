@@ -70,6 +70,11 @@ spec:
       {{if .Spec.Network.VPC.ID}}
       id: {{.Spec.Network.VPC.ID}}
       {{end}}
+      {{if .Spec.Network.MultiZone}}
+      availabilityZoneUsageLimit: 3
+      {{else}}
+      availabilityZoneUsageLimit: 1
+      {{end}}
       {{if .Spec.Network.VPC.CIDRBlock}}
       cidrBlock: {{.Spec.Network.VPC.CIDRBlock}}
       {{end}}

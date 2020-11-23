@@ -224,6 +224,8 @@ spec:
                 type: string
               network:
                 properties:
+                  multiZone:
+                    type: boolean
                   podsCIDR:
                     items:
                       type: string
