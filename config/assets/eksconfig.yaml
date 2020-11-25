@@ -1,8 +1,0 @@
-apiVersion: bootstrap.aws.infrastructure.cluster.x-k8s.io/v1alpha1
-kind: AWSIAMConfiguration
-spec:
-  eks:
-    enable: true
-    iamRoleCreation: true
-    defaultControlPlaneRole:
-      disable: false # Set to false to enable creation of the default control plane role

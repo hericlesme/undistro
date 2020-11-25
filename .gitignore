@@ -22,14 +22,3 @@ bin
 *.swp
 *.swo
 *~
-bin/
-*.env
-*.kubeconfig
-*.pem
-core-components.yaml
-*demo.yaml
-undistro.yaml
-helmcharts/
-__debug_bin
-.restart-proc
-dash-token-demo.sh
