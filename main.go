@@ -1,5 +1,5 @@
 /*
-
+Copyright 2020 The UnDistro authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
@@ -31,6 +31,7 @@ import (
 	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
 	appcontroller "github.com/getupio-undistro/undistro/controllers/app"
 	configcontroller "github.com/getupio-undistro/undistro/controllers/config"
+	"github.com/getupio-undistro/undistro/pkg/record"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -71,6 +72,8 @@ func main() {
 	}
 
 	ctx := ctrl.SetupSignalHandler()
+
+	record.InitFromRecorder(mgr.GetEventRecorderFor("undistro-controller"))
 
 	if err = (&configcontroller.ProviderReconciler{
 		Client: mgr.GetClient(),

@@ -1,5 +1,5 @@
 /*
-
+Copyright 2020 The UnDistro authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,30 +17,64 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+// +kubebuilder:validation:Enum=HTTP;Helm
+type RepositoryType string
+
+const (
+	HTTPRepository RepositoryType = "HTTP"
+	HelmRepository RepositoryType = "Helm"
+)
 
 // ProviderSpec defines the desired state of Provider
 type ProviderSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// +kubebuilder:default=false
+	Paused          bool            `json:"paused,omitempty"`
+	ProviderName    string          `json:"providerName,omitempty"`
+	ProviderVersion string          `json:"providerVersion,omitempty"`
+	Repository      Repository      `json:"repository,omitempty"`
+	Configuration   []corev1.EnvVar `json:"configuration,omitempty"`
+	// +kubebuilder:default=false
+	AutoUpgrade bool `json:"autoUpgrade,omitempty"`
+}
 
-	// Foo is an example field of Provider. Edit Provider_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+type Repository struct {
+	// +kubebuilder:default="https://charts.undistro.io"
+	URL string `json:"url,omitempty"`
+	// +kubebuilder:default=Helm
+	Type      RepositoryType `json:"type,omitempty"`
+	BasicAuth BasicAuth      `json:"basicAuth,omitempty"`
+}
+
+type BasicAuth struct {
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
 }
 
 // ProviderStatus defines the observed state of Provider
 type ProviderStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	URL string
+
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	// +listType=map
+	// +listMapKey=type
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=providers,scope=Cluster
+// +kubebuilder:printcolumn:name="Provider Name",type="string",JSONPath=".spec.providerName"
+// +kubebuilder:printcolumn:name="Provider Version",type="string",JSONPath=".spec.providerVersion"
+// +kubebuilder:printcolumn:name="Provider Type",type="string",JSONPath=".spec.repository.type"
+// +kubebuilder:printcolumn:name="Provider URL",type="string",JSONPath=".status.url"
+// +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description=""
+// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].message",description=""
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
 
 // Provider is the Schema for the providers API
 type Provider struct {
