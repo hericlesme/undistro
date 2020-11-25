@@ -37,8 +37,7 @@ type ProviderReconciler struct {
 // +kubebuilder:rbac:groups=config.undistro.io,resources=providers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=config.undistro.io,resources=providers/status,verbs=get;update;patch
 
-func (r *ProviderReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
+func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("provider", req.NamespacedName)
 
 	// your logic here

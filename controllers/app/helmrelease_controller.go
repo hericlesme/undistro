@@ -37,8 +37,7 @@ type HelmReleaseReconciler struct {
 // +kubebuilder:rbac:groups=app.undistro.io,resources=helmreleases,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.undistro.io,resources=helmreleases/status,verbs=get;update;patch
 
-func (r *HelmReleaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
+func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("helmrelease", req.NamespacedName)
 
 	// your logic here
