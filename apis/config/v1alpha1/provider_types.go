@@ -56,7 +56,7 @@ type BasicAuth struct {
 
 // ProviderStatus defines the observed state of Provider
 type ProviderStatus struct {
-	URL string
+	URL string `json:"url,omitempty"`
 
 	// +patchMergeKey=type
 	// +patchStrategy=merge
