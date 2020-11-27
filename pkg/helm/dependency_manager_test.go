@@ -26,6 +26,35 @@ import (
 )
 
 var (
+	originalValuesFixture []byte            = []byte("override: original")
+	overrideValuesFixture []byte            = []byte("override: test")
+	chartFilesFixture     []*helmchart.File = []*helmchart.File{
+		{
+			Name: "values.yaml",
+			Data: originalValuesFixture,
+		},
+		{
+			Name: "values-identical.yaml",
+			Data: originalValuesFixture,
+		},
+		{
+			Name: "values-override.yaml",
+			Data: overrideValuesFixture,
+		},
+		{
+			Name: "values-invalid.yaml",
+			Data: []byte(":fail!"),
+		},
+	}
+	chartFixture helmchart.Chart = helmchart.Chart{
+		Metadata: &helmchart.Metadata{
+			Name:    "test",
+			Version: "0.1.0",
+		},
+		Raw:   chartFilesFixture,
+		Files: chartFilesFixture,
+	}
+
 	helmPackageFile = "testdata/charts/helmchart-0.1.0.tgz"
 
 	chartName            = "helmchart"

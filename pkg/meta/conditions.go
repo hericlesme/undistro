@@ -24,9 +24,7 @@ const (
 	// ReadyCondition is the name of the Ready condition implemented by all toolkit
 	// resources.
 	ReadyCondition string = "Ready"
-)
 
-const (
 	// ReconciliationSucceededReason represents the fact that the reconciliation of
 	// a toolkit resource has succeeded.
 	ReconciliationSucceededReason string = "ReconciliationSucceeded"
@@ -60,6 +58,95 @@ const (
 	// VerificationFailedReason represents the fact that the cryptographic
 	// provenance verification for the source failed.
 	VerificationFailedReason string = "VerificationFailed"
+
+	// IndexationFailedReason represents the fact that the indexation of the given
+	// Helm repository failed.
+	IndexationFailedReason string = "IndexationFailed"
+
+	// IndexationSucceededReason represents the fact that the indexation of the
+	// given Helm repository succeeded.
+	IndexationSucceededReason string = "IndexationSucceed"
+
+	// ChartPullFailedReason represents the fact that the pull of the Helm chart
+	// failed.
+	ChartPullFailedReason string = "ChartPullFailed"
+
+	// ChartPullSucceededReason represents the fact that the pull of the Helm chart
+	// succeeded.
+	ChartPullSucceededReason string = "ChartPullSucceeded"
+
+	// ChartPackageFailedReason represent the fact that the package of the Helm
+	// chart failed.
+	ChartPackageFailedReason string = "ChartPackageFailed"
+
+	// ChartPackageSucceededReason represents the fact that the package of the Helm
+	// chart succeeded.
+	ChartPackageSucceededReason string = "ChartPackageSucceeded"
+
+	// InstallSucceededReason represents the fact that the Helm install for the
+	// HelmRelease succeeded.
+	InstallSucceededReason string = "InstallSucceeded"
+
+	// InstallFailedReason represents the fact that the Helm install for the
+	// HelmRelease failed.
+	InstallFailedReason string = "InstallFailed"
+
+	// UpgradeSucceededReason represents the fact that the Helm upgrade for the
+	// HelmRelease succeeded.
+	UpgradeSucceededReason string = "UpgradeSucceeded"
+
+	// UpgradeFailedReason represents the fact that the Helm upgrade for the
+	// HelmRelease failed.
+	UpgradeFailedReason string = "UpgradeFailed"
+
+	// TestSucceededReason represents the fact that the Helm tests for the
+	// HelmRelease succeeded.
+	TestSucceededReason string = "TestSucceeded"
+
+	// TestFailedReason represents the fact that the Helm tests for the HelmRelease
+	// failed.
+	TestFailedReason string = "TestFailed"
+
+	// RollbackSucceededReason represents the fact that the Helm rollback for the
+	// HelmRelease succeeded.
+	RollbackSucceededReason string = "RollbackSucceeded"
+
+	// RollbackFailedReason represents the fact that the Helm test for the
+	// HelmRelease failed.
+	RollbackFailedReason string = "RollbackFailed"
+
+	// UninstallSucceededReason represents the fact that the Helm uninstall for the
+	// HelmRelease succeeded.
+	UninstallSucceededReason string = "UninstallSucceeded"
+
+	// UninstallFailedReason represents the fact that the Helm uninstall for the
+	// HelmRelease failed.
+	UninstallFailedReason string = "UninstallFailed"
+
+	// ArtifactFailedReason represents the fact that the artifact download for the
+	// HelmRelease failed.
+	ArtifactFailedReason string = "ArtifactFailed"
+
+	// InitFailedReason represents the fact that the initialization of the Helm
+	// configuration failed.
+	InitFailedReason string = "InitFailed"
+
+	// GetLastReleaseFailedReason represents the fact that observing the last
+	// release failed.
+	GetLastReleaseFailedReason string = "GetLastReleaseFailed"
+
+	// ReleasedCondition represents the status of the last release attempt
+	// (install/upgrade/test) against the latest desired state.
+	ReleasedCondition string = "Released"
+
+	// TestSuccessCondition represents the status of the last test attempt against
+	// the latest desired state.
+	TestSuccessCondition string = "TestSuccess"
+
+	// RemediatedCondition represents the status of the last remediation attempt
+	// (uninstall/rollback) due to a failure of the last release attempt against the
+	// latest desired state.
+	RemediatedCondition string = "Remediated"
 )
 
 // InReadyCondition returns if the given Condition slice has a ReadyCondition

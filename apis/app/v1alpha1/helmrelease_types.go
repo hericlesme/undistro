@@ -26,6 +26,39 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// ValuesReference contains a reference to a resource containing Helm values,
+// and optionally the key they can be found at.
+type ValuesReference struct {
+	// Kind of the values referent, valid values are ('Secret', 'ConfigMap').
+	// +kubebuilder:validation:Enum=Secret;ConfigMap
+	// +required
+	Kind string `json:"kind"`
+
+	// Name of the values referent. Should reside in the same namespace as the
+	// referring resource.
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=253
+	// +required
+	Name string `json:"name"`
+
+	// ValuesKey is the data key where the values.yaml or a specific value can be
+	// found at. Defaults to 'values.yaml'.
+	// +optional
+	ValuesKey string `json:"valuesKey,omitempty"`
+
+	// TargetPath is the YAML dot notation path the value should be merged at. When
+	// set, the ValuesKey is expected to be a single flat value. Defaults to 'None',
+	// which results in the values getting merged at the root.
+	// +optional
+	TargetPath string `json:"targetPath,omitempty"`
+
+	// Optional marks this ValuesReference as optional. When set, a not found error
+	// for the values reference is ignored, but any ValuesKey, TargetPath or
+	// transient error will still result in a reconciliation failure.
+	// +optional
+	Optional bool `json:"optional,omitempty"`
+}
+
 type ChartSource struct {
 	RepoChartSource `json:",inline,omitempty"`
 	SecretRef       *corev1.LocalObjectReference `json:"secretRef,omitempty"`
@@ -55,11 +88,6 @@ func (s RepoChartSource) CleanRepoURL() string {
 }
 
 type Rollback struct {
-	// Enable will mark this Helm release for rollbacks.
-	Enable bool `json:"enable,omitempty"`
-	// Retry will mark this Helm release for upgrade retries after a
-	// rollback.
-	Retry bool `json:"retry,omitempty"`
 	// MaxRetries is the maximum amount of upgrade retries the operator
 	// should make before bailing.
 	MaxRetries *int64 `json:"maxRetries,omitempty"`
@@ -87,7 +115,7 @@ type Test struct {
 	Enable bool `json:"enable,omitempty"`
 	// IgnoreFailures will cause a Helm release to be rolled back
 	// if it fails otherwise it will be left in a released state
-	IgnoreFailures *bool `json:"ignoreFailures,omitempty"`
+	IgnoreFailures bool `json:"ignoreFailures,omitempty"`
 	// Timeout is the time to wait for any individual Kubernetes
 	// operation (like Jobs for hooks) during test.
 	Timeout *metav1.Duration `json:"timeout,omitempty"`
@@ -97,10 +125,10 @@ type Test struct {
 }
 
 type HelmReleaseSpec struct {
-	ChartSource `json:"chart,omitempty"`
-	ReleaseName string `json:"releaseName,omitempty"`
-	ClusterName string `json:"clusterName,omitempty"`
-	MaxHistory  *int   `json:"maxHistory,omitempty"`
+	Chart       ChartSource `json:"chart,omitempty"`
+	ReleaseName string      `json:"releaseName,omitempty"`
+	ClusterName string      `json:"clusterName,omitempty"`
+	MaxHistory  *int        `json:"maxHistory,omitempty"`
 	// TargetNamespace overrides the targeted namespace for the Helm
 	// release. The default namespace equals to the namespace of the
 	// HelmRelease resource.
@@ -131,6 +159,9 @@ type HelmReleaseSpec struct {
 	Test Test `json:"test,omitempty"`
 	// Values holds the values for this Helm release.
 	Values *apiextensionsv1.JSON `json:"values,omitempty"`
+	// ValuesFrom holds references to resources containing Helm values for this HelmRelease,
+	// and information about how they should be merged.
+	ValuesFrom []ValuesReference `json:"valuesFrom,omitempty"`
 	// BeforeApplyObjects holds the objects that will be applied
 	// before this helm release installation
 	BeforeApplyObjects []apiextensionsv1.JSON `json:"beforeApplyObjects,omitempty"`
@@ -229,8 +260,14 @@ func resetFailureCounts(hr *HelmRelease) {
 	hr.Status.UpgradeFailures = 0
 }
 
+// +genclient
+// +genclient:Namespaced
 // +kubebuilder:object:root=true
+// +kubebuilder:resource:shortName=hr
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description=""
+// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].message",description=""
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
 
 // HelmRelease is the Schema for the helmreleases API
 type HelmRelease struct {
