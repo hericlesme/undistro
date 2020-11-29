@@ -7,7 +7,6 @@ require (
 	github.com/go-logr/logr v0.3.0
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.3
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	helm.sh/helm/v3 v3.4.1
 	k8s.io/api v0.19.4
 	k8s.io/apiextensions-apiserver v0.19.4
