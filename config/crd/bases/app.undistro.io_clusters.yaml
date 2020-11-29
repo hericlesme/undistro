@@ -13,8 +13,10 @@ spec:
     kind: Cluster
     listKind: ClusterList
     plural: clusters
+    shortNames:
+    - cl
     singular: cluster
-  scope: Namespaced
+  scope: Cluster
   versions:
   - name: v1alpha1
     schema:

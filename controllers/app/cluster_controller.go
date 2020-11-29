@@ -34,8 +34,7 @@ type ClusterReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=app.undistro.io,resources=clusters,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=app.undistro.io,resources=clusters/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=*,resources=*,verbs=*
 
 func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("cluster", req.NamespacedName)

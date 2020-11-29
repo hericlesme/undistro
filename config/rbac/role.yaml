@@ -7,42 +7,8 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - app.undistro.io
+  - '*'
   resources:
-  - clusters
+  - '*'
   verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - app.undistro.io
-  resources:
-  - clusters/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - config.undistro.io
-  resources:
-  - providers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - config.undistro.io
-  resources:
-  - providers/status
-  verbs:
-  - get
-  - patch
-  - update
+  - '*'

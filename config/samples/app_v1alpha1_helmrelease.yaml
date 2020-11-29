@@ -1,7 +1,10 @@
 apiVersion: app.undistro.io/v1alpha1
 kind: HelmRelease
 metadata:
-  name: helmrelease-sample
+    name: kubernetes-dashboard
+    namespace: mgt
 spec:
-  # Add fields here
-  foo: bar
+  chart:
+    repository: https://kubernetes.github.io/dashboard
+    name: kubernetes-dashboard
+    version: 3.0.0

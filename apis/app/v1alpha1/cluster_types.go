@@ -39,6 +39,7 @@ type ClusterStatus struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:resource:shortName=cl,scope=Cluster
 // +kubebuilder:subresource:status
 
 // Cluster is the Schema for the clusters API
@@ -48,6 +49,13 @@ type Cluster struct {
 
 	Spec   ClusterSpec   `json:"spec,omitempty"`
 	Status ClusterStatus `json:"status,omitempty"`
+}
+
+func (c *Cluster) GetNamespace() string {
+	if c.Namespace == "" {
+		return "default"
+	}
+	return c.Namespace
 }
 
 // +kubebuilder:object:root=true

@@ -65,6 +65,7 @@ func main() {
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "19acc88f.undistro.io",
+		Namespace:          "",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

@@ -54,7 +54,6 @@ func (r *Runner) Install(hr appv1alpha1.HelmRelease, chart *chart.Chart, values 
 	install.Timeout = hr.Spec.Timeout.Duration
 	install.Wait = *hr.Spec.Wait
 	install.SkipCRDs = hr.Spec.SkipCRDs
-
 	return install.Run(chart, values.AsMap())
 }
 

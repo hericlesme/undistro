@@ -13,10 +13,25 @@ spec:
     kind: HelmRelease
     listKind: HelmReleaseList
     plural: helmreleases
+    shortNames:
+    - hr
     singular: helmrelease
-  scope: Namespaced
+  scope: Cluster
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.clusterName
+      name: Cluster
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].message
+      name: Status
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: HelmRelease is the Schema for the helmreleases API
@@ -156,26 +171,14 @@ spec:
                     description: DisableHooks will mark this Helm release to prevent
                       hooks from running during the rollback.
                     type: boolean
-                  enable:
-                    description: Enable will mark this Helm release for rollbacks.
-                    type: boolean
                   force:
                     description: Force will mark this Helm release to `--force` rollbacks.
                       This forces the resource updates through delete/recreate if
                       needed.
                     type: boolean
-                  maxRetries:
-                    description: MaxRetries is the maximum amount of upgrade retries
-                      the operator should make before bailing.
-                    format: int64
-                    type: integer
                   recreate:
                     description: Recreate will mark this Helm release to `--recreate-pods`
                       for if applicable. This performs pod restarts.
-                    type: boolean
-                  retry:
-                    description: Retry will mark this Helm release for upgrade retries
-                      after a rollback.
                     type: boolean
                   timeout:
                     description: Timeout is the time to wait for any individual Kubernetes
@@ -225,6 +228,49 @@ spec:
               values:
                 description: Values holds the values for this Helm release.
                 x-kubernetes-preserve-unknown-fields: true
+              valuesFrom:
+                description: ValuesFrom holds references to resources containing Helm
+                  values for this HelmRelease, and information about how they should
+                  be merged.
+                items:
+                  description: ValuesReference contains a reference to a resource
+                    containing Helm values, and optionally the key they can be found
+                    at.
+                  properties:
+                    kind:
+                      description: Kind of the values referent, valid values are ('Secret',
+                        'ConfigMap').
+                      enum:
+                      - Secret
+                      - ConfigMap
+                      type: string
+                    name:
+                      description: Name of the values referent. Should reside in the
+                        same namespace as the referring resource.
+                      maxLength: 253
+                      minLength: 1
+                      type: string
+                    optional:
+                      description: Optional marks this ValuesReference as optional.
+                        When set, a not found error for the values reference is ignored,
+                        but any ValuesKey, TargetPath or transient error will still
+                        result in a reconciliation failure.
+                      type: boolean
+                    targetPath:
+                      description: TargetPath is the YAML dot notation path the value
+                        should be merged at. When set, the ValuesKey is expected to
+                        be a single flat value. Defaults to 'None', which results
+                        in the values getting merged at the root.
+                      type: string
+                    valuesKey:
+                      description: ValuesKey is the data key where the values.yaml
+                        or a specific value can be found at. Defaults to 'values.yaml'.
+                      type: string
+                  required:
+                  - kind
+                  - name
+                  type: object
+                type: array
               wait:
                 description: Wait will mark this Helm release to wait until all Pods,
                   PVCs, Services, and minimum number of Pods of a Deployment, StatefulSet,

@@ -71,10 +71,6 @@ type HelmReleaseReconciler struct {
 	config *rest.Config
 }
 
-// +kubebuilder:rbac:groups=app.undistro.io,resources=helmreleases,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=app.undistro.io,resources=helmreleases/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=app.undistro.io,resources=helmreleases/finalizers,verbs=get;create;update;patch;delete
-// +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	hr := appv1alpha1.HelmRelease{}
 	if err := r.Get(ctx, req.NamespacedName, &hr); err != nil {
@@ -359,7 +355,9 @@ func (r *HelmReleaseReconciler) composeValues(ctx context.Context, hr appv1alpha
 		}
 	}
 	m := map[string]interface{}{}
-	json.Unmarshal(hr.Spec.Values.Raw, &m)
+	if hr.Spec.Values != nil {
+		json.Unmarshal(hr.Spec.Values.Raw, &m)
+	}
 	return util.MergeMaps(result, m), nil
 }
 
@@ -390,8 +388,6 @@ func (r *HelmReleaseReconciler) getRESTClientGetter(ctx context.Context, hr appv
 	return kube.NewMemoryRESTClientGetter(kubeConfig, hr.GetNamespace()), nil
 }
 
-// reconcileDelete deletes the v1beta1.HelmChart of the v2beta1.HelmRelease,
-// and uninstalls the Helm release if the resource has not been suspended.
 func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, logger logr.Logger, hr appv1alpha1.HelmRelease) (ctrl.Result, error) {
 	restClient, err := r.getRESTClientGetter(ctx, hr)
 	if err != nil {

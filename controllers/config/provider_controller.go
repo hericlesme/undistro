@@ -34,9 +34,6 @@ type ProviderReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=config.undistro.io,resources=providers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=config.undistro.io,resources=providers/status,verbs=get;update;patch
-
 func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("provider", req.NamespacedName)
 

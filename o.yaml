@@ -1,0 +1,106 @@
+apiVersion: v1
+items:
+- apiVersion: app.undistro.io/v1alpha1
+  kind: HelmRelease
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"app.undistro.io/v1alpha1","kind":"HelmRelease","metadata":{"annotations":{},"name":"kubernetes-dashboard"},"spec":{"chart":{"name":"kubernetes-dashboard","repository":"https://kubernetes.github.io/dashboard","version":"3.0.0"}}}
+    creationTimestamp: "2020-11-29T00:38:17Z"
+    finalizers:
+    - finalizer.undistro.io
+    generation: 1
+    labels:
+      undistro.io/cluster-name: ""
+      undistro.io/cluster-type: management
+    managedFields:
+    - apiVersion: app.undistro.io/v1alpha1
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:metadata:
+          f:annotations:
+            .: {}
+            f:kubectl.kubernetes.io/last-applied-configuration: {}
+        f:spec:
+          .: {}
+          f:chart:
+            .: {}
+            f:name: {}
+            f:repository: {}
+            f:version: {}
+      manager: kubectl-client-side-apply
+      operation: Update
+      time: "2020-11-29T00:38:16Z"
+    - apiVersion: app.undistro.io/v1alpha1
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:metadata:
+          f:finalizers:
+            .: {}
+            v:"finalizer.undistro.io": {}
+        f:status:
+          .: {}
+          f:conditions:
+            .: {}
+            k:{"type":"Ready"}:
+              .: {}
+              f:lastTransitionTime: {}
+              f:message: {}
+              f:reason: {}
+              f:status: {}
+              f:type: {}
+            k:{"type":"Released"}:
+              .: {}
+              f:lastTransitionTime: {}
+              f:message: {}
+              f:reason: {}
+              f:status: {}
+              f:type: {}
+          f:lastAppliedRevision: {}
+          f:lastAttemptedRevision: {}
+          f:lastAttemptedValuesChecksum: {}
+          f:lastReleaseRevision: {}
+          f:observedGeneration: {}
+      manager: manager
+      operation: Update
+      time: "2020-11-29T00:38:21Z"
+    name: kubernetes-dashboard
+    resourceVersion: "1927"
+    selfLink: /apis/app.undistro.io/v1alpha1/helmreleases/kubernetes-dashboard
+    uid: a92c0153-0cac-4adc-898e-ea95e3ae733a
+  spec:
+    chart:
+      name: kubernetes-dashboard
+      repository: https://kubernetes.github.io/dashboard
+      version: 3.0.0
+    maxHistory: 10
+    releaseName: default-kubernetes-dashboard
+    resetValues: false
+    rollback:
+      timeout: 5m0s
+    targetNamespace: default
+    test:
+      timeout: 5m0s
+    timeout: 5m0s
+    wait: true
+  status:
+    conditions:
+    - lastTransitionTime: "2020-11-29T00:38:21Z"
+      message: Release reconciliation succeeded
+      reason: ReconciliationSucceeded
+      status: "True"
+      type: Ready
+    - lastTransitionTime: "2020-11-29T00:38:21Z"
+      message: Helm install succeeded
+      reason: InstallSucceeded
+      status: "True"
+      type: Released
+    lastAppliedRevision: 3.0.0
+    lastAttemptedRevision: 3.0.0
+    lastAttemptedValuesChecksum: da39a3ee5e6b4b0d3255bfef95601890afd80709
+    lastReleaseRevision: 1
+    observedGeneration: 1
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

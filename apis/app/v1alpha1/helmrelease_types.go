@@ -88,9 +88,6 @@ func (s RepoChartSource) CleanRepoURL() string {
 }
 
 type Rollback struct {
-	// MaxRetries is the maximum amount of upgrade retries the operator
-	// should make before bailing.
-	MaxRetries *int64 `json:"maxRetries,omitempty"`
 	// Force will mark this Helm release to `--force` rollbacks. This
 	// forces the resource updates through delete/recreate if needed.
 	Force bool `json:"force,omitempty"`
@@ -261,10 +258,10 @@ func resetFailureCounts(hr *HelmRelease) {
 }
 
 // +genclient
-// +genclient:Namespaced
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:shortName=hr
+// +kubebuilder:resource:shortName=hr,scope=Cluster
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Cluster",type="string",JSONPath=".spec.clusterName",description=""
 // +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description=""
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].message",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""
@@ -281,6 +278,13 @@ type HelmRelease struct {
 // GetStatusConditions returns a pointer to the Status.Conditions slice
 func (hr *HelmRelease) GetStatusConditions() *[]metav1.Condition {
 	return &hr.Status.Conditions
+}
+
+func (hr *HelmRelease) GetNamespace() string {
+	if hr.Namespace == "" {
+		return "default"
+	}
+	return hr.Namespace
 }
 
 // +kubebuilder:object:root=true
