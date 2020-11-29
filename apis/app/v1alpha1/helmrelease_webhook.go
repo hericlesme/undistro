@@ -113,6 +113,14 @@ func (r *HelmRelease) validate(old *HelmRelease) error {
 			"spec.chart.version to be populated",
 		))
 	}
+	for _, d := range r.Spec.Dependencies {
+		if d.Name == "" {
+			allErrs = append(allErrs, field.Required(
+				field.NewPath("spec", "dependencies[]", "name"),
+				"spec.dependencies[].name to be populated",
+			))
+		}
+	}
 	if r.Spec.Chart.RepoURL == "" {
 		allErrs = append(allErrs, field.Required(
 			field.NewPath("spec", "chart", "repository"),

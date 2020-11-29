@@ -296,17 +296,21 @@ func (r *HelmReleaseReconciler) checkDependencies(ctx context.Context, hr appv1a
 			d.Namespace = hr.GetNamespace()
 		}
 		var dHr appv1alpha1.HelmRelease
-		err := r.Get(ctx, d, &dHr)
+		nm := types.NamespacedName{
+			Name:      d.Name,
+			Namespace: d.Namespace,
+		}
+		err := r.Get(ctx, nm, &dHr)
 		if err != nil {
-			return fmt.Errorf("unable to get '%v' dependency: %w", d, err)
+			return fmt.Errorf("unable to get '%v' dependency: %w", nm, err)
 		}
 
 		if len(dHr.Status.Conditions) == 0 || dHr.Generation != dHr.Status.ObservedGeneration {
-			return fmt.Errorf("dependency '%v' is not ready", d)
+			return fmt.Errorf("dependency '%v' is not ready", nm)
 		}
 
 		if !apimeta.IsStatusConditionTrue(dHr.Status.Conditions, meta.ReadyCondition) {
-			return fmt.Errorf("dependency '%v' is not ready", d)
+			return fmt.Errorf("dependency '%v' is not ready", nm)
 		}
 	}
 	return nil
