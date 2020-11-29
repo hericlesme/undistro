@@ -23,7 +23,6 @@ webhooks:
     operations:
     - CREATE
     - UPDATE
-    - DELETE
     resources:
     - clusters
   sideEffects: None
@@ -44,7 +43,6 @@ webhooks:
     operations:
     - CREATE
     - UPDATE
-    - DELETE
     resources:
     - helmreleases
   sideEffects: None
@@ -65,7 +63,6 @@ webhooks:
     operations:
     - CREATE
     - UPDATE
-    - DELETE
     resources:
     - providers
   sideEffects: None
@@ -94,7 +91,6 @@ webhooks:
     operations:
     - CREATE
     - UPDATE
-    - DELETE
     resources:
     - clusters
   sideEffects: None
@@ -115,7 +111,6 @@ webhooks:
     operations:
     - CREATE
     - UPDATE
-    - DELETE
     resources:
     - helmreleases
   sideEffects: None
@@ -136,7 +131,6 @@ webhooks:
     operations:
     - CREATE
     - UPDATE
-    - DELETE
     resources:
     - providers
   sideEffects: None

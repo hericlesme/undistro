@@ -34,7 +34,7 @@ func (r *Cluster) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
-// +kubebuilder:webhook:path=/mutate-app-undistro-io-v1alpha1-cluster,mutating=true,failurePolicy=fail,groups=app.undistro.io,resources=clusters,verbs=create;update;delete,versions=v1alpha1,name=mcluster.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:path=/mutate-app-undistro-io-v1alpha1-cluster,mutating=true,failurePolicy=fail,groups=app.undistro.io,resources=clusters,verbs=create;update,versions=v1alpha1,name=mcluster.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1
 
 var _ webhook.Defaulter = &Cluster{}
 
@@ -45,7 +45,7 @@ func (r *Cluster) Default() {
 	// TODO(user): fill in your defaulting logic.
 }
 
-// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-app-undistro-io-v1alpha1-cluster,mutating=false,failurePolicy=fail,groups=app.undistro.io,resources=clusters,versions=v1alpha1,name=vcluster.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:verbs=create;update,path=/validate-app-undistro-io-v1alpha1-cluster,mutating=false,failurePolicy=fail,groups=app.undistro.io,resources=clusters,versions=v1alpha1,name=vcluster.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1
 
 var _ webhook.Validator = &Cluster{}
 

@@ -34,7 +34,7 @@ func (r *Provider) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
-// +kubebuilder:webhook:path=/mutate-config-undistro-io-v1alpha1-provider,mutating=true,failurePolicy=fail,groups=config.undistro.io,resources=providers,verbs=create;update;delete,versions=v1alpha1,name=mprovider.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:path=/mutate-config-undistro-io-v1alpha1-provider,mutating=true,failurePolicy=fail,groups=config.undistro.io,resources=providers,verbs=create;update,versions=v1alpha1,name=mprovider.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1
 
 var _ webhook.Defaulter = &Provider{}
 
@@ -45,7 +45,7 @@ func (r *Provider) Default() {
 	// TODO(user): fill in your defaulting logic.
 }
 
-// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-config-undistro-io-v1alpha1-provider,mutating=false,failurePolicy=fail,groups=config.undistro.io,resources=providers,versions=v1alpha1,name=vprovider.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:verbs=create;update,path=/validate-config-undistro-io-v1alpha1-provider,mutating=false,failurePolicy=fail,groups=config.undistro.io,resources=providers,versions=v1alpha1,name=vprovider.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1
 
 var _ webhook.Validator = &Provider{}
 
