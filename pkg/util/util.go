@@ -16,11 +16,14 @@ limitations under the License.
 package util
 
 import (
+	"context"
 	"crypto/sha1"
 	"fmt"
 
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/release"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // MergeMaps merges map b into given map a and returns the result.
@@ -63,4 +66,26 @@ func ReleaseRevision(rel *release.Release) int {
 		return 0
 	}
 	return rel.Version
+}
+
+func CreateOrUpdate(ctx context.Context, r client.Client, o unstructured.Unstructured) error {
+	old := unstructured.Unstructured{}
+	old.SetGroupVersionKind(o.GroupVersionKind())
+	nm := client.ObjectKey{
+		Name:      o.GetName(),
+		Namespace: o.GetNamespace(),
+	}
+	err := r.Get(ctx, nm, &old)
+	if err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			return err
+		}
+		err = r.Create(ctx, &o)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	o.SetResourceVersion(old.GetResourceVersion())
+	return r.Patch(ctx, &o, client.MergeFrom(&old))
 }

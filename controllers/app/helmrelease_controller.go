@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/helm"
@@ -36,9 +37,11 @@ import (
 	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/strvals"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -159,6 +162,19 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ChartPullFailedReason, err.Error())
 		return hr, ctrl.Result{Requeue: true}, err
 	}
+	// Check dependencies
+	if len(hr.Spec.Dependencies) > 0 {
+		if err := r.checkDependencies(ctx, hr); err != nil {
+			msg := fmt.Sprintf("dependencies do not meet ready condition (%s), retrying in 5s", err.Error())
+			log.Info(msg)
+
+			// Exponential backoff would cause execution to be prolonged too much,
+			// instead we requeue on a fixed interval.
+			return appv1alpha1.HelmReleaseNotReady(hr,
+				meta.DependencyNotReadyReason, err.Error()), ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+		}
+		log.Info("all dependencies are ready, proceeding with release")
+	}
 	// Compose values
 	values, err := r.composeValues(ctx, hr)
 	if err != nil {
@@ -170,8 +186,40 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.StorageOperationFailedReason, err.Error())
 		return hr, ctrl.Result{Requeue: true}, err
 	}
+	err = r.applyObjs(ctx, hr.Spec.BeforeApplyObjects)
+	if err != nil {
+		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ObjectsApliedFailedCondition, err.Error())
+		return hr, ctrl.Result{Requeue: true}, err
+	}
+	record.Event(&hr, meta.ObjectsApliedSuccessCondition, "objects successfully applied before install")
 	hr, err = r.reconcileRelease(ctx, log, *hr.DeepCopy(), hc, values)
-	return hr, ctrl.Result{}, err
+	if err != nil {
+		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ReconciliationFailedReason, err.Error())
+		return hr, ctrl.Result{Requeue: true}, err
+	}
+	err = r.applyObjs(ctx, hr.Spec.AfterApplyObjects)
+	if err != nil {
+		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ObjectsApliedFailedCondition, err.Error())
+		return hr, ctrl.Result{Requeue: true}, err
+	}
+	record.Event(&hr, meta.ObjectsApliedSuccessCondition, "objects successfully applied after install")
+	return hr, ctrl.Result{}, nil
+}
+
+func (r *HelmReleaseReconciler) applyObjs(ctx context.Context, objs []apiextensionsv1.JSON) error {
+	for _, raw := range objs {
+		o := unstructured.Unstructured{}
+		m, err := runtime.DefaultUnstructuredConverter.ToUnstructured(raw.Raw)
+		if err != nil {
+			return err
+		}
+		o.Object = m
+		err = util.CreateOrUpdate(ctx, r.Client, o)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, log logr.Logger,
@@ -240,6 +288,28 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, log logr.L
 		return appv1alpha1.HelmReleaseNotReady(hr, meta.ReconciliationFailedReason, err.Error()), err
 	}
 	return appv1alpha1.HelmReleaseReady(hr), nil
+}
+
+func (r *HelmReleaseReconciler) checkDependencies(ctx context.Context, hr appv1alpha1.HelmRelease) error {
+	for _, d := range hr.Spec.Dependencies {
+		if d.Namespace == "" {
+			d.Namespace = hr.GetNamespace()
+		}
+		var dHr appv1alpha1.HelmRelease
+		err := r.Get(ctx, d, &dHr)
+		if err != nil {
+			return fmt.Errorf("unable to get '%v' dependency: %w", d, err)
+		}
+
+		if len(dHr.Status.Conditions) == 0 || dHr.Generation != dHr.Status.ObservedGeneration {
+			return fmt.Errorf("dependency '%v' is not ready", d)
+		}
+
+		if !apimeta.IsStatusConditionTrue(dHr.Status.Conditions, meta.ReadyCondition) {
+			return fmt.Errorf("dependency '%v' is not ready", d)
+		}
+	}
+	return nil
 }
 
 func (r *HelmReleaseReconciler) handleHelmActionResult(hr *appv1alpha1.HelmRelease, revision string, err error, action string, condition string, succeededReason string, failedReason string) error {

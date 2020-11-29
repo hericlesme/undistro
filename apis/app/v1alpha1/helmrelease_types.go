@@ -24,6 +24,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // ValuesReference contains a reference to a resource containing Helm values,
@@ -167,8 +168,8 @@ type HelmReleaseSpec struct {
 	AfterApplyObjects []apiextensionsv1.JSON `json:"afterApplyObjects,omitempty"`
 	// Dependencies holds the referencies of objects
 	// this HelmRelease depends on
-	Dependencies []corev1.ObjectReference `json:"dependencies,omitempty"`
-	Paused       bool                     `json:"paused,omitempty"`
+	Dependencies []types.NamespacedName `json:"dependencies,omitempty"`
+	Paused       bool                   `json:"paused,omitempty"`
 }
 
 // HelmReleaseStatus defines the observed state of HelmRelease// HelmReleaseStatus defines the observed state of a HelmRelease.

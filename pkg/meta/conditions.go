@@ -147,6 +147,9 @@ const (
 	// (uninstall/rollback) due to a failure of the last release attempt against the
 	// latest desired state.
 	RemediatedCondition string = "Remediated"
+
+	ObjectsApliedSuccessCondition string = "ObjectAppliedSuccess"
+	ObjectsApliedFailedCondition  string = "ObjectAppliedFailed"
 )
 
 // InReadyCondition returns if the given Condition slice has a ReadyCondition
