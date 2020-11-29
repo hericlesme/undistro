@@ -16,7 +16,7 @@ spec:
     shortNames:
     - hr
     singular: helmrelease
-  scope: Cluster
+  scope: Namespaced
   versions:
   - additionalPrinterColumns:
     - jsonPath: .spec.clusterName

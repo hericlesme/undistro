@@ -2,7 +2,7 @@ apiVersion: app.undistro.io/v1alpha1
 kind: HelmRelease
 metadata:
     name: kubernetes-dashboard
-    namespace: mgt
+    namespace: default
 spec:
   chart:
     repository: https://kubernetes.github.io/dashboard

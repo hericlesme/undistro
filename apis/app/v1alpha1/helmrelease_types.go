@@ -259,7 +259,7 @@ func resetFailureCounts(hr *HelmRelease) {
 
 // +genclient
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:shortName=hr,scope=Cluster
+// +kubebuilder:resource:shortName=hr,scope=Namespaced
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Cluster",type="string",JSONPath=".spec.clusterName",description=""
 // +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description=""

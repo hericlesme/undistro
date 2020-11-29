@@ -67,7 +67,7 @@ type ProviderStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:path=providers,scope=Cluster
+// +kubebuilder:resource:path=providers,scope=Namespaced
 // +kubebuilder:printcolumn:name="Provider Name",type="string",JSONPath=".spec.providerName"
 // +kubebuilder:printcolumn:name="Provider Version",type="string",JSONPath=".spec.providerVersion"
 // +kubebuilder:printcolumn:name="Provider Type",type="string",JSONPath=".spec.repository.type"

@@ -58,7 +58,6 @@ func (r *HelmRelease) Default() {
 	defaultTimeout := &metav1.Duration{
 		Duration: 300 * time.Second,
 	}
-	fmt.Println(">>>>>>>>>>>>>>>>>>>>> default webhook", r.Namespace)
 	if r.Namespace == "" {
 		r.Namespace = "default"
 	}
@@ -96,7 +95,6 @@ func (r *HelmRelease) Default() {
 	}
 }
 
-// TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 // +kubebuilder:webhook:verbs=create;update;delete,path=/validate-app-undistro-io-v1alpha1-helmrelease,mutating=false,failurePolicy=fail,groups=app.undistro.io,resources=helmreleases,versions=v1alpha1,name=vhelmrelease.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1
 
 var _ webhook.Validator = &HelmRelease{}

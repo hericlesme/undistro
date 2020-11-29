@@ -14,7 +14,7 @@ spec:
     listKind: ProviderList
     plural: providers
     singular: provider
-  scope: Cluster
+  scope: Namespaced
   versions:
   - additionalPrinterColumns:
     - jsonPath: .spec.providerName

@@ -1130,8 +1130,8 @@ k8s.io/utils v0.0.0-20200912215256-4140de9c8800/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.9 h1:rusRLrDhjBp6aYtl9sGEvQJr6faoHoDLd0YcUBTZguI=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.9/go.mod h1:dzAXnQbTRyDlZPJX2SUPEqvnB+j7AJjtlox7PEwigU0=
-sigs.k8s.io/controller-runtime v0.7.0-alpha.6.0.20201125173439-7c637a286de6 h1:zW+VeUVr2cOCwyzddESjLtteAKj7K/pVrRA9WrP1LPs=
-sigs.k8s.io/controller-runtime v0.7.0-alpha.6.0.20201125173439-7c637a286de6/go.mod h1:03b1n6EtlDvuBPPEOHadJUusruwLWgoT4BDCybMibnA=
+sigs.k8s.io/controller-runtime v0.7.0-alpha.6 h1:ieFqEijQyDEZVIGwI5sYkk7VTa8Itim0kU/TCOnCkto=
+sigs.k8s.io/controller-runtime v0.7.0-alpha.6/go.mod h1:03b1n6EtlDvuBPPEOHadJUusruwLWgoT4BDCybMibnA=
 sigs.k8s.io/kustomize v2.0.3+incompatible h1:JUufWFNlI44MdtnjUqVnvh29rR37PQFzPbLXqhyOyX0=
 sigs.k8s.io/kustomize v2.0.3+incompatible/go.mod h1:MkjgH3RdOWrievjo6c9T245dYlB5QeXV4WCbnt/PEpU=
 sigs.k8s.io/structured-merge-diff/v4 v4.0.1 h1:YXTMot5Qz/X1iBRJhAt+vI+HVttY0WkSqqhKxQ0xVbA=

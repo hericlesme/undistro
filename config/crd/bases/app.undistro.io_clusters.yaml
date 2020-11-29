@@ -16,7 +16,7 @@ spec:
     shortNames:
     - cl
     singular: cluster
-  scope: Cluster
+  scope: Namespaced
   versions:
   - name: v1alpha1
     schema:

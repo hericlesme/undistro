@@ -39,7 +39,7 @@ type ClusterStatus struct {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:shortName=cl,scope=Cluster
+// +kubebuilder:resource:shortName=cl,scope=Namespaced
 // +kubebuilder:subresource:status
 
 // Cluster is the Schema for the clusters API
