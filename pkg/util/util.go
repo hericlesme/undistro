@@ -16,14 +16,21 @@ limitations under the License.
 package util
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"crypto/sha1"
 	"fmt"
+	"io"
+	"math"
 
+	"github.com/pkg/errors"
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/release"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	apiyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 )
 
 // MergeMaps merges map b into given map a and returns the result.
@@ -88,4 +95,67 @@ func CreateOrUpdate(ctx context.Context, r client.Client, o unstructured.Unstruc
 	}
 	o.SetResourceVersion(old.GetResourceVersion())
 	return r.Patch(ctx, &o, client.MergeFrom(&old))
+}
+
+// ToUnstructured takes a YAML and converts it to a list of Unstructured objects
+func ToUnstructured(rawyaml []byte) ([]unstructured.Unstructured, error) {
+	var ret []unstructured.Unstructured
+
+	reader := apiyaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(rawyaml)))
+	count := 1
+	for {
+		// Read one YAML document at a time, until io.EOF is returned
+		b, err := reader.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, errors.Wrapf(err, "failed to read yaml")
+		}
+		if len(b) == 0 {
+			break
+		}
+
+		var m map[string]interface{}
+		if err := yaml.Unmarshal(b, &m); err != nil {
+			return nil, errors.Wrapf(err, "failed to unmarshal the %s yaml document: %q", Ordinalize(count), string(b))
+		}
+
+		var u unstructured.Unstructured
+		u.SetUnstructuredContent(m)
+
+		// Ignore empty objects.
+		// Empty objects are generated if there are weird things in manifest files like e.g. two --- in a row without a yaml doc in the middle
+		if u.Object == nil {
+			continue
+		}
+
+		ret = append(ret, u)
+		count++
+	}
+
+	return ret, nil
+}
+
+// Ordinalize takes an int and returns the ordinalized version of it.
+// Eg. 1 --> 1st, 103 --> 103rd
+func Ordinalize(n int) string {
+	m := map[int]string{
+		0: "th",
+		1: "st",
+		2: "nd",
+		3: "rd",
+		4: "th",
+		5: "th",
+		6: "th",
+		7: "th",
+		8: "th",
+		9: "th",
+	}
+
+	an := int(math.Abs(float64(n)))
+	if an < 10 {
+		return fmt.Sprintf("%d%s", n, m[an])
+	}
+	return fmt.Sprintf("%d%s", n, m[an%10])
 }

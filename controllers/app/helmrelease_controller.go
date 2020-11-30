@@ -41,7 +41,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -55,10 +54,6 @@ import (
 
 var (
 	getters = getter.Providers{
-		getter.Provider{
-			Schemes: []string{"http", "https"},
-			New:     getter.NewHTTPGetter,
-		},
 		getter.Provider{
 			Schemes: []string{"http", "https"},
 			New:     getter.NewHTTPGetter,
@@ -208,15 +203,15 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 
 func (r *HelmReleaseReconciler) applyObjs(ctx context.Context, objs []apiextensionsv1.JSON) error {
 	for _, raw := range objs {
-		o := unstructured.Unstructured{}
-		m, err := runtime.DefaultUnstructuredConverter.ToUnstructured(raw.Raw)
+		uobjs, err := util.ToUnstructured(raw.Raw)
 		if err != nil {
 			return err
 		}
-		o.Object = m
-		err = util.CreateOrUpdate(ctx, r.Client, o)
-		if err != nil {
-			return err
+		for _, o := range uobjs {
+			err = util.CreateOrUpdate(ctx, r.Client, o)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

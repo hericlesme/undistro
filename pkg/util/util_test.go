@@ -16,7 +16,9 @@ limitations under the License.
 package util
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 
 	"helm.sh/helm/v3/pkg/chartutil"
@@ -117,5 +119,171 @@ func TestReleaseRevision(t *testing.T) {
 	rel = &release.Release{Version: 1}
 	if rev := ReleaseRevision(rel); rev != 1 {
 		t.Fatalf("ReleaseRevision() = %v, want %v", rev, 1)
+	}
+}
+
+func TestToUnstructured(t *testing.T) {
+	type args struct {
+		rawyaml []byte
+	}
+	tests := []struct {
+		name          string
+		args          args
+		wantObjsCount int
+		wantErr       bool
+		err           string
+	}{
+		{
+			name: "single object",
+			args: args{
+				rawyaml: []byte("apiVersion: v1\n" +
+					"kind: ConfigMap\n"),
+			},
+			wantObjsCount: 1,
+			wantErr:       false,
+		},
+		{
+			name: "multiple objects are detected",
+			args: args{
+				rawyaml: []byte("apiVersion: v1\n" +
+					"kind: ConfigMap\n" +
+					"---\n" +
+					"apiVersion: v1\n" +
+					"kind: Secret\n"),
+			},
+			wantObjsCount: 2,
+			wantErr:       false,
+		},
+		{
+			name: "empty object are dropped",
+			args: args{
+				rawyaml: []byte("---\n" + //empty objects before
+					"---\n" +
+					"---\n" +
+					"apiVersion: v1\n" +
+					"kind: ConfigMap\n" +
+					"---\n" + // empty objects in the middle
+					"---\n" +
+					"---\n" +
+					"apiVersion: v1\n" +
+					"kind: Secret\n" +
+					"---\n" + //empty objects after
+					"---\n" +
+					"---\n"),
+			},
+			wantObjsCount: 2,
+			wantErr:       false,
+		},
+		{
+			name: "--- in the middle of objects are ignored",
+			args: args{
+				[]byte("apiVersion: v1\n" +
+					"kind: ConfigMap\n" +
+					"data: \n" +
+					" key: |\n" +
+					"  ··Several lines of text,\n" +
+					"  ··with some --- \n" +
+					"  ---\n" +
+					"  ··in the middle\n" +
+					"---\n" +
+					"apiVersion: v1\n" +
+					"kind: Secret\n"),
+			},
+			wantObjsCount: 2,
+			wantErr:       false,
+		},
+		{
+			name: "returns error for invalid yaml",
+			args: args{
+				rawyaml: []byte("apiVersion: v1\n" +
+					"kind: ConfigMap\n" +
+					"---\n" +
+					"apiVersion: v1\n" +
+					"foobar\n" +
+					"kind: Secret\n"),
+			},
+			wantErr: true,
+			err:     "failed to unmarshal the 2nd yaml document",
+		},
+		{
+			name: "returns error for invalid yaml",
+			args: args{
+				rawyaml: []byte("apiVersion: v1\n" +
+					"kind: ConfigMap\n" +
+					"---\n" +
+					"apiVersion: v1\n" +
+					"kind: Pod\n" +
+					"---\n" +
+					"apiVersion: v1\n" +
+					"kind: Deployment\n" +
+					"---\n" +
+					"apiVersion: v1\n" +
+					"foobar\n" +
+					"kind: ConfigMap\n"),
+			},
+			wantErr: true,
+			err:     "failed to unmarshal the 4th yaml document",
+		},
+		{
+			name: "returns error for invalid yaml",
+			args: args{
+				rawyaml: []byte("apiVersion: v1\n" +
+					"foobar\n" +
+					"kind: ConfigMap\n" +
+					"---\n" +
+					"apiVersion: v1\n" +
+					"kind: Secret\n"),
+			},
+			wantErr: true,
+			err:     "failed to unmarshal the 1st yaml document",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ToUnstructured(tt.args.rawyaml)
+			if tt.wantErr {
+				if err == nil {
+					t.Error("err is nil")
+					return
+				}
+				if !strings.Contains(err.Error(), tt.err) {
+					t.Errorf("expected %v to contains %s", err, tt.err)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("expected nil, but got %v", err)
+			}
+			if len(got) != tt.wantObjsCount {
+				t.Errorf("expected %d, but got %d", tt.wantObjsCount, len(got))
+			}
+		})
+	}
+}
+
+func TestOrdinalize(t *testing.T) {
+	tests := []struct {
+		input    int
+		expected string
+	}{
+		{0, "0th"},
+		{1, "1st"},
+		{2, "2nd"},
+		{43, "43rd"},
+		{5, "5th"},
+		{6, "6th"},
+		{207, "207th"},
+		{1008, "1008th"},
+		{-109, "-109th"},
+		{-0, "0th"},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("ordinalize %d", tt.input), func(t *testing.T) {
+			got := Ordinalize(tt.input)
+			if got != tt.expected {
+				t.Errorf("expected %s, but got %s", tt.expected, got)
+			}
+		})
 	}
 }
