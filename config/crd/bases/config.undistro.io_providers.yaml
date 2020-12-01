@@ -62,14 +62,45 @@ spec:
                 default: false
                 type: boolean
               configurationFrom:
-                description: LocalObjectReference contains enough information to let
-                  you locate the referenced object inside the same namespace.
-                properties:
-                  name:
-                    description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                      TODO: Add other useful fields. apiVersion, kind, uid?'
-                    type: string
-                type: object
+                items:
+                  description: ValuesReference contains a reference to a resource
+                    containing Helm values, and optionally the key they can be found
+                    at.
+                  properties:
+                    kind:
+                      description: Kind of the values referent, valid values are ('Secret',
+                        'ConfigMap').
+                      enum:
+                      - Secret
+                      - ConfigMap
+                      type: string
+                    name:
+                      description: Name of the values referent. Should reside in the
+                        same namespace as the referring resource.
+                      maxLength: 253
+                      minLength: 1
+                      type: string
+                    optional:
+                      description: Optional marks this ValuesReference as optional.
+                        When set, a not found error for the values reference is ignored,
+                        but any ValuesKey, TargetPath or transient error will still
+                        result in a reconciliation failure.
+                      type: boolean
+                    targetPath:
+                      description: TargetPath is the YAML dot notation path the value
+                        should be merged at. When set, the ValuesKey is expected to
+                        be a single flat value. Defaults to 'None', which results
+                        in the values getting merged at the root.
+                      type: string
+                    valuesKey:
+                      description: ValuesKey is the data key where the values.yaml
+                        or a specific value can be found at. Defaults to 'values.yaml'.
+                      type: string
+                  required:
+                  - kind
+                  - name
+                  type: object
+                type: array
               paused:
                 default: false
                 type: boolean
@@ -88,12 +119,6 @@ spec:
                           TODO: Add other useful fields. apiVersion, kind, uid?'
                         type: string
                     type: object
-                  type:
-                    default: Helm
-                    enum:
-                    - HTTP
-                    - Helm
-                    type: string
                   url:
                     default: https://charts.undistro.io
                     type: string
@@ -177,6 +202,8 @@ spec:
               helmReleaseName:
                 type: string
               lastAppliedVersion:
+                type: string
+              lastAttemptedVersion:
                 type: string
               observedGeneration:
                 description: ObservedGeneration is the last observed generation.

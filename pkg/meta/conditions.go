@@ -16,8 +16,10 @@ limitations under the License.
 package meta
 
 import (
+	"github.com/getupio-undistro/undistro/pkg/record"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 const (
@@ -148,8 +150,15 @@ const (
 	// latest desired state.
 	RemediatedCondition string = "Remediated"
 
-	ObjectsApliedSuccessCondition string = "ObjectAppliedSuccess"
-	ObjectsApliedFailedCondition  string = "ObjectAppliedFailed"
+	ObjectsAppliedCondition     string = "ObjectApplied"
+	ObjectsAppliedSuccessReason string = "ObjectAppliedSuccess"
+	ObjectsApliedFailedReason   string = "ObjectAppliedFailed"
+
+	ChartAppliedCondition     string = "ChartApplied"
+	ChartAppliedSuccessReason string = "ChartAppliedSuccess"
+	ChartAppliedFailedReason  string = "ChartAppliedFailed"
+
+	WaitChartReason string = "WaitChart"
 )
 
 // InReadyCondition returns if the given Condition slice has a ReadyCondition
@@ -161,6 +170,7 @@ func InReadyCondition(conditions []metav1.Condition) bool {
 // ObjectWithStatusConditions is an interface that describes kubernetes resource
 // type structs with Status Conditions
 type ObjectWithStatusConditions interface {
+	runtime.Object
 	GetStatusConditions() *[]metav1.Condition
 }
 
@@ -177,4 +187,9 @@ func SetResourceCondition(obj ObjectWithStatusConditions, condition string, stat
 	}
 
 	apimeta.SetStatusCondition(conditions, newCondition)
+	if status == metav1.ConditionFalse {
+		record.Warn(obj, reason, message)
+	} else {
+		record.Event(obj, reason, message)
+	}
 }

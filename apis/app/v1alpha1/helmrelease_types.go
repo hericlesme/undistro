@@ -20,7 +20,6 @@ import (
 	"strings"
 
 	"github.com/getupio-undistro/undistro/pkg/meta"
-	"github.com/getupio-undistro/undistro/pkg/record"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -217,7 +216,6 @@ func HelmReleaseProgressing(hr HelmRelease) HelmRelease {
 	msg := "Reconciliation in progress"
 	meta.SetResourceCondition(&hr, meta.ReadyCondition, metav1.ConditionUnknown, meta.ProgressingReason, msg)
 	resetFailureCounts(&hr)
-	record.Event(&hr, meta.ProgressingReason, msg)
 	return hr
 }
 
@@ -225,7 +223,6 @@ func HelmReleaseProgressing(hr HelmRelease) HelmRelease {
 func HelmReleaseNotReady(hr HelmRelease, reason, message string) HelmRelease {
 	meta.SetResourceCondition(&hr, meta.ReadyCondition, metav1.ConditionFalse, reason, message)
 	hr.Status.Failures++
-	record.Warn(&hr, reason, message)
 	return hr
 }
 
@@ -235,7 +232,6 @@ func HelmReleaseReady(hr HelmRelease) HelmRelease {
 	meta.SetResourceCondition(&hr, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationSucceededReason, msg)
 	hr.Status.LastAppliedRevision = hr.Status.LastAttemptedRevision
 	resetFailureCounts(&hr)
-	record.Event(&hr, meta.ReconciliationSucceededReason, msg)
 	return hr
 }
 

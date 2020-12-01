@@ -18,13 +18,18 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/predicate"
+	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -91,8 +96,37 @@ func (r *ProviderReconciler) reconcileDelete(ctx context.Context, logger logr.Lo
 	return ctrl.Result{Requeue: true}, nil
 }
 
-func (r *ProviderReconciler) reconcile(ctx context.Context, logger logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, ctrl.Result, error) {
-	return p, ctrl.Result{}, nil
+func (r *ProviderReconciler) reconcile(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, ctrl.Result, error) {
+	if p.Status.ObservedGeneration != p.Generation {
+		p.Status.ObservedGeneration = p.Generation
+		p = configv1alpha1.ProviderProgressing(p)
+		if updateStatusErr := r.patchStatus(ctx, &p); updateStatusErr != nil {
+			log.Error(updateStatusErr, "unable to update status after generation update")
+			return p, ctrl.Result{Requeue: true}, updateStatusErr
+		}
+	}
+	if p.Status.LastAttemptedVersion == "" {
+		p, err := r.initProvider(ctx, log, p)
+		if err != nil {
+			p = configv1alpha1.ProviderNotReady(p, meta.InitFailedReason, err.Error())
+			return p, ctrl.Result{Requeue: true}, err
+		}
+	}
+	p, err := r.reconcileChart(ctx, log, p)
+	if err != nil {
+		p = configv1alpha1.ProviderNotReady(p, meta.ChartAppliedFailedReason, err.Error())
+		return p, ctrl.Result{Requeue: true}, err
+	}
+	p, err = r.checkReady(ctx, log, p)
+	if err != nil {
+		p = configv1alpha1.ProviderNotReady(p, meta.WaitChartReason, err.Error())
+		return p, ctrl.Result{Requeue: true}, err
+	}
+	return configv1alpha1.ProviderReady(p), ctrl.Result{}, nil
+}
+
+func (r *ProviderReconciler) initProvider(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
+	return p, nil
 }
 
 func (r *ProviderReconciler) patchStatus(ctx context.Context, p *configv1alpha1.Provider) error {
@@ -101,6 +135,63 @@ func (r *ProviderReconciler) patchStatus(ctx context.Context, p *configv1alpha1.
 		return err
 	}
 	return r.Client.Status().Patch(ctx, p, client.MergeFrom(latest))
+}
+
+func (r *ProviderReconciler) reconcileChart(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
+	name := fmt.Sprintf("provider-%s", p.Spec.ProviderName)
+	hr := appv1alpha1.HelmRelease{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: appv1alpha1.GroupVersion.String(),
+			Kind:       "HelmRelease",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: "undistro-system",
+		},
+		Spec: appv1alpha1.HelmReleaseSpec{
+			TargetNamespace: "undistro-system",
+			ReleaseName:     name,
+			ValuesFrom:      p.Spec.ConfigurationFrom,
+			Chart: appv1alpha1.ChartSource{
+				RepoChartSource: appv1alpha1.RepoChartSource{
+					RepoURL: p.Spec.Repository.URL,
+					Name:    p.Spec.ProviderName,
+					Version: p.Spec.ProviderVersion,
+				},
+				SecretRef: p.Spec.Repository.SecretRef,
+			},
+		},
+	}
+	m, err := runtime.DefaultUnstructuredConverter.ToUnstructured(hr)
+	if err != nil {
+		return p, err
+	}
+	o := unstructured.Unstructured{
+		Object: m,
+	}
+	err = util.CreateOrUpdate(ctx, r.Client, o)
+	if err != nil {
+		return p, err
+	}
+	return configv1alpha1.ProviderAttempted(p, name, p.Spec.ProviderVersion), nil
+}
+
+func (r *ProviderReconciler) checkReady(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
+	hr := appv1alpha1.HelmRelease{}
+	key := client.ObjectKey{
+		Name:      p.Status.HelmReleaseName,
+		Namespace: p.GetNamespace(),
+	}
+	err := r.Get(ctx, key, &hr)
+	if err != nil {
+		return p, err
+	}
+	if !meta.InReadyCondition(hr.Status.Conditions) {
+		return p, errors.New("chart isn't in ready condition")
+	}
+	p.Status.LastAppliedVersion = p.Spec.ProviderVersion
+	meta.SetResourceCondition(&p, meta.ChartAppliedCondition, metav1.ConditionTrue, meta.ChartAppliedSuccessReason, "chart applied")
+	return p, nil
 }
 
 func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {

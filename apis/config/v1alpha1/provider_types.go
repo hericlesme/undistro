@@ -17,35 +17,27 @@ limitations under the License.
 package v1alpha1
 
 import (
+	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/meta"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-// +kubebuilder:validation:Enum=HTTP;Helm
-type RepositoryType string
-
-const (
-	HTTPRepository RepositoryType = "HTTP"
-	HelmRepository RepositoryType = "Helm"
 )
 
 // ProviderSpec defines the desired state of Provider
 type ProviderSpec struct {
 	// +kubebuilder:default=false
-	Paused            bool                         `json:"paused,omitempty"`
-	ProviderName      string                       `json:"providerName,omitempty"`
-	ProviderVersion   string                       `json:"providerVersion,omitempty"`
-	Repository        Repository                   `json:"repository,omitempty"`
-	ConfigurationFrom *corev1.LocalObjectReference `json:"configurationFrom,omitempty"`
+	Paused            bool                          `json:"paused,omitempty"`
+	ProviderName      string                        `json:"providerName,omitempty"`
+	ProviderVersion   string                        `json:"providerVersion,omitempty"`
+	Repository        Repository                    `json:"repository,omitempty"`
+	ConfigurationFrom []appv1alpha1.ValuesReference `json:"configurationFrom,omitempty"`
 	// +kubebuilder:default=false
 	AutoUpgrade bool `json:"autoUpgrade,omitempty"`
 }
 
 type Repository struct {
 	// +kubebuilder:default="https://charts.undistro.io"
-	URL string `json:"url,omitempty"`
-	// +kubebuilder:default=Helm
-	Type      RepositoryType               `json:"type,omitempty"`
+	URL       string                       `json:"url,omitempty"`
 	SecretRef *corev1.LocalObjectReference `json:"secretRef,omitempty"`
 }
 
@@ -57,9 +49,42 @@ type ProviderStatus struct {
 	// +patchStrategy=merge
 	// +listType=map
 	// +listMapKey=type
-	Conditions         []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
-	HelmReleaseName    string             `json:"helmReleaseName,omitempty"`
-	LastAppliedVersion string             `json:"lastAppliedVersion,omitempty"`
+	Conditions           []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+	HelmReleaseName      string             `json:"helmReleaseName,omitempty"`
+	LastAppliedVersion   string             `json:"lastAppliedVersion,omitempty"`
+	LastAttemptedVersion string             `json:"lastAttemptedVersion,omitempty"`
+}
+
+// ProviderProgressing resets any failures and registers progress toward
+// reconciling the given Provider by setting the meta.ReadyCondition to
+// 'Unknown' for meta.ProgressingReason.
+func ProviderProgressing(p Provider) Provider {
+	p.Status.Conditions = []metav1.Condition{}
+	msg := "Reconciliation in progress"
+	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionUnknown, meta.ProgressingReason, msg)
+	return p
+}
+
+// ProviderNotReady registers a failed reconciliation of the given Provider.
+func ProviderNotReady(p Provider, reason, message string) Provider {
+	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionFalse, reason, message)
+	return p
+}
+
+// ProviderReady registers a successful reconciliation of the given Provider.
+func ProviderReady(p Provider) Provider {
+	msg := "Release reconciliation succeeded"
+	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationSucceededReason, msg)
+	p.Status.LastAppliedVersion = p.Status.LastAttemptedVersion
+	return p
+}
+
+// ProviderAttempted registers an attempt of the given Provider with the given state.
+// and returns the modified Provider and a boolean indicating a state change.
+func ProviderAttempted(p Provider, releaseName, version string) Provider {
+	p.Status.HelmReleaseName = releaseName
+	p.Status.LastAppliedVersion = version
+	return p
 }
 
 // +kubebuilder:object:root=true
@@ -80,6 +105,10 @@ type Provider struct {
 
 	Spec   ProviderSpec   `json:"spec,omitempty"`
 	Status ProviderStatus `json:"status,omitempty"`
+}
+
+func (p *Provider) GetStatusConditions() *[]metav1.Condition {
+	return &p.Status.Conditions
 }
 
 func (p *Provider) GetNamespace() string {

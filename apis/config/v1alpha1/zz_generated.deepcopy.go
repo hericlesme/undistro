@@ -21,6 +21,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -91,8 +92,8 @@ func (in *ProviderSpec) DeepCopyInto(out *ProviderSpec) {
 	in.Repository.DeepCopyInto(&out.Repository)
 	if in.ConfigurationFrom != nil {
 		in, out := &in.ConfigurationFrom, &out.ConfigurationFrom
-		*out = new(v1.LocalObjectReference)
-		**out = **in
+		*out = make([]appv1alpha1.ValuesReference, len(*in))
+		copy(*out, *in)
 	}
 }
 

@@ -28,7 +28,6 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/predicate"
-	"github.com/getupio-undistro/undistro/pkg/record"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/getupio-undistro/undistro/pkg/version"
 	"github.com/go-logr/logr"
@@ -204,11 +203,10 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 	}
 	err = r.applyObjs(ctx, hr.Spec.BeforeApplyObjects)
 	if err != nil {
-		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ObjectsApliedFailedCondition, err.Error())
+		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ObjectsApliedFailedReason, err.Error())
 		return hr, ctrl.Result{Requeue: true}, err
 	}
-	meta.SetResourceCondition(&hr, meta.ObjectsApliedSuccessCondition, metav1.ConditionTrue, meta.ObjectsApliedSuccessCondition, "objects successfully applied before install")
-	record.Event(&hr, meta.ObjectsApliedSuccessCondition, "objects successfully applied before install")
+	meta.SetResourceCondition(&hr, meta.ObjectsAppliedCondition, metav1.ConditionTrue, meta.ObjectsAppliedSuccessReason, "objects successfully applied before install")
 	hr, err = r.reconcileRelease(ctx, log, *hr.DeepCopy(), hc, values)
 	if err != nil {
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ReconciliationFailedReason, err.Error())
@@ -216,11 +214,10 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 	}
 	err = r.applyObjs(ctx, hr.Spec.AfterApplyObjects)
 	if err != nil {
-		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ObjectsApliedFailedCondition, err.Error())
+		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ObjectsApliedFailedReason, err.Error())
 		return hr, ctrl.Result{Requeue: true}, err
 	}
-	meta.SetResourceCondition(&hr, meta.ObjectsApliedSuccessCondition, metav1.ConditionTrue, meta.ObjectsApliedSuccessCondition, "objects successfully applied after install")
-	record.Event(&hr, meta.ObjectsApliedSuccessCondition, "objects successfully applied after install")
+	meta.SetResourceCondition(&hr, meta.ObjectsAppliedCondition, metav1.ConditionTrue, meta.ObjectsAppliedSuccessReason, "objects successfully applied after install")
 	return hr, ctrl.Result{RequeueAfter: 10 * time.Minute}, nil
 }
 
@@ -338,12 +335,10 @@ func (r *HelmReleaseReconciler) handleHelmActionResult(hr *appv1alpha1.HelmRelea
 	if err != nil {
 		msg := fmt.Sprintf("Helm %s failed: %s", action, err.Error())
 		meta.SetResourceCondition(hr, condition, metav1.ConditionFalse, failedReason, msg)
-		record.Warn(hr, failedReason, msg)
 		return err
 	} else {
 		msg := fmt.Sprintf("Helm %s succeeded", action)
 		meta.SetResourceCondition(hr, condition, metav1.ConditionTrue, succeededReason, msg)
-		record.Event(hr, succeededReason, msg)
 		return nil
 	}
 }
