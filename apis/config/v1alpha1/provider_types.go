@@ -32,11 +32,11 @@ const (
 // ProviderSpec defines the desired state of Provider
 type ProviderSpec struct {
 	// +kubebuilder:default=false
-	Paused          bool            `json:"paused,omitempty"`
-	ProviderName    string          `json:"providerName,omitempty"`
-	ProviderVersion string          `json:"providerVersion,omitempty"`
-	Repository      Repository      `json:"repository,omitempty"`
-	Configuration   []corev1.EnvVar `json:"configuration,omitempty"`
+	Paused            bool                         `json:"paused,omitempty"`
+	ProviderName      string                       `json:"providerName,omitempty"`
+	ProviderVersion   string                       `json:"providerVersion,omitempty"`
+	Repository        Repository                   `json:"repository,omitempty"`
+	ConfigurationFrom *corev1.LocalObjectReference `json:"configurationFrom,omitempty"`
 	// +kubebuilder:default=false
 	AutoUpgrade bool `json:"autoUpgrade,omitempty"`
 }
@@ -45,24 +45,21 @@ type Repository struct {
 	// +kubebuilder:default="https://charts.undistro.io"
 	URL string `json:"url,omitempty"`
 	// +kubebuilder:default=Helm
-	Type      RepositoryType `json:"type,omitempty"`
-	BasicAuth BasicAuth      `json:"basicAuth,omitempty"`
-}
-
-type BasicAuth struct {
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
+	Type      RepositoryType               `json:"type,omitempty"`
+	SecretRef *corev1.LocalObjectReference `json:"secretRef,omitempty"`
 }
 
 // ProviderStatus defines the observed state of Provider
 type ProviderStatus struct {
-	URL string `json:"url,omitempty"`
-
+	// ObservedGeneration is the last observed generation.
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 	// +patchMergeKey=type
 	// +patchStrategy=merge
 	// +listType=map
 	// +listMapKey=type
-	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+	Conditions         []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+	HelmReleaseName    string             `json:"helmReleaseName,omitempty"`
+	LastAppliedVersion string             `json:"lastAppliedVersion,omitempty"`
 }
 
 // +kubebuilder:object:root=true

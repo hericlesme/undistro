@@ -30,6 +30,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/predicate"
 	"github.com/getupio-undistro/undistro/pkg/record"
 	"github.com/getupio-undistro/undistro/pkg/util"
+	"github.com/getupio-undistro/undistro/pkg/version"
 	"github.com/go-logr/logr"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
@@ -147,6 +148,26 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.IndexationFailedReason, err.Error())
 		return hr, ctrl.Result{}, err
 	}
+	chartRepo.Index.SortEntries()
+	versions := chartRepo.Index.Entries[hr.Spec.Chart.Name]
+	if versions.Len() > 0 && hr.Spec.AutoUpgrade {
+		latestVersion := versions[0]
+		lv, err := version.ParseVersion(latestVersion.Version)
+		if err != nil {
+			return hr, ctrl.Result{Requeue: true}, err
+		}
+		acv, err := version.ParseVersion(hr.Spec.Chart.Version)
+		if err != nil {
+			return hr, ctrl.Result{Requeue: true}, err
+		}
+		if lv.GreaterThan(acv) && lv.Major() == acv.Major() {
+			hr.Spec.Chart.Version = lv.String()
+			err = r.Update(ctx, &hr)
+			if err != nil {
+				return hr, ctrl.Result{Requeue: true}, err
+			}
+		}
+	}
 	ch, err := chartRepo.Get(hr.Spec.Chart.Name, hr.Spec.Chart.Version)
 	if err != nil {
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ChartPullFailedReason, err.Error())
@@ -186,6 +207,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ObjectsApliedFailedCondition, err.Error())
 		return hr, ctrl.Result{Requeue: true}, err
 	}
+	meta.SetResourceCondition(&hr, meta.ObjectsApliedSuccessCondition, metav1.ConditionTrue, meta.ObjectsApliedSuccessCondition, "objects successfully applied before install")
 	record.Event(&hr, meta.ObjectsApliedSuccessCondition, "objects successfully applied before install")
 	hr, err = r.reconcileRelease(ctx, log, *hr.DeepCopy(), hc, values)
 	if err != nil {
@@ -197,8 +219,9 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ObjectsApliedFailedCondition, err.Error())
 		return hr, ctrl.Result{Requeue: true}, err
 	}
+	meta.SetResourceCondition(&hr, meta.ObjectsApliedSuccessCondition, metav1.ConditionTrue, meta.ObjectsApliedSuccessCondition, "objects successfully applied after install")
 	record.Event(&hr, meta.ObjectsApliedSuccessCondition, "objects successfully applied after install")
-	return hr, ctrl.Result{}, nil
+	return hr, ctrl.Result{RequeueAfter: 10 * time.Minute}, nil
 }
 
 func (r *HelmReleaseReconciler) applyObjs(ctx context.Context, objs []apiextensionsv1.JSON) error {
@@ -480,7 +503,7 @@ func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, logger logr
 	// Remove our finalizer from the list and update it.
 	controllerutil.RemoveFinalizer(&hr, meta.Finalizer)
 	if err := r.Update(ctx, &hr); err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{Requeue: true}, err
 	}
 
 	return ctrl.Result{}, nil

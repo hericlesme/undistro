@@ -62,6 +62,8 @@ spec:
                 items:
                   x-kubernetes-preserve-unknown-fields: true
                 type: array
+              autoUpgrade:
+                type: boolean
               beforeApplyObjects:
                 description: BeforeApplyObjects holds the objects that will be applied
                   before this helm release installation

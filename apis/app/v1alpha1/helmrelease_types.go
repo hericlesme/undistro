@@ -169,6 +169,7 @@ type HelmReleaseSpec struct {
 	// this HelmRelease depends on
 	Dependencies []corev1.ObjectReference `json:"dependencies,omitempty"`
 	Paused       bool                     `json:"paused,omitempty"`
+	AutoUpgrade  bool                     `json:"autoUpgrade,omitempty"`
 }
 
 // HelmReleaseStatus defines the observed state of HelmRelease// HelmReleaseStatus defines the observed state of a HelmRelease.
