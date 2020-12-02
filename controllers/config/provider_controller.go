@@ -22,6 +22,7 @@ import (
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/cloud"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/predicate"
 	"github.com/getupio-undistro/undistro/pkg/util"
@@ -106,7 +107,7 @@ func (r *ProviderReconciler) reconcile(ctx context.Context, log logr.Logger, p c
 		}
 	}
 	if p.Status.LastAttemptedVersion == "" {
-		p, err := r.initProvider(ctx, log, p)
+		p, err := cloud.Init(ctx, r.Client, p)
 		if err != nil {
 			p = configv1alpha1.ProviderNotReady(p, meta.InitFailedReason, err.Error())
 			return p, ctrl.Result{Requeue: true}, err
@@ -123,10 +124,6 @@ func (r *ProviderReconciler) reconcile(ctx context.Context, log logr.Logger, p c
 		return p, ctrl.Result{Requeue: true}, err
 	}
 	return configv1alpha1.ProviderReady(p), ctrl.Result{}, nil
-}
-
-func (r *ProviderReconciler) initProvider(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
-	return p, nil
 }
 
 func (r *ProviderReconciler) patchStatus(ctx context.Context, p *configv1alpha1.Provider) error {
