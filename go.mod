@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
+	github.com/aws/aws-sdk-go v1.27.0
 	github.com/go-logr/logr v0.3.0
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.3

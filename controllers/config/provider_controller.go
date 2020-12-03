@@ -118,7 +118,7 @@ func (r *ProviderReconciler) reconcile(ctx context.Context, log logr.Logger, p c
 		p = configv1alpha1.ProviderNotReady(p, meta.ChartAppliedFailedReason, err.Error())
 		return p, ctrl.Result{Requeue: true}, err
 	}
-	p, err = r.checkReady(ctx, log, p)
+	p, err = r.checkState(ctx, log, p)
 	if err != nil {
 		p = configv1alpha1.ProviderNotReady(p, meta.WaitChartReason, err.Error())
 		return p, ctrl.Result{Requeue: true}, err
@@ -166,14 +166,20 @@ func (r *ProviderReconciler) reconcileChart(ctx context.Context, log logr.Logger
 	o := unstructured.Unstructured{
 		Object: m,
 	}
-	err = util.CreateOrUpdate(ctx, r.Client, o)
+	hasDiff, err := util.CreateOrUpdate(ctx, r.Client, o)
 	if err != nil {
 		return p, err
+	}
+	if hasDiff {
+		p, err := cloud.Upgrade(ctx, r.Client, p)
+		if err != nil {
+			return configv1alpha1.ProviderNotReady(p, meta.InitFailedReason, err.Error()), err
+		}
 	}
 	return configv1alpha1.ProviderAttempted(p, name, p.Spec.ProviderVersion), nil
 }
 
-func (r *ProviderReconciler) checkReady(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
+func (r *ProviderReconciler) checkState(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
 	hr := appv1alpha1.HelmRelease{}
 	key := client.ObjectKey{
 		Name:      p.Status.HelmReleaseName,
@@ -186,6 +192,7 @@ func (r *ProviderReconciler) checkReady(ctx context.Context, log logr.Logger, p 
 	if !meta.InReadyCondition(hr.Status.Conditions) {
 		return p, errors.New("chart isn't in ready condition")
 	}
+
 	p.Status.LastAppliedVersion = p.Spec.ProviderVersion
 	meta.SetResourceCondition(&p, meta.ChartAppliedCondition, metav1.ConditionTrue, meta.ChartAppliedSuccessReason, "chart applied")
 	return p, nil

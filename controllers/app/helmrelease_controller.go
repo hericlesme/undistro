@@ -228,7 +228,7 @@ func (r *HelmReleaseReconciler) applyObjs(ctx context.Context, objs []apiextensi
 			return err
 		}
 		for _, o := range uobjs {
-			err = util.CreateOrUpdate(ctx, r.Client, o)
+			_, err = util.CreateOrUpdate(ctx, r.Client, o)
 			if err != nil {
 				return err
 			}

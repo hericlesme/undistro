@@ -75,7 +75,7 @@ func ReleaseRevision(rel *release.Release) int {
 	return rel.Version
 }
 
-func CreateOrUpdate(ctx context.Context, r client.Client, o unstructured.Unstructured) error {
+func CreateOrUpdate(ctx context.Context, r client.Client, o unstructured.Unstructured) (bool, error) {
 	old := unstructured.Unstructured{}
 	old.SetGroupVersionKind(o.GroupVersionKind())
 	nm := client.ObjectKey{
@@ -85,16 +85,25 @@ func CreateOrUpdate(ctx context.Context, r client.Client, o unstructured.Unstruc
 	err := r.Get(ctx, nm, &old)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
-			return err
+			return false, err
 		}
 		err = r.Create(ctx, &o)
 		if err != nil {
-			return err
+			return false, err
 		}
-		return nil
+		return true, nil
 	}
 	o.SetResourceVersion(old.GetResourceVersion())
-	return r.Patch(ctx, &o, client.MergeFrom(&old))
+	merge := client.MergeFrom(&old)
+	byt, err := merge.Data(&o)
+	if err != nil {
+		return false, err
+	}
+	err = r.Patch(ctx, &o, merge)
+	if err != nil {
+		return false, err
+	}
+	return len(byt) > 0, nil
 }
 
 // ToUnstructured takes a YAML and converts it to a list of Unstructured objects

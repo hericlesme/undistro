@@ -21,7 +21,12 @@ import (
 	"encoding/base64"
 	"text/template"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/cloud/aws/cloudformation"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -60,13 +65,17 @@ func (c awsCredentials) renderAWSDefaultProfile() (string, error) {
 	return credsFileStr.String(), nil
 }
 
-func (c awsCredentials) setBase64EncodedAWSDefaultProfile(secret *corev1.Secret) (appv1alpha1.ValuesReference, error) {
+func (c awsCredentials) setBase64EncodedAWSDefaultProfile(ctx context.Context, cl client.Client, secret *corev1.Secret) (appv1alpha1.ValuesReference, error) {
 	profile, err := c.renderAWSDefaultProfile()
 	if err != nil {
 		return appv1alpha1.ValuesReference{}, err
 	}
 	b64 := base64.StdEncoding.EncodeToString([]byte(profile))
 	secret.Data[key] = []byte(b64)
+	err = cl.Update(ctx, secret)
+	if err != nil {
+		return appv1alpha1.ValuesReference{}, err
+	}
 	return appv1alpha1.ValuesReference{
 		Kind:       "Secret",
 		Name:       name,
@@ -77,6 +86,48 @@ func (c awsCredentials) setBase64EncodedAWSDefaultProfile(secret *corev1.Secret)
 
 // Init providers
 func Init(ctx context.Context, c client.Client, cfg []appv1alpha1.ValuesReference, version string) ([]appv1alpha1.ValuesReference, error) {
+	cred, secret, err := getCreds(ctx, c)
+	if err != nil {
+		return cfg, err
+	}
+	v, err := cred.setBase64EncodedAWSDefaultProfile(ctx, c, secret)
+	if err != nil {
+		return cfg, err
+	}
+	cfg = append(cfg, v)
+	return cfg, nil
+}
+
+// Upgrade providers
+func Upgrade(ctx context.Context, c client.Client, cfg []appv1alpha1.ValuesReference, version string) ([]appv1alpha1.ValuesReference, error) {
+	cred, _, err := getCreds(ctx, c)
+	if err != nil {
+		return cfg, err
+	}
+	err = reconcileCloudformation(cred)
+	if err != nil {
+		return cfg, err
+	}
+	return cfg, nil
+}
+
+func reconcileCloudformation(cred awsCredentials) error {
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(cred.Region),
+		Credentials: credentials.NewStaticCredentials(
+			cred.AccessKeyID,
+			cred.SecretAccessKey,
+			cred.SessionToken,
+		),
+	})
+	if err != nil {
+		return err
+	}
+	cfnSvc := cloudformation.NewService(cfn.New(sess))
+	return cfnSvc.ReconcileBootstrapStack(cloudformation.Template)
+}
+
+func getCreds(ctx context.Context, c client.Client) (awsCredentials, *corev1.Secret, error) {
 	secret := corev1.Secret{}
 	nm := client.ObjectKey{
 		Name:      name,
@@ -84,18 +135,13 @@ func Init(ctx context.Context, c client.Client, cfg []appv1alpha1.ValuesReferenc
 	}
 	err := c.Get(ctx, nm, &secret)
 	if err != nil {
-		return cfg, err
+		return awsCredentials{}, nil, err
 	}
 	cred, err := credentialsFromSecret(&secret)
 	if err != nil {
-		return cfg, err
+		return awsCredentials{}, nil, err
 	}
-	v, err := cred.setBase64EncodedAWSDefaultProfile(&secret)
-	if err != nil {
-		return cfg, err
-	}
-	cfg = append(cfg, v)
-	return cfg, nil
+	return cred, &secret, nil
 }
 
 func credentialsFromSecret(s *corev1.Secret) (awsCredentials, error) {
