@@ -20,7 +20,6 @@ import (
 
 	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws"
-	"github.com/pkg/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -33,8 +32,6 @@ func Init(ctx context.Context, c client.Client, p configv1alpha1.Provider) (conf
 		if err != nil {
 			return p, err
 		}
-	default:
-		return p, errors.Errorf("unkwown provider %s", p.Spec.ProviderName)
 	}
 	return p, nil
 }
