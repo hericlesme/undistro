@@ -44,5 +44,5 @@ func NewFakeClientWithScheme(clientScheme *runtime.Scheme, initObjs ...client.Ob
 		}
 		initObjsWithResourceVersion[i] = objsWithResourceVersion
 	}
-	return fake.NewFakeClientWithScheme(clientScheme, initObjsWithResourceVersion...)
+	return fake.NewClientBuilder().WithObjects(initObjsWithResourceVersion...).Build()
 }
