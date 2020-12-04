@@ -75,9 +75,9 @@ func ReleaseRevision(rel *release.Release) int {
 	return rel.Version
 }
 
-func CreateOrUpdate(ctx context.Context, r client.Client, o unstructured.Unstructured) (bool, error) {
+func CreateOrUpdate(ctx context.Context, r client.Client, o client.Object) (bool, error) {
 	old := unstructured.Unstructured{}
-	old.SetGroupVersionKind(o.GroupVersionKind())
+	old.SetGroupVersionKind(o.GetObjectKind().GroupVersionKind())
 	nm := client.ObjectKey{
 		Name:      o.GetName(),
 		Namespace: o.GetNamespace(),
@@ -87,7 +87,7 @@ func CreateOrUpdate(ctx context.Context, r client.Client, o unstructured.Unstruc
 		if client.IgnoreNotFound(err) != nil {
 			return false, err
 		}
-		err = r.Create(ctx, &o)
+		err = r.Create(ctx, o)
 		if err != nil {
 			return false, err
 		}
@@ -95,11 +95,11 @@ func CreateOrUpdate(ctx context.Context, r client.Client, o unstructured.Unstruc
 	}
 	o.SetResourceVersion(old.GetResourceVersion())
 	merge := client.MergeFrom(&old)
-	byt, err := merge.Data(&o)
+	byt, err := merge.Data(o)
 	if err != nil {
 		return false, err
 	}
-	err = r.Patch(ctx, &o, merge)
+	err = r.Patch(ctx, o, merge)
 	if err != nil {
 		return false, err
 	}

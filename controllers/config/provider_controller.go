@@ -30,7 +30,6 @@ import (
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -159,14 +158,8 @@ func (r *ProviderReconciler) reconcileChart(ctx context.Context, log logr.Logger
 			},
 		},
 	}
-	m, err := runtime.DefaultUnstructuredConverter.ToUnstructured(hr)
-	if err != nil {
-		return p, err
-	}
-	o := unstructured.Unstructured{
-		Object: m,
-	}
-	hasDiff, err := util.CreateOrUpdate(ctx, r.Client, o)
+
+	hasDiff, err := util.CreateOrUpdate(ctx, r.Client, &hr)
 	if err != nil {
 		return p, err
 	}
