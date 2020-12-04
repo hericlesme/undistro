@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/undistro/pkg/version"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -62,13 +63,13 @@ func (r *Provider) validate(old *Provider) error {
 	var allErrs field.ErrorList
 	if r.Spec.ProviderName == "" {
 		allErrs = append(allErrs, field.Required(
-			field.NewPath("spec", "providerName", "name"),
+			field.NewPath("spec", "providerName"),
 			"spec.providerName to be populated",
 		))
 	}
 	if r.Spec.ProviderVersion == "" {
 		allErrs = append(allErrs, field.Required(
-			field.NewPath("spec", "providerVersion", "name"),
+			field.NewPath("spec", "providerVersion"),
 			"spec.providerName to be populated",
 		))
 	}
@@ -90,6 +91,14 @@ func (r *Provider) validate(old *Provider) error {
 			field.NewPath("spec", "repository", "url"),
 			r.Spec.Repository.URL,
 			"field is immutable",
+		))
+	}
+	_, err := version.ParseVersion(r.Spec.ProviderVersion)
+	if err != nil {
+		allErrs = append(allErrs, field.Invalid(
+			field.NewPath("spec", "providerVersion"),
+			r.Spec.ProviderVersion,
+			err.Error(),
 		))
 	}
 	if len(allErrs) == 0 {

@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/undistro/pkg/version"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -146,6 +147,14 @@ func (r *HelmRelease) validate(old *HelmRelease) error {
 			field.NewPath("spec", "clusterName"),
 			r.Spec.ClusterName,
 			"field is immutable",
+		))
+	}
+	_, err := version.ParseVersion(r.Spec.Chart.Version)
+	if err != nil {
+		allErrs = append(allErrs, field.Invalid(
+			field.NewPath("spec", "chart", "version"),
+			r.Spec.Chart.Version,
+			err.Error(),
 		))
 	}
 	if len(allErrs) == 0 {
