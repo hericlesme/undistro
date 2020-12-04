@@ -17,7 +17,12 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"fmt"
+
+	"github.com/getupio-undistro/undistro/pkg/meta"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -32,8 +37,6 @@ func (r *Provider) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-
 // +kubebuilder:webhook:path=/mutate-config-undistro-io-v1alpha1-provider,mutating=true,failurePolicy=fail,groups=config.undistro.io,resources=providers,verbs=create;update,versions=v1alpha1,name=mprovider.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1
 
 var _ webhook.Defaulter = &Provider{}
@@ -41,28 +44,74 @@ var _ webhook.Defaulter = &Provider{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *Provider) Default() {
 	providerlog.Info("default", "name", r.Name)
-
-	// TODO(user): fill in your defaulting logic.
+	if r.Labels == nil {
+		r.Labels = make(map[string]string)
+	}
+	r.Labels[meta.LabelUndistroClusterName] = ""
+	r.Labels[meta.LabelUndistroClusterType] = "management"
+	if r.Spec.Repository.URL == "" {
+		r.Spec.Repository.URL = "https://charts.undistro.io"
+	}
 }
 
 // +kubebuilder:webhook:verbs=create;update,path=/validate-config-undistro-io-v1alpha1-provider,mutating=false,failurePolicy=fail,groups=config.undistro.io,resources=providers,versions=v1alpha1,name=vprovider.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1
 
 var _ webhook.Validator = &Provider{}
 
+func (r *Provider) validate(old *Provider) error {
+	var allErrs field.ErrorList
+	if r.Spec.ProviderName == "" {
+		allErrs = append(allErrs, field.Required(
+			field.NewPath("spec", "providerName", "name"),
+			"spec.providerName to be populated",
+		))
+	}
+	if r.Spec.ProviderVersion == "" {
+		allErrs = append(allErrs, field.Required(
+			field.NewPath("spec", "providerVersion", "name"),
+			"spec.providerName to be populated",
+		))
+	}
+	if r.Spec.Repository.URL == "" {
+		allErrs = append(allErrs, field.Required(
+			field.NewPath("spec", "repository", "url"),
+			"spec.repository.url to be populated",
+		))
+	}
+	if old != nil && old.Spec.ProviderName != r.Spec.ProviderName {
+		allErrs = append(allErrs, field.Invalid(
+			field.NewPath("spec", "providerName"),
+			r.Spec.ProviderName,
+			"field is immutable",
+		))
+	}
+	if old != nil && old.Spec.Repository.URL != r.Spec.Repository.URL {
+		allErrs = append(allErrs, field.Invalid(
+			field.NewPath("spec", "repository", "url"),
+			r.Spec.Repository.URL,
+			"field is immutable",
+		))
+	}
+	if len(allErrs) == 0 {
+		return nil
+	}
+	return apierrors.NewInvalid(GroupVersion.WithKind("HelmRelease").GroupKind(), r.Name, allErrs)
+}
+
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *Provider) ValidateCreate() error {
 	providerlog.Info("validate create", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object creation.
-	return nil
+	return r.validate(nil)
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *Provider) ValidateUpdate(old runtime.Object) error {
 	providerlog.Info("validate update", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object update.
-	return nil
+	oldP, ok := old.(*Provider)
+	if !ok {
+		return apierrors.NewBadRequest(fmt.Sprintf("expected a Provider but got a %T", old))
+	}
+	return r.validate(oldP)
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
