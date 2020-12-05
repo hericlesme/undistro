@@ -29,7 +29,7 @@ import (
 type ConfigFlags struct {
 	ConfigFile *string
 	Verbosity  *int
-	KubeFlags  *genericclioptions.ConfigFlags
+	*genericclioptions.ConfigFlags
 }
 
 // NewConfigFlags returns ConfigFlags with default values set
@@ -37,9 +37,9 @@ func NewConfigFlags() *ConfigFlags {
 	home := homedir.HomeDir()
 	cfgPath := filepath.Join(home, ".undistro", "undistro.yaml")
 	return &ConfigFlags{
-		Verbosity:  intptr(0),
-		ConfigFile: stringptr(cfgPath),
-		KubeFlags:  genericclioptions.NewConfigFlags(true),
+		Verbosity:   intptr(0),
+		ConfigFile:  stringptr(cfgPath),
+		ConfigFlags: genericclioptions.NewConfigFlags(true),
 	}
 }
 
@@ -51,7 +51,7 @@ func (f *ConfigFlags) AddFlags(flags *pflag.FlagSet, goflags *flag.FlagSet) {
 	if f.ConfigFile != nil {
 		flags.StringVar(f.ConfigFile, "config", *f.ConfigFile, "Path to undistro configuration (default is `$HOME/.undistro/undistro.yaml`)")
 	}
-	f.KubeFlags.AddFlags(flags)
+	f.ConfigFlags.AddFlags(flags)
 }
 
 func (f *ConfigFlags) Init() func() {

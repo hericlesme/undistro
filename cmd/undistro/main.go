@@ -17,13 +17,14 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/getupio-undistro/undistro/pkg/cli"
 	"k8s.io/klog"
 )
 
 func main() {
-	cmd := cli.NewUndistroCommand()
+	cmd := cli.NewUndistroCommand(os.Stdin, os.Stdout, os.Stderr)
 	if err := cmd.ExecuteContext(context.Background()); err != nil {
 		klog.Fatal(err)
 	}

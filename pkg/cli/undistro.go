@@ -17,11 +17,19 @@ package cli
 
 import (
 	"flag"
+	"io"
 	"os"
 	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/kubectl/pkg/cmd/apply"
+	"k8s.io/kubectl/pkg/cmd/create"
+	"k8s.io/kubectl/pkg/cmd/delete"
+	"k8s.io/kubectl/pkg/cmd/logs"
+	"k8s.io/kubectl/pkg/cmd/patch"
+	cmdutil "k8s.io/kubectl/pkg/cmd/util"
 )
 
 const Indentation = `  `
@@ -68,7 +76,7 @@ func (s normalizer) indent() normalizer {
 	return s
 }
 
-func NewUndistroCommand() *cobra.Command {
+func NewUndistroCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "undistro",
 		SilenceUsage: true,
@@ -82,6 +90,13 @@ func NewUndistroCommand() *cobra.Command {
 	flags := cmd.PersistentFlags()
 	cfgFlags := NewConfigFlags()
 	cfgFlags.AddFlags(flags, flag.CommandLine)
+	ioStreams := genericclioptions.IOStreams{In: in, Out: out, ErrOut: err}
+	f := cmdutil.NewFactory(cfgFlags)
+	cmd.AddCommand(create.NewCmdCreate(f, ioStreams))
+	cmd.AddCommand(delete.NewCmdDelete(f, ioStreams))
+	cmd.AddCommand(patch.NewCmdPatch(f, ioStreams))
+	cmd.AddCommand(apply.NewCmdApply("undistro", f, ioStreams))
+	cmd.AddCommand(logs.NewCmdLogs(f, ioStreams))
 	cobra.OnInitialize(cfgFlags.Init())
 	return cmd
 }
