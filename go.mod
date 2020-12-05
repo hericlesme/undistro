@@ -10,7 +10,9 @@ require (
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.3
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.1.1
+	github.com/spf13/pflag v1.0.5
+	github.com/spf13/viper v1.7.1
 	helm.sh/helm/v3 v3.4.1
 	k8s.io/api v0.19.4
 	k8s.io/apiextensions-apiserver v0.19.4

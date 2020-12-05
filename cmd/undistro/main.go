@@ -18,10 +18,13 @@ package main
 import (
 	"context"
 
-	"github.com/getupio-undistro/undistro/cmd/undistro/cmd"
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"github.com/getupio-undistro/undistro/pkg/cli"
+	"k8s.io/klog"
 )
 
 func main() {
-	cmd.Execute(context.Background())
+	cmd := cli.NewUndistroCommand()
+	if err := cmd.ExecuteContext(context.Background()); err != nil {
+		klog.Fatal(err)
+	}
 }

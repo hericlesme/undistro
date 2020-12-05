@@ -13,65 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package cmd
+package cli
 
 import (
-	"context"
 	"flag"
-	"fmt"
 	"os"
 	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 )
-
-type stackTracer interface {
-	StackTrace() errors.StackTrace
-}
-
-var (
-	cfgFile   string
-	verbosity *int
-)
-
-var RootCmd = &cobra.Command{
-	Use:          "undistro",
-	SilenceUsage: true,
-	Short:        "undistro controls the unDistro kubernetes distribution",
-	Long:         LongDesc(`undistro controls the unDistro kubernetes distribution`),
-}
-
-func Execute(ctx context.Context) {
-	if err := RootCmd.ExecuteContext(ctx); err != nil {
-		if verbosity != nil && *verbosity >= 5 {
-			if err, ok := err.(stackTracer); ok {
-				for _, f := range err.StackTrace() {
-					fmt.Fprintf(os.Stderr, "%+s:%d\n", f, f)
-				}
-			}
-		}
-		os.Exit(1)
-	}
-}
-
-func init() {
-	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	verbosity = flag.CommandLine.Int("v", 0, "Set the log level verbosity.")
-	flags := RootCmd.PersistentFlags()
-	flags.AddGoFlagSet(flag.CommandLine)
-	flags.StringVar(&cfgFile, "config", "", "Path to undistro configuration (default is `$HOME/.undistro/undistro.yaml`)")
-	kubeConfigFlags := genericclioptions.NewConfigFlags(true).WithDeprecatedPasswordFlag()
-	kubeConfigFlags.AddFlags(flags)
-	cobra.OnInitialize(initConfig)
-}
-
-func initConfig() {
-	log.SetLogger(log.Log.V(*verbosity))
-}
 
 const Indentation = `  `
 
@@ -91,7 +42,6 @@ func Examples(s string) string {
 	return normalizer{s}.trim().indent().string
 }
 
-// TODO: document this, what does it do? Why is it here?
 type normalizer struct {
 	string
 }
@@ -116,4 +66,22 @@ func (s normalizer) indent() normalizer {
 	}
 	s.string = strings.Join(indentedLines, "\n")
 	return s
+}
+
+func NewUndistroCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:          "undistro",
+		SilenceUsage: true,
+		Short:        "undistro controls the unDistro kubernetes distribution",
+		Long:         LongDesc(`undistro controls the unDistro kubernetes distribution`),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cmd.Help()
+		},
+	}
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	flags := cmd.PersistentFlags()
+	cfgFlags := NewConfigFlags()
+	cfgFlags.AddFlags(flags, flag.CommandLine)
+	cobra.OnInitialize(cfgFlags.Init())
+	return cmd
 }
