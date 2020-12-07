@@ -158,7 +158,10 @@ func (r *ProviderReconciler) reconcileChart(ctx context.Context, log logr.Logger
 			},
 		},
 	}
-
+	err := ctrl.SetControllerReference(&p, &hr, r.Scheme)
+	if err != nil {
+		return p, err
+	}
 	hasDiff, err := util.CreateOrUpdate(ctx, r.Client, &hr)
 	if err != nil {
 		return p, err

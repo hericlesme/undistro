@@ -17,25 +17,120 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/getupio-undistro/undistro/pkg/meta"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+type Node struct {
+	Replicas    *int64            `json:"replicas,omitempty"`
+	MachineType string            `json:"machineType,omitempty"`
+	Subnet      string            `json:"subnet,omitempty"`
+	Taints      []corev1.Taint    `json:"taints,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	ClusterTags map[string]string `json:"providerTags,omitempty"`
+}
+
+func (n Node) TaintTmpl() string {
+	has := len(n.Taints) > 0
+	if !has {
+		return ""
+	}
+	tstr := make([]string, len(n.Taints))
+	for i, t := range n.Taints {
+		tstr[i] = fmt.Sprintf("%s=%s:%v", t.Key, t.Value, t.Effect)
+	}
+	return strings.Join(tstr, ",")
+}
+
+func (n Node) LabelsTmpl() string {
+	has := len(n.Labels) > 0
+	if !has {
+		return ""
+	}
+	lstr := make([]string, len(n.Labels))
+	i := 0
+	for k, v := range n.Labels {
+		lstr[i] = fmt.Sprintf("%s=%s", k, v)
+		i++
+	}
+	return strings.Join(lstr, ",")
+}
+
+type ControlPlaneNode struct {
+	Node       `json:",inline,omitempty"`
+	Endpoint   capi.APIEndpoint `json:"endpoint,omitempty"`
+	InternalLB bool             `json:"internalLB,omitempty"`
+}
+
+type WorkerNode struct {
+	Node      `json:",inline,omitempty"`
+	Autoscale Autoscaling `json:"autoscaling,omitempty"`
+}
+
+type Autoscaling struct {
+	Enabled bool `json:"enabled,omitempty"`
+	// The minimum size of the group.
+	MinSize int32 `json:"minSize,omitempty"`
+	// The maximum size of the group.
+	MaxSize int32 `json:"maxSize,omitempty"`
+}
+
+type InfrastructureCluster struct {
+	Name    string `json:"name,omitempty"`
+	Managed bool   `json:"managed,omitempty"`
+	SSHKey  string `json:"sshKey,omitempty"`
+	Region  string `json:"region,omitempty"`
+}
+
+type NetworkSpec struct {
+	ID        string `json:"id,omitempty"`
+	CIDRBlock string `json:"cidrBlock,omitempty"`
+	Zone      string `json:"zone,omitempty"`
+	IsPublic  bool   `json:"isPublic,omitempty"`
+}
+
+type Network struct {
+	capi.ClusterNetwork `json:",inline"`
+	VPC                 NetworkSpec   `json:"vpc,omitempty"`
+	Subnets             []NetworkSpec `json:"subnets,omitempty"`
+}
+
+type Bastion struct {
+	Enabled             bool     `json:"enabled,omitempty"`
+	DisableIngressRules bool     `json:"disableIngressRules,omitempty"`
+	AllowedCIDRBlocks   []string `json:"allowedCIDRBlocks,omitempty"`
+	InstanceType        string   `json:"instanceType,omitempty"`
+}
 
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of Cluster. Edit Cluster_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Paused                bool                  `json:"paused,omitempty"`
+	Network               Network               `json:"network,omitempty"`
+	InfrastructureCluster InfrastructureCluster `json:"infrastructureCluster,omitempty"`
+	KubernetesVersion     string                `json:"kubernetesVersion,omitempty"`
+	Bastion               *Bastion              `json:"bastion,omitempty"`
+	ControlPlane          *ControlPlaneNode     `json:"controlPlane,omitempty"`
+	Workers               []WorkerNode          `json:"workers,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster
 type ClusterStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// ObservedGeneration is the last observed generation.
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	// +listType=map
+	// +listMapKey=type
+	Conditions          []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+	TotalWorkerReplicas int32              `json:"totalWorkerReplicas,omitempty"`
+	TotalWorkerPools    int32              `json:"totalWorkerPools,omitempty"`
+	BastionPublicIP     string             `json:"bastionPublicIP,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -56,6 +151,33 @@ func (c *Cluster) GetNamespace() string {
 		return "default"
 	}
 	return c.Namespace
+}
+
+func (c *Cluster) GetStatusConditions() *[]metav1.Condition {
+	return &c.Status.Conditions
+}
+
+// ClusterProgressing resets any failures and registers progress toward
+// reconciling the given Cluster by setting the meta.ReadyCondition to
+// 'Unknown' for meta.ProgressingReason.
+func ClusterProgressing(p Cluster) Cluster {
+	p.Status.Conditions = []metav1.Condition{}
+	msg := "Reconciliation in progress"
+	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionUnknown, meta.ProgressingReason, msg)
+	return p
+}
+
+// ClusterNotReady registers a failed reconciliation of the given Cluster.
+func ClusterNotReady(p Cluster, reason, message string) Cluster {
+	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionFalse, reason, message)
+	return p
+}
+
+// ClusterReady registers a successful reconciliation of the given Cluster.
+func ClusterReady(p Cluster) Cluster {
+	msg := "Release reconciliation succeeded"
+	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationSucceededReason, msg)
+	return p
 }
 
 // +kubebuilder:object:root=true
