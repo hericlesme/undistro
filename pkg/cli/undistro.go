@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc/v2"
+	"github.com/getupio-undistro/undistro/pkg/version"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
@@ -97,6 +98,7 @@ func NewUndistroCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	cmd.AddCommand(patch.NewCmdPatch(f, ioStreams))
 	cmd.AddCommand(apply.NewCmdApply("undistro", f, ioStreams))
 	cmd.AddCommand(logs.NewCmdLogs(f, ioStreams))
+	cmd.AddCommand(version.NewVersionCommand())
 	cobra.OnInitialize(cfgFlags.Init())
 	return cmd
 }

@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/spf13/cobra"
 )
 
 // ParseVersion behaves as semver.StrictNewVersion, with as sole exception
@@ -66,6 +67,18 @@ func Get() Info {
 		Compiler:     runtime.Compiler,
 		Platform:     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 	}
+}
+
+func NewVersionCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "version",
+		Short: "Print undistro version.",
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("undistro version: %#v\n", Get())
+		},
+	}
+	return cmd
 }
 
 // String returns info as a human-friendly version string.
