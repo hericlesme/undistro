@@ -81,7 +81,7 @@ spec:
                       type: string
                     type: object
                   replicas:
-                    format: int64
+                    format: int32
                     type: integer
                   subnet:
                     type: string
@@ -134,6 +134,8 @@ spec:
                       bind to. Defaults to 6443.
                     format: int32
                     type: integer
+                  multiZone:
+                    type: boolean
                   pods:
                     description: The network ranges from which Pod networks are allocated.
                     properties:
@@ -211,7 +213,7 @@ spec:
                         type: string
                       type: object
                     replicas:
-                      format: int64
+                      format: int32
                       type: integer
                     subnet:
                       type: string

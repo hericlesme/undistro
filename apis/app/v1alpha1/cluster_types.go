@@ -27,7 +27,7 @@ import (
 )
 
 type Node struct {
-	Replicas    *int64            `json:"replicas,omitempty"`
+	Replicas    *int32            `json:"replicas,omitempty"`
 	MachineType string            `json:"machineType,omitempty"`
 	Subnet      string            `json:"subnet,omitempty"`
 	Taints      []corev1.Taint    `json:"taints,omitempty"`
@@ -80,7 +80,7 @@ type Autoscaling struct {
 	MaxSize int32 `json:"maxSize,omitempty"`
 }
 
-type InfrastructureCluster struct {
+type InfrastructureProvider struct {
 	Name    string `json:"name,omitempty"`
 	Managed bool   `json:"managed,omitempty"`
 	SSHKey  string `json:"sshKey,omitempty"`
@@ -98,6 +98,7 @@ type Network struct {
 	capi.ClusterNetwork `json:",inline"`
 	VPC                 NetworkSpec   `json:"vpc,omitempty"`
 	Subnets             []NetworkSpec `json:"subnets,omitempty"`
+	MultiZone           bool          `json:"multiZone,omitempty"`
 }
 
 type Bastion struct {
@@ -109,13 +110,13 @@ type Bastion struct {
 
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
-	Paused                bool                  `json:"paused,omitempty"`
-	Network               Network               `json:"network,omitempty"`
-	InfrastructureCluster InfrastructureCluster `json:"infrastructureCluster,omitempty"`
-	KubernetesVersion     string                `json:"kubernetesVersion,omitempty"`
-	Bastion               *Bastion              `json:"bastion,omitempty"`
-	ControlPlane          *ControlPlaneNode     `json:"controlPlane,omitempty"`
-	Workers               []WorkerNode          `json:"workers,omitempty"`
+	Paused                bool                   `json:"paused,omitempty"`
+	Network               Network                `json:"network,omitempty"`
+	InfrastructureCluster InfrastructureProvider `json:"infrastructureCluster,omitempty"`
+	KubernetesVersion     string                 `json:"kubernetesVersion,omitempty"`
+	Bastion               *Bastion               `json:"bastion,omitempty"`
+	ControlPlane          *ControlPlaneNode      `json:"controlPlane,omitempty"`
+	Workers               []WorkerNode           `json:"workers,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster

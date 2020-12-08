@@ -17,12 +17,19 @@ limitations under the License.
 package controllers
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"net/http"
+	"reflect"
+	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/predicate"
+	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
@@ -31,10 +38,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-)
-
-var (
-	jobOwnerKey = ".metadata.controller"
 )
 
 // ClusterReconciler reconciles a Cluster object
@@ -65,24 +68,123 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		log.Info("Reconciliation is paused for this object")
 		return ctrl.Result{}, nil
 	}
+	capiCluster := capi.Cluster{}
+	err := r.Get(ctx, client.ObjectKeyFromObject(&cl), &capiCluster)
+	if client.IgnoreNotFound(err) != nil {
+		return ctrl.Result{Requeue: true}, err
+	}
+	if !cl.DeletionTimestamp.IsZero() {
+		return r.reconcileDelete(ctx, log, cl, capiCluster)
+	}
+	cl, result, err := r.reconcile(ctx, log, cl, capiCluster)
+	if updateStatusErr := r.patchStatus(ctx, &cl); updateStatusErr != nil {
+		log.Error(updateStatusErr, "unable to update status after reconciliation")
+		return ctrl.Result{Requeue: true}, updateStatusErr
+	}
+	return result, err
+}
 
+func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (appv1alpha1.Cluster, ctrl.Result, error) {
+	if cl.Status.ObservedGeneration != cl.Generation {
+		cl.Status.ObservedGeneration = cl.Generation
+		cl = appv1alpha1.ClusterProgressing(cl)
+		cl.Status.TotalWorkerPools = int32(len(cl.Spec.Workers))
+		cl.Status.TotalWorkerReplicas = 0
+		for _, w := range cl.Spec.Workers {
+			cl.Status.TotalWorkerReplicas += *w.Replicas
+		}
+		if updateStatusErr := r.patchStatus(ctx, &cl); updateStatusErr != nil {
+			log.Error(updateStatusErr, "unable to update status after generation update")
+			return cl, ctrl.Result{Requeue: true}, updateStatusErr
+		}
+	}
+	for _, cond := range cl.Status.Conditions {
+		meta.SetResourceCondition(&cl, cond.Type, cond.Status, cond.Reason, cond.Message)
+	}
+	if capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioning {
+		if capiCluster.Status.ControlPlaneInitialized && !capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureCluster.Managed {
+			err := r.installCNI(ctx, cl)
+			if err != nil {
+				meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionFalse, meta.CNIInstalledFailedReason, err.Error())
+				return cl, ctrl.Result{}, err
+			}
+			meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
+		}
+		return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
+	}
+	if !reflect.DeepEqual(*capiCluster.Spec.ClusterNetwork, capi.ClusterNetwork{}) {
+		cl.Spec.Network.ClusterNetwork = *capiCluster.Spec.ClusterNetwork
+		if err := r.Update(ctx, &cl); err != nil {
+			return cl, ctrl.Result{Requeue: true}, err
+		}
+	}
+	if !reflect.DeepEqual(capiCluster.Spec.ControlPlaneEndpoint, capi.APIEndpoint{}) {
+		cl.Spec.ControlPlane.Endpoint = capiCluster.Spec.ControlPlaneEndpoint
+		if err := r.Update(ctx, &cl); err != nil {
+			return cl, ctrl.Result{Requeue: true}, err
+		}
+	}
+	return cl, ctrl.Result{}, nil
+}
+
+func (r *ClusterReconciler) installCNI(ctx context.Context, cl appv1alpha1.Cluster) error {
+	const addr = "https://docs.projectcalico.org/manifests/calico.yaml"
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, addr, nil)
+	if err != nil {
+		return err
+	}
+	httpClient := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	buff := bytes.Buffer{}
+	_, err = io.Copy(&buff, resp.Body)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return errors.Errorf("unable to get calico: %s", buff.String())
+	}
+	objs, err := util.ToUnstructured(buff.Bytes())
+	if err != nil {
+		return err
+	}
+	for _, o := range objs {
+		_, err = util.CreateOrUpdate(ctx, r.Client, &o)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *ClusterReconciler) patchStatus(ctx context.Context, cl *appv1alpha1.Cluster) error {
+	latest := &appv1alpha1.HelmRelease{}
+	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(cl), latest); err != nil {
+		return err
+	}
+	return r.Client.Status().Patch(ctx, cl, client.MergeFrom(latest))
+}
+
+func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (ctrl.Result, error) {
+	if capiCluster.Status.GetTypedPhase() != capi.ClusterPhaseUnknown && capiCluster.Status.GetTypedPhase() != capi.ClusterPhaseDeleting {
+		return ctrl.Result{Requeue: true}, r.Delete(ctx, &capiCluster)
+	}
+	if capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseDeleting {
+		return ctrl.Result{Requeue: true}, nil
+	}
+	controllerutil.RemoveFinalizer(&cl, meta.Finalizer)
+	if err := r.Update(ctx, &cl); err != nil {
+		return ctrl.Result{Requeue: true}, err
+	}
 	return ctrl.Result{}, nil
 }
 
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &capi.Cluster{}, jobOwnerKey, func(rawObj client.Object) []string {
-		cluster := rawObj.(*capi.Cluster)
-		owner := metav1.GetControllerOf(cluster)
-		if owner == nil {
-			return nil
-		}
-		if owner.APIVersion != appv1alpha1.GroupVersion.String() || owner.Kind != "Cluster" {
-			return nil
-		}
-		return []string{owner.Name}
-	}); err != nil {
-		return err
-	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appv1alpha1.Cluster{}, builder.WithPredicates(predicate.Changed{})).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).

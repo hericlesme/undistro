@@ -45,6 +45,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/cluster-api/util/kubeconfig"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -460,17 +461,13 @@ func (r *HelmReleaseReconciler) getRESTClientGetter(ctx context.Context, hr appv
 	if hr.Spec.ClusterName == "" {
 		return kube.NewInClusterRESTClientGetter(r.config, hr.GetNamespace()), nil
 	}
-	secretName := types.NamespacedName{
+	key := client.ObjectKey{
+		Name:      hr.Spec.ClusterName,
 		Namespace: hr.GetNamespace(),
-		Name:      fmt.Sprintf("%s-kubeconfig", hr.Spec.ClusterName),
 	}
-	var secret corev1.Secret
-	if err := r.Get(ctx, secretName, &secret); err != nil {
-		return nil, fmt.Errorf("could not find KubeConfig secret '%s': %w", secretName, err)
-	}
-	kubeConfig, ok := secret.Data["value"]
-	if !ok {
-		return nil, fmt.Errorf("KubeConfig secret '%s' does not contain a 'value' key", secretName)
+	kubeConfig, err := kubeconfig.FromSecret(ctx, r.Client, key)
+	if err != nil {
+		return nil, err
 	}
 	return kube.NewMemoryRESTClientGetter(kubeConfig, hr.GetNamespace()), nil
 }

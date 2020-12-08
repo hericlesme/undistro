@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/MakeNowJust/heredoc/v2 v2.0.1
 	github.com/Masterminds/semver/v3 v3.1.1
+	github.com/Masterminds/sprig/v3 v3.1.0
 	github.com/aws/aws-sdk-go v1.27.0
 	github.com/go-logr/logr v0.3.0
 	github.com/onsi/ginkgo v1.14.2

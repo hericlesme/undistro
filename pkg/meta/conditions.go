@@ -158,7 +158,12 @@ const (
 	ChartAppliedSuccessReason string = "ChartAppliedSuccess"
 	ChartAppliedFailedReason  string = "ChartAppliedFailed"
 
-	WaitChartReason string = "WaitChart"
+	WaitChartReason     string = "WaitChart"
+	WaitProvisionReason string = "WaitClusterProvision"
+
+	CNIInstalledCondition     string = "CNIInstalled"
+	CNIInstalledSuccessReason string = "CNIInstalledSuccess"
+	CNIInstalledFailedReason  string = "CNIInstalledFailed"
 )
 
 // InReadyCondition returns if the given Condition slice has a ReadyCondition
