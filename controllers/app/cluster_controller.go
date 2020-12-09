@@ -22,11 +22,13 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	gotemplate "text/template"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/predicate"
+	"github.com/getupio-undistro/undistro/pkg/template"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
@@ -84,6 +86,25 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	return result, err
 }
 
+func (r *ClusterReconciler) clusterFuncs(ctx context.Context, capiCluster capi.Cluster, cl appv1alpha1.Cluster) (gotemplate.FuncMap, error) {
+	v := make(map[string]interface{})
+	err := template.SetVariablesFromEnvVar(ctx, template.VariablesInput{
+		ClientSet:      r.Client,
+		NamespacedName: client.ObjectKeyFromObject(&cl),
+		Variables:      v,
+		EnvVars:        cl.Spec.InfrastructureCluster.Env,
+	})
+	if err != nil {
+		return gotemplate.FuncMap{}, err
+	}
+	getEnvFunc := func(key string) string {
+		return v[key].(string)
+	}
+	return gotemplate.FuncMap{
+		"clusterenv": getEnvFunc,
+	}, nil
+}
+
 func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (appv1alpha1.Cluster, ctrl.Result, error) {
 	if cl.Status.ObservedGeneration != cl.Generation {
 		cl.Status.ObservedGeneration = cl.Generation
@@ -121,6 +142,29 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	if !reflect.DeepEqual(capiCluster.Spec.ControlPlaneEndpoint, capi.APIEndpoint{}) && reflect.DeepEqual(cl.Spec.ControlPlane.Endpoint, capi.APIEndpoint{}) {
 		cl.Spec.ControlPlane.Endpoint = capiCluster.Spec.ControlPlaneEndpoint
 		if err := r.Update(ctx, &cl); err != nil {
+			return cl, ctrl.Result{Requeue: true}, err
+		}
+	}
+	funcs, err := r.clusterFuncs(ctx, capiCluster, cl)
+	if err != nil {
+		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
+	}
+	tpl := template.New(template.Options{
+		Directory: "clustertemplates",
+		Funcs:     []gotemplate.FuncMap{funcs},
+	})
+	buff := &bytes.Buffer{}
+	err = tpl.YAML(buff, cl.Spec.InfrastructureCluster.Name, cl)
+	if err != nil {
+		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
+	}
+	objs, err := util.ToUnstructured(buff.Bytes())
+	if err != nil {
+		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
+	}
+	for _, o := range objs {
+		_, err = util.CreateOrUpdate(ctx, r.Client, &o)
+		if err != nil {
 			return cl, ctrl.Result{Requeue: true}, err
 		}
 	}

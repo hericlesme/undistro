@@ -164,6 +164,7 @@ const (
 	CNIInstalledCondition     string = "CNIInstalled"
 	CNIInstalledSuccessReason string = "CNIInstalledSuccess"
 	CNIInstalledFailedReason  string = "CNIInstalledFailed"
+	TemplateAppliedFailed     string = "TemplateAppliedFailed"
 )
 
 // InReadyCondition returns if the given Condition slice has a ReadyCondition

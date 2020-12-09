@@ -28,7 +28,9 @@ import (
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/release"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	apiyaml "k8s.io/apimachinery/pkg/util/yaml"
+	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -76,8 +78,18 @@ func ReleaseRevision(rel *release.Release) int {
 }
 
 func CreateOrUpdate(ctx context.Context, r client.Client, o client.Object) (bool, error) {
+	uo, ok := o.(*unstructured.Unstructured)
+	if !ok {
+		u := unstructured.Unstructured{}
+		m, err := runtime.DefaultUnstructuredConverter.ToUnstructured(o)
+		if err != nil {
+			return false, err
+		}
+		u.Object = m
+		uo = &u
+	}
 	old := unstructured.Unstructured{}
-	old.SetGroupVersionKind(o.GetObjectKind().GroupVersionKind())
+	old.SetGroupVersionKind(uo.GroupVersionKind())
 	nm := client.ObjectKey{
 		Name:      o.GetName(),
 		Namespace: o.GetNamespace(),
@@ -87,7 +99,7 @@ func CreateOrUpdate(ctx context.Context, r client.Client, o client.Object) (bool
 		if client.IgnoreNotFound(err) != nil {
 			return false, err
 		}
-		err = r.Create(ctx, o)
+		err = r.Create(ctx, uo)
 		if err != nil {
 			return false, err
 		}
@@ -95,11 +107,11 @@ func CreateOrUpdate(ctx context.Context, r client.Client, o client.Object) (bool
 	}
 	o.SetResourceVersion(old.GetResourceVersion())
 	merge := client.MergeFrom(&old)
-	byt, err := merge.Data(o)
+	byt, err := merge.Data(uo)
 	if err != nil {
 		return false, err
 	}
-	err = r.Patch(ctx, o, merge)
+	err = r.Patch(ctx, uo, merge)
 	if err != nil {
 		return false, err
 	}
@@ -167,4 +179,19 @@ func Ordinalize(n int) string {
 		return fmt.Sprintf("%d%s", n, m[an])
 	}
 	return fmt.Sprintf("%d%s", n, m[an%10])
+}
+
+func GetMachinesForCluster(ctx context.Context, c client.Client, cluster *capi.Cluster) (*capi.MachineList, error) {
+	var machines capi.MachineList
+	if err := c.List(
+		ctx,
+		&machines,
+		client.InNamespace(cluster.Namespace),
+		client.MatchingLabels{
+			capi.ClusterLabelName: cluster.Name,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return &machines, nil
 }

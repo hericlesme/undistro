@@ -81,10 +81,11 @@ type Autoscaling struct {
 }
 
 type InfrastructureProvider struct {
-	Name    string `json:"name,omitempty"`
-	Managed bool   `json:"managed,omitempty"`
-	SSHKey  string `json:"sshKey,omitempty"`
-	Region  string `json:"region,omitempty"`
+	Name    string          `json:"name,omitempty"`
+	Managed bool            `json:"managed,omitempty"`
+	SSHKey  string          `json:"sshKey,omitempty"`
+	Region  string          `json:"region,omitempty"`
+	Env     []corev1.EnvVar `json:"env,omitempty"`
 }
 
 type NetworkSpec struct {
