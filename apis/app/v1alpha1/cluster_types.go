@@ -133,6 +133,7 @@ type ClusterStatus struct {
 	TotalWorkerReplicas int32              `json:"totalWorkerReplicas,omitempty"`
 	TotalWorkerPools    int32              `json:"totalWorkerPools,omitempty"`
 	BastionPublicIP     string             `json:"bastionPublicIP,omitempty"`
+	LastUsedUID         string             `json:"lastUsedUID,omitempty"`
 }
 
 // +kubebuilder:object:root=true

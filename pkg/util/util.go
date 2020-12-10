@@ -181,8 +181,10 @@ func Ordinalize(n int) string {
 	return fmt.Sprintf("%d%s", n, m[an%10])
 }
 
-func GetMachinesForCluster(ctx context.Context, c client.Client, cluster *capi.Cluster) (*capi.MachineList, error) {
+func GetMachinesForCluster(ctx context.Context, c client.Client, cluster *capi.Cluster) (cp *capi.MachineList, w *capi.MachineList, err error) {
 	var machines capi.MachineList
+	var machinesCP capi.MachineList
+	var machinesW capi.MachineList
 	if err := c.List(
 		ctx,
 		&machines,
@@ -191,7 +193,47 @@ func GetMachinesForCluster(ctx context.Context, c client.Client, cluster *capi.C
 			capi.ClusterLabelName: cluster.Name,
 		},
 	); err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+	for _, m := range machines.Items {
+		if IsControlPlaneMachine(&m) {
+			machinesCP.Items = append(machinesCP.Items, m)
+			continue
+		}
+		machinesW.Items = append(machinesW.Items, m)
+	}
+	return &machinesCP, &machinesW, nil
+}
+
+func IsControlPlaneMachine(machine *capi.Machine) bool {
+	_, ok := machine.ObjectMeta.Labels[capi.MachineControlPlaneLabelName]
+	return ok
+}
+
+func GetProviderMachinesUnstructured(ctx context.Context, c client.Client, list *capi.MachineList) (*unstructured.UnstructuredList, error) {
+	machines := unstructured.UnstructuredList{}
+	for _, m := range list.Items {
+		o := unstructured.Unstructured{}
+		ref := m.Spec.InfrastructureRef
+		key := client.ObjectKey{
+			Name:      ref.Name,
+			Namespace: ref.Namespace,
+		}
+		o.SetGroupVersionKind(ref.GroupVersionKind())
+		err := c.Get(ctx, key, &o)
+		if err != nil {
+			return nil, err
+		}
+		machines.Items = append(machines.Items, o)
 	}
 	return &machines, nil
+}
+
+func ContainsStringInSlice(ss []string, str string) bool {
+	for _, s := range ss {
+		if s == str {
+			return true
+		}
+	}
+	return false
 }

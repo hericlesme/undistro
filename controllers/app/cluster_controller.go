@@ -22,7 +22,6 @@ import (
 	"io"
 	"net/http"
 	"reflect"
-	gotemplate "text/template"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
@@ -33,7 +32,10 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -86,23 +88,100 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	return result, err
 }
 
-func (r *ClusterReconciler) clusterFuncs(ctx context.Context, capiCluster capi.Cluster, cl appv1alpha1.Cluster) (gotemplate.FuncMap, error) {
+func (r *ClusterReconciler) templateVariables(ctx context.Context, capiCluster *capi.Cluster, cl *appv1alpha1.Cluster, hasDiff bool) (map[string]interface{}, error) {
+	vars := make(map[string]interface{})
 	v := make(map[string]interface{})
 	err := template.SetVariablesFromEnvVar(ctx, template.VariablesInput{
 		ClientSet:      r.Client,
-		NamespacedName: client.ObjectKeyFromObject(&cl),
+		NamespacedName: client.ObjectKeyFromObject(cl),
 		Variables:      v,
 		EnvVars:        cl.Spec.InfrastructureCluster.Env,
 	})
 	if err != nil {
-		return gotemplate.FuncMap{}, err
+		return nil, err
 	}
-	getEnvFunc := func(key string) string {
-		return v[key].(string)
+	vars["Cluster"] = cl
+	vars["ENV"] = v
+	if hasDiff {
+		cl.Status.LastUsedUID = string(uuid.NewUUID())
 	}
-	return gotemplate.FuncMap{
-		"clusterenv": getEnvFunc,
-	}, nil
+	return vars, nil
+}
+
+func (r *ClusterReconciler) reconcileMachines(ctx context.Context, capiCluster *capi.Cluster, cl *appv1alpha1.Cluster) (bool, error) {
+	cpMachines, wMachines, err := util.GetMachinesForCluster(ctx, r.Client, capiCluster)
+	if err != nil {
+		return false, err
+	}
+	if len(cpMachines.Items) == 0 && len(wMachines.Items) == 0 {
+		return true, nil
+	}
+	for _, wm := range wMachines.Items {
+		if wm.Spec.Version != nil {
+			if *wm.Spec.Version != cl.Spec.KubernetesVersion {
+				return true, nil
+			}
+		}
+	}
+	if cl.Spec.ControlPlane != nil {
+		cpProvider, err := util.GetProviderMachinesUnstructured(ctx, r.Client, cpMachines)
+		if err != nil {
+			return false, err
+		}
+		for _, o := range cpProvider.Items {
+			mt, ok, err := unstructured.NestedString(o.Object, "spec", "instanceType")
+			if err != nil {
+				return false, err
+			}
+			if !ok {
+				continue
+			}
+			if mt != cl.Spec.ControlPlane.MachineType {
+				return true, nil
+			}
+		}
+	}
+	acceptableTypes := make([]string, len(cl.Spec.Workers))
+	for i := range cl.Spec.Workers {
+		acceptableTypes[i] = cl.Spec.Workers[i].MachineType
+	}
+	typesSet := sets.NewString(acceptableTypes...)
+	wProvider, err := util.GetProviderMachinesUnstructured(ctx, r.Client, wMachines)
+	if err != nil {
+		return false, err
+	}
+	for _, o := range wProvider.Items {
+		mt, ok, err := unstructured.NestedString(o.Object, "spec", "instanceType")
+		if err != nil {
+			return false, err
+		}
+		if !ok {
+			continue
+		}
+		if !util.ContainsStringInSlice(typesSet.List(), mt) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (r *ClusterReconciler) getBastionIP(ctx context.Context, log logr.Logger, capiCluster capi.Cluster) (string, error) {
+	ref := capiCluster.Spec.InfrastructureRef
+	key := client.ObjectKey{
+		Name:      ref.Name,
+		Namespace: ref.Namespace,
+	}
+	o := unstructured.Unstructured{}
+	o.SetGroupVersionKind(ref.GroupVersionKind())
+	err := r.Get(ctx, key, &o)
+	if err != nil {
+		return "", err
+	}
+	ip, _, err := unstructured.NestedString(o.Object, "status", "bastion", "publicIp")
+	if err != nil {
+		return "", err
+	}
+	return ip, nil
 }
 
 func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (appv1alpha1.Cluster, ctrl.Result, error) {
@@ -130,6 +209,14 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 				return cl, ctrl.Result{}, err
 			}
 			meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
+			if cl.Spec.Bastion != nil {
+				if cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
+					cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, log, capiCluster)
+					if err != nil {
+						return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{Requeue: true}, nil
+					}
+				}
+			}
 		}
 		return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
 	}
@@ -145,16 +232,22 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 			return cl, ctrl.Result{Requeue: true}, err
 		}
 	}
-	funcs, err := r.clusterFuncs(ctx, capiCluster, cl)
+	hasDiff, err := r.reconcileMachines(ctx, &capiCluster, &cl)
+	if err != nil {
+		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
+	}
+	if !hasDiff && meta.InReadyCondition(cl.Status.Conditions) {
+		return appv1alpha1.ClusterReady(cl), ctrl.Result{}, nil
+	}
+	vars, err := r.templateVariables(ctx, &capiCluster, &cl, hasDiff)
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
 	}
 	tpl := template.New(template.Options{
 		Directory: "clustertemplates",
-		Funcs:     []gotemplate.FuncMap{funcs},
 	})
 	buff := &bytes.Buffer{}
-	err = tpl.YAML(buff, cl.Spec.InfrastructureCluster.Name, cl)
+	err = tpl.YAML(buff, cl.Spec.InfrastructureCluster.Name, vars)
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
 	}
@@ -168,7 +261,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 			return cl, ctrl.Result{Requeue: true}, err
 		}
 	}
-	return cl, ctrl.Result{}, nil
+	return cl, ctrl.Result{Requeue: true}, nil
 }
 
 func (r *ClusterReconciler) installCNI(ctx context.Context, cl appv1alpha1.Cluster) error {
