@@ -178,7 +178,7 @@ func ClusterNotReady(p Cluster, reason, message string) Cluster {
 
 // ClusterReady registers a successful reconciliation of the given Cluster.
 func ClusterReady(p Cluster) Cluster {
-	msg := "Release reconciliation succeeded"
+	msg := "Cluster reconciliation succeeded"
 	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationSucceededReason, msg)
 	return p
 }
