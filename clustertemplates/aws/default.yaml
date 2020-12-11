@@ -1,0 +1,258 @@
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  {{if .Cluster.Spec.Network}}
+  clusterNetwork:
+    {{if .Cluster.Spec.Network.PodsCIDR}}
+    pods:
+      {{range .Cluster.Spec.Network.PodsCIDR}}
+      cidrBlocks:
+        - {{. | quote}}
+      {{end}}
+    {{end}}
+    {{if .Cluster.Spec.Network.ServicesCIDR}}
+    services:
+      {{range .Cluster.Spec.Network.ServicesCIDR}}
+      cidrBlocks:
+        - {{. | quote}}
+      {{end}}
+    {{end}}
+  {{end}}
+  {{if .Cluster.Spec.ControlPlane}}
+  {{if .Cluster.Spec.ControlPlane.Endpoint}}
+  controlPlaneEndpoint:
+    host: {{.Cluster.Spec.ControlPlane.Endpoint.Host}}
+    port: {{.Cluster.Spec.ControlPlane.Endpoint.Port}}
+  {{end}}
+  {{end}}
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    kind: AWSCluster
+    name: "{{.Cluster.Name}}"
+    namespace: "{{.Cluster.Namespace}}"
+  controlPlaneRef:
+    kind: KubeadmControlPlane
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    name: "{{.Cluster.Name}}"
+    namespace: "{{.Cluster.Namespace}}"
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSCluster
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  region:  "{{ .Cluster.Spec.InfrastructureProvider.Region}}"
+  sshKeyName: "{{ .Cluster.Spec.InfrastructureProvider.SSHKey}}"
+  {{if  .Cluster.Spec.ControlPlane.InternalLB}}
+  controlPlaneLoadBalancer:
+    scheme: internal
+  {{end}}
+  {{if .Cluster.Spec.ControlPlane}}
+  {{if .Cluster.Spec.ControlPlane.Endpoint}}
+  controlPlaneEndpoint:
+    host: {{.Cluster.Spec.ControlPlane.Endpoint.Host}}
+    port: {{.Cluster.Spec.ControlPlane.Endpoint.Port}}
+  {{end}}
+  {{end}}
+  bastion:
+    enabled: {{ .Cluster.Spec.Bastion.Enabled}}
+    disableIngressRules: {{ .Cluster.Spec.Bastion.DisableIngressRules}}
+    instanceType: {{ .Cluster.Spec.Bastion.InstanceType}}
+    allowedCIDRBlocks:
+    {{range  .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
+      - {{.}}
+    {{end}}
+  {{if  .Cluster.Spec.Network}}
+  networkSpec:
+    {{if  .Cluster.Spec.Network.VPC}}
+    vpc:
+      {{if  .Cluster.Spec.Network.VPC.ID}}
+      id: {{ .Cluster.Spec.Network.VPC.ID}}
+      {{end}}
+      {{if  .Cluster.Spec.Network.MultiZone}}
+      availabilityZoneUsageLimit: 3
+      {{else}}
+      availabilityZoneUsageLimit: 1
+      {{end}}
+      {{if  .Cluster.Spec.Network.VPC.CIDRBlock}}
+      cidrBlock: {{ .Cluster.Spec.Network.VPC.CIDRBlock}}
+      {{end}}
+    {{end}}
+    subnets:
+    {{range  .Cluster.Spec.Network.Subnets}}
+    -
+     {{if .ID}}
+     id: {{.ID}}
+     {{end}}
+     {{if .CIDRBlock}}
+     cidrBlock: {{.CIDRBlock}}
+     {{end}}
+     {{if .Zone}}
+     availabilityZone: {{.Zone}}
+     {{end}}
+     {{if .IsPublic}}
+     isPublic: {{.IsPublic}}
+     {{end}}
+    {{end}}
+  {{end}}
+---
+kind: KubeadmControlPlane
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  replicas: {{ .Cluster.Spec.ControlPlaneNode.Replicas}}
+  infrastructureTemplate:
+    kind: AWSMachineTemplate
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    name: "{{.Cluster.Name}}-cp-{{.Cluster.Status.LastUsedUID}}"
+    namespace: "{{.Cluster.Namespace}}"
+  kubeadmConfigSpec:
+    initConfiguration:
+      nodeRegistration:
+        name: {{"'{{ ds.meta_data.local_hostname }}'"}}
+        kubeletExtraArgs:
+          cloud-provider: aws
+          {{$taints := .Cluster.Spec.ControlPlaneNode.TaintTmpl}}
+          {{if $taints}}
+          register-with-taints: "{{$taints}}"
+          {{end}}
+          {{$labels := .Cluster.Spec.ControlPlaneNode.LabelsTmpl}}
+          {{if $labels}}
+          node-labels: "{{$labels}}"
+          {{end}}
+    clusterConfiguration:
+      apiServer:
+        extraArgs:
+          cloud-provider: aws
+      controllerManager:
+        extraArgs:
+          cloud-provider: aws
+          {{if .Cluster.Spec.Network.VPC.ID}}
+          configure-cloud-routes: 'false'
+          {{end}}
+    joinConfiguration:
+      nodeRegistration:
+        name: {{"'{{ ds.meta_data.local_hostname }}'"}}
+        kubeletExtraArgs:
+          cloud-provider: aws
+          {{$taints := .Cluster.Spec.ControlPlaneNode.TaintTmpl}}
+          {{if $taints}}
+          register-with-taints: "{{$taints}}"
+          {{end}}
+          {{$labels := .Cluster.Spec.ControlPlaneNode.LabelsTmpl}}
+          {{if $labels}}
+          node-labels: "{{$labels}}"
+          {{end}}
+  version: "{{.Cluster.Spec.KubernetesVersion}}"
+---
+kind: AWSMachineTemplate
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+metadata:
+  name: "{{.Cluster.Name}}-cp-{{.Cluster.Status.LastUsedUID}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  template:
+    spec:
+      instanceType: "{{.Cluster.Spec.ControlPlaneNode.MachineType}}"
+      iamInstanceProfile: "control-plane.cluster-api-provider-aws.sigs.k8s.io"
+      sshKeyName: "{{.Cluster.Spec.InfrastructureProvider.SSHKey}}"
+      {{if .Cluster.Spec.ControlPlaneNode.ProviderTags}}
+      additionalTags:
+        {{range $key, $value := .Cluster.Spec.ControlPlaneNode.ProviderTags}}
+        {{$key}}: {{$value | quote}}
+        {{end}}
+      {{end}}
+      {{if .Cluster.Spec.ControlPlaneNode.Subnet}}
+      subnet:
+        id: {{.Cluster.Spec.ControlPlaneNode.Subnet}}
+      {{end}}
+
+{{$name := .Cluster.Name}}
+{{$namespace := .Cluster.Namespace}}
+{{$k8s := .Cluster.Spec.KubernetesVersion}}
+{{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
+{{$uuid := .Cluster.Status.LastUsedUID}}
+{{range $index, $element := .Cluster.Spec.WorkerNodes}}
+---
+apiVersion: exp.cluster.x-k8s.io/v1alpha3
+kind: MachinePool
+metadata:
+  name: "{{$name}}-mp-{{$index}}"
+  namespace: "{{$namespace}}"
+spec:
+  clusterName: {{$name}}
+  replicas: {{$element.Replicas}}
+  template:
+    spec:
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+          kind: KubeadmConfig
+          name: "{{$name}}-mp-{{$index}}"
+          namespace: "{{$namespace}}"
+      clusterName: {{$name}}
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+        kind: AWSMachinePool
+        name: "{{$name}}-mp-{{$index}}"
+        namespace: "{{$namespace}}"
+      version: "{{$k8s}}"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSMachinePool
+metadata:
+  name: "{{$name}}-mp-{{$index}}"
+  namespace: "{{$namespace}}"
+spec:
+  {{if $element.Autoscale.Enabled}}
+  minSize: {{$element.Autoscale.MinSize}}
+  maxSize: {{$element.Autoscale.MaxSize}}
+  {{else}}
+  minSize: {{$element.Replicas}}
+  maxSize: {{$element.Replicas}}
+  {{end}}
+  {{if $element.ProviderTags}}
+  additionalTags:
+    {{range $key, $value := $element.ProviderTags}}
+    {{$key}}: {{$value | quote}}
+    {{end}}
+  {{end}}
+  availabilityZones: 
+    - '{{variable "AWS_REGION"}}'
+  awsLaunchTemplate:
+    instanceType: "{{$element.MachineType}}"
+    sshKeyName: "{{$sshKey}}"
+    iamInstanceProfile: "nodes.cluster-api-provider-aws.sigs.k8s.io"
+  {{if $element.Subnet}}
+  subnets:
+    - {{$element.Subnet}}
+  {{end}}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: KubeadmConfig
+metadata:
+  name: "{{$name}}-mp-{{$index}}"
+  namespace: "{{$namespace}}"
+spec:
+  joinConfiguration:
+    nodeRegistration:
+      name: {{"'{{ ds.meta_data.local_hostname }}'"}}
+      kubeletExtraArgs:
+        cloud-provider: aws
+        {{$taints := $element.TaintTmpl}}
+        {{if $taints}}
+        register-with-taints: "{{$taints}}"
+        {{end}}
+        {{$labels := $element.LabelsTmpl}}
+        {{if $labels}}
+        node-labels: "{{$labels}}"
+        {{end}}
+{{end}}
