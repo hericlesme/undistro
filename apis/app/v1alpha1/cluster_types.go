@@ -111,13 +111,13 @@ type Bastion struct {
 
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
-	Paused                bool                   `json:"paused,omitempty"`
-	Network               Network                `json:"network,omitempty"`
-	InfrastructureCluster InfrastructureProvider `json:"infrastructureCluster,omitempty"`
-	KubernetesVersion     string                 `json:"kubernetesVersion,omitempty"`
-	Bastion               *Bastion               `json:"bastion,omitempty"`
-	ControlPlane          *ControlPlaneNode      `json:"controlPlane,omitempty"`
-	Workers               []WorkerNode           `json:"workers,omitempty"`
+	Paused                 bool                   `json:"paused,omitempty"`
+	Network                Network                `json:"network,omitempty"`
+	InfrastructureProvider InfrastructureProvider `json:"infrastructureProvider,omitempty"`
+	KubernetesVersion      string                 `json:"kubernetesVersion,omitempty"`
+	Bastion                *Bastion               `json:"bastion,omitempty"`
+	ControlPlane           *ControlPlaneNode      `json:"controlPlane,omitempty"`
+	Workers                []WorkerNode           `json:"workers,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster

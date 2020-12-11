@@ -95,7 +95,7 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, capiCluster *
 		ClientSet:      r.Client,
 		NamespacedName: client.ObjectKeyFromObject(cl),
 		Variables:      v,
-		EnvVars:        cl.Spec.InfrastructureCluster.Env,
+		EnvVars:        cl.Spec.InfrastructureProvider.Env,
 	})
 	if err != nil {
 		return nil, err
@@ -202,7 +202,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		meta.SetResourceCondition(&cl, cond.Type, cond.Status, cond.Reason, cond.Message)
 	}
 	if capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioning {
-		if capiCluster.Status.ControlPlaneInitialized && !capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureCluster.Managed {
+		if capiCluster.Status.ControlPlaneInitialized && !capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureProvider.Managed {
 			err := r.installCNI(ctx, cl)
 			if err != nil {
 				meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionFalse, meta.CNIInstalledFailedReason, err.Error())
@@ -247,7 +247,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		Directory: "clustertemplates",
 	})
 	buff := &bytes.Buffer{}
-	err = tpl.YAML(buff, cl.Spec.InfrastructureCluster.Name, vars)
+	err = tpl.YAML(buff, cl.Spec.InfrastructureProvider.Name, vars)
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
 	}

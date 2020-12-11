@@ -41,8 +41,12 @@ var _ webhook.Defaulter = &Cluster{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *Cluster) Default() {
 	clusterlog.Info("default", "name", r.Name)
-
-	// TODO(user): fill in your defaulting logic.
+	if r.Spec.Bastion == nil {
+		r.Spec.Bastion = &Bastion{
+			Enabled:             true,
+			DisableIngressRules: true,
+		}
+	}
 }
 
 // +kubebuilder:webhook:verbs=create;update,path=/validate-app-undistro-io-v1alpha1-cluster,mutating=false,failurePolicy=fail,groups=app.undistro.io,resources=clusters,versions=v1alpha1,name=vcluster.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1

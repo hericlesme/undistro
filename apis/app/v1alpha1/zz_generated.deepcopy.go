@@ -146,7 +146,7 @@ func (in *ClusterList) DeepCopyObject() runtime.Object {
 func (in *ClusterSpec) DeepCopyInto(out *ClusterSpec) {
 	*out = *in
 	in.Network.DeepCopyInto(&out.Network)
-	in.InfrastructureCluster.DeepCopyInto(&out.InfrastructureCluster)
+	in.InfrastructureProvider.DeepCopyInto(&out.InfrastructureProvider)
 	if in.Bastion != nil {
 		in, out := &in.Bastion, &out.Bastion
 		*out = new(Bastion)
