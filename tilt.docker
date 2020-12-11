@@ -1,4 +1,5 @@
 FROM golang:alpine
 WORKDIR /
 COPY ./bin/manager /
+COPY ./clustertemplates /clustertemplates
 CMD ["/manager"]

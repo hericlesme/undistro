@@ -34,8 +34,9 @@ local_resource('recompile', generate() + binary(), deps=['controllers', 'main.go
 docker_build_with_restart(IMG, '.', 
  dockerfile='tilt.docker',
  entrypoint='/manager',
- only=['./bin/manager'],
+ only=['./bin/manager', './clustertemplates'],
  live_update=[
        sync('./bin/manager', '/manager'),
+       sync('./clustertemplates', '/clustertemplates'),
    ]
 )
