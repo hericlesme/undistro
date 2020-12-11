@@ -18,7 +18,32 @@ spec:
     singular: cluster
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.kubernetesVersion
+      name: k8s
+      type: string
+    - jsonPath: .spec.kubernetesVersion
+      name: Infra
+      type: string
+    - jsonPath: .status.totalWorkerPools
+      name: Worker Pools
+      type: integer
+    - jsonPath: .status.totalWorkerReplicas
+      name: Worker Replicas
+      type: integer
+    - jsonPath: .status.controlPlane.replicas
+      name: ControlPlane Replicas
+      type: integer
+    - jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].message
+      name: Status
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Cluster is the Schema for the clusters API
