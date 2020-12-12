@@ -72,3 +72,18 @@ func stringptr(s string) *string {
 func intptr(i int) *int {
 	return &i
 }
+
+type Credentials struct {
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+}
+
+type Provider struct {
+	Name          string                 `mapstructure:"name"`
+	Configuration map[string]interface{} `mapstructure:"configuration"`
+}
+
+type Config struct {
+	Credentials Credentials `mapstructure:"credentials"`
+	Providers   []Provider  `mapstructure:"providers"`
+}

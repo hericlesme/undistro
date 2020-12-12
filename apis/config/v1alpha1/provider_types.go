@@ -87,6 +87,7 @@ func ProviderAttempted(p Provider, releaseName, version string) Provider {
 	return p
 }
 
+// +genclient
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=providers,scope=Namespaced

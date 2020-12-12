@@ -136,6 +136,7 @@ type ClusterStatus struct {
 	LastUsedUID         string             `json:"lastUsedUID,omitempty"`
 }
 
+// +genclient
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=cl,scope=Namespaced
 // +kubebuilder:subresource:status
