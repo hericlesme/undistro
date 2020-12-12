@@ -36,7 +36,7 @@ type ProviderSpec struct {
 }
 
 type Repository struct {
-	// +kubebuilder:default="https://charts.undistro.io"
+	// +kubebuilder:default="http://repo.undistro.io"
 	URL       string                       `json:"url,omitempty"`
 	SecretRef *corev1.LocalObjectReference `json:"secretRef,omitempty"`
 }

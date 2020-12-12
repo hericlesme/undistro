@@ -120,7 +120,7 @@ spec:
                         type: string
                     type: object
                   url:
-                    default: https://charts.undistro.io
+                    default: http://repo.undistro.io
                     type: string
                 type: object
             type: object

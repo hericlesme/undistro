@@ -18,4 +18,5 @@ package meta
 const (
 	LabelUndistroClusterName = "undistro.io/cluster-name"
 	LabelUndistroClusterType = "undistro.io/cluster-type"
+	LabelProviderType        = "undistro.io/provider-type"
 )

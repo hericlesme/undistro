@@ -38,7 +38,7 @@ var (
 
 const (
 	defaultAWSRegion       = "us-east-1"
-	name                   = "aws-provider-config"
+	name                   = "undistro-aws-config"
 	namespace              = "undistro-system"
 	key                    = "credentials"
 	awsCredentialsTemplate = `[default]

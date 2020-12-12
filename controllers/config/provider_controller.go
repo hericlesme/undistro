@@ -134,7 +134,13 @@ func (r *ProviderReconciler) patchStatus(ctx context.Context, p *configv1alpha1.
 }
 
 func (r *ProviderReconciler) reconcileChart(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
-	name := fmt.Sprintf("provider-%s", p.Spec.ProviderName)
+	name := fmt.Sprintf("undistro-%s", p.Spec.ProviderName)
+	labels := p.GetLabels()
+	if labels != nil {
+		if labels[meta.LabelProviderType] == "core" {
+			name = p.Spec.ProviderName
+		}
+	}
 	hr := appv1alpha1.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: appv1alpha1.GroupVersion.String(),
