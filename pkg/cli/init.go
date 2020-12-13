@@ -65,9 +65,6 @@ func NewInitOptions(streams genericclioptions.IOStreams) *InitOptions {
 
 func (o *InitOptions) Complete(f *ConfigFlags, cmd *cobra.Command, args []string) error {
 	o.ConfigPath = *f.ConfigFile
-	if o.ConfigPath == "" {
-		return cmdutil.UsageErrorf(cmd, "%s", "a file path need to be passed to --config flag")
-	}
 	switch len(args) {
 	case 0:
 		// do nothing
@@ -80,9 +77,11 @@ func (o *InitOptions) Complete(f *ConfigFlags, cmd *cobra.Command, args []string
 }
 
 func (o *InitOptions) Validate() error {
-	_, err := os.Stat(o.ConfigPath)
-	if err != nil {
-		return err
+	if o.ConfigPath != "" {
+		_, err := os.Stat(o.ConfigPath)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -94,9 +93,11 @@ func (o *InitOptions) installProviders(ctx context.Context, providers []Provider
 func (o *InitOptions) RunInit(f cmdutil.Factory, cmd *cobra.Command) error {
 	const undistroRepo = "http://repo.undistro.io"
 	cfg := Config{}
-	err := viper.Unmarshal(&cfg)
-	if err != nil {
-		return errors.Errorf("unable to unmarshal config", err)
+	if o.ConfigPath != "" {
+		err := viper.Unmarshal(&cfg)
+		if err != nil {
+			return errors.Errorf("unable to unmarshal config", err)
+		}
 	}
 	restCfg, err := f.ToRESTConfig()
 	if err != nil {
