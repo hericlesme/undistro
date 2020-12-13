@@ -28,17 +28,13 @@ import (
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/onsi/ginkgo"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 	"k8s.io/klog/klogr"
-	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -55,18 +51,10 @@ func init() {
 }
 
 var (
-	env    *envtest.Environment
-	scheme = runtime.NewScheme()
+	env *envtest.Environment
 )
 
 func init() {
-	// Calculate the scheme.
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(configv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(appv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(capi.AddToScheme(scheme))
-	utilruntime.Must(apiextensionsv1.AddToScheme(scheme))
-
 	// Get the root of the current file to use in CRD paths.
 	_, filename, _, _ := goruntime.Caller(0) //nolint
 	root := path.Join(path.Dir(filename), "..", "..")
@@ -94,7 +82,7 @@ func NewEnvironment() *Environment {
 		panic(err)
 	}
 	options := manager.Options{
-		Scheme:             scheme,
+		Scheme:             scheme.Scheme,
 		MetricsBindAddress: "0",
 		CertDir:            env.WebhookInstallOptions.LocalServingCertDir,
 		Port:               env.WebhookInstallOptions.LocalServingPort,

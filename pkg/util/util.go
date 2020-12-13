@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"strings"
 
 	"github.com/pkg/errors"
 	"helm.sh/helm/v3/pkg/chartutil"
@@ -236,4 +237,17 @@ func ContainsStringInSlice(ss []string, str string) bool {
 		}
 	}
 	return false
+}
+
+func ObjectKeyFromString(str string) client.ObjectKey {
+	c := client.ObjectKey{}
+	split := strings.Split(str, "/")
+	if len(split) == 2 {
+		c.Name = split[1]
+		c.Namespace = split[0]
+	} else {
+		c.Name = split[0]
+		c.Namespace = "default"
+	}
+	return c
 }

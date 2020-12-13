@@ -25,30 +25,18 @@ import (
 	appcontroller "github.com/getupio-undistro/undistro/controllers/app"
 	configcontroller "github.com/getupio-undistro/undistro/controllers/config"
 	"github.com/getupio-undistro/undistro/pkg/record"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"github.com/getupio-undistro/undistro/pkg/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	// +kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
 )
 
-func init() {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(configv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(appv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(capi.AddToScheme(scheme))
-	utilruntime.Must(apiextensionsv1.AddToScheme(scheme))
-	// +kubebuilder:scaffold:scheme
-}
+
 
 func main() {
 	var metricsAddr string
@@ -62,7 +50,7 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme,
+		Scheme:             scheme.Scheme,
 		MetricsBindAddress: metricsAddr,
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,

@@ -16,6 +16,7 @@ limitations under the License.
 package cli
 
 import (
+	"context"
 	"encoding/base64"
 	"os"
 	"time"
@@ -25,16 +26,19 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/helm"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/undistro/pkg/scheme"
+	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/getter"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
+	"sigs.k8s.io/cluster-api/util/kubeconfig"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -48,7 +52,8 @@ var (
 )
 
 type InitOptions struct {
-	ConfigPath string
+	ConfigPath  string
+	ClusterName string
 	genericclioptions.IOStreams
 }
 
@@ -63,7 +68,12 @@ func (o *InitOptions) Complete(f *ConfigFlags, cmd *cobra.Command, args []string
 	if o.ConfigPath == "" {
 		return cmdutil.UsageErrorf(cmd, "%s", "a file path need to be passed to --config flag")
 	}
-	if len(args) > 0 {
+	switch len(args) {
+	case 0:
+		// do nothing
+	case 1:
+		o.ClusterName = args[0]
+	default:
 		return cmdutil.UsageErrorf(cmd, "%s", "too many arguments")
 	}
 	return nil
@@ -77,6 +87,10 @@ func (o *InitOptions) Validate() error {
 	return nil
 }
 
+func (o *InitOptions) installProviders(ctx context.Context, providers []Provider) error {
+	return nil
+}
+
 func (o *InitOptions) RunInit(f cmdutil.Factory, cmd *cobra.Command) error {
 	const undistroRepo = "http://repo.undistro.io"
 	cfg := Config{}
@@ -84,19 +98,41 @@ func (o *InitOptions) RunInit(f cmdutil.Factory, cmd *cobra.Command) error {
 	if err != nil {
 		return errors.Errorf("unable to unmarshal config", err)
 	}
-	c, err := f.KubernetesClientSet()
+	restCfg, err := f.ToRESTConfig()
 	if err != nil {
 		return err
 	}
 	ns := "undistro-system"
 	secretName := "undistro-config"
+	c, err := client.New(restCfg, client.Options{
+		Scheme: scheme.Scheme,
+	})
+	if err != nil {
+		return err
+	}
+	restGetter := kube.NewInClusterRESTClientGetter(restCfg, ns)
+	if o.ClusterName != "" {
+		byt, err := kubeconfig.FromSecret(cmd.Context(), c, util.ObjectKeyFromString(o.ClusterName))
+		if err != nil {
+			return err
+		}
+		restGetter = kube.NewMemoryRESTClientGetter(byt, ns)
+		restCfg, err = restGetter.ToRESTConfig()
+		if err != nil {
+			return err
+		}
+		c, err = client.New(restCfg, client.Options{})
+		if err != nil {
+			return err
+		}
+	}
 	var clientOpts []getter.Option
 	var private bool
 	if cfg.Credentials.Username != "" && cfg.Credentials.Password != "" {
 		private = true
 		userb64 := base64.StdEncoding.EncodeToString([]byte(cfg.Credentials.Username))
 		passb64 := base64.StdEncoding.EncodeToString([]byte(cfg.Credentials.Password))
-		s := &corev1.Secret{
+		s := corev1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      secretName,
 				Namespace: ns,
@@ -106,85 +142,83 @@ func (o *InitOptions) RunInit(f cmdutil.Factory, cmd *cobra.Command) error {
 				"password": []byte(passb64),
 			},
 		}
-		s, err = c.CoreV1().Secrets(ns).Create(cmd.Context(), s, metav1.CreateOptions{})
-		if err != nil && !apierrors.IsAlreadyExists(err) {
+		_, err = util.CreateOrUpdate(cmd.Context(), c, &s)
+		if err != nil {
 			return err
 		}
-		opts, cleanup, err := helm.ClientOptionsFromSecret(*s)
+		opts, cleanup, err := helm.ClientOptionsFromSecret(s)
 		if err != nil {
 			return err
 		}
 		defer cleanup()
 		clientOpts = opts
 	}
-	chartRepo, err := helm.NewChartRepository(undistroRepo, getters, clientOpts)
+	err = c.List(cmd.Context(), &configv1alpha1.ProviderList{})
 	if err != nil {
-		return err
-	}
-	err = chartRepo.DownloadIndex()
-	if err != nil {
-		return errors.Errorf("failed to download repository index: %w", err)
-	}
-	chartRepo.Index.SortEntries()
-	chartName := "undistro"
-	versions := chartRepo.Index.Entries[chartName]
-	if versions.Len() == 0 {
-		return errors.New("undistro chart not found")
-	}
-	version := versions[0]
-	ch, err := chartRepo.Get(chartName, version.Version)
-	if err != nil {
-		return err
-	}
-	res, err := chartRepo.DownloadChart(ch)
-	if err != nil {
-		return err
-	}
-	chart, err := loader.LoadArchive(res)
-	if err != nil {
-		return err
-	}
-	restCfg, err := f.ToRESTConfig()
-	if err != nil {
-		return err
-	}
-	runner, err := helm.NewRunner(kube.NewInClusterRESTClientGetter(restCfg, ns), ns, log.Log)
-	if err != nil {
-		return err
-	}
-	wait := true
-	hr := appv1alpha1.HelmRelease{
-		Spec: appv1alpha1.HelmReleaseSpec{
-			ReleaseName:     chartName,
-			TargetNamespace: ns,
-			Wait:            &wait,
-			Timeout: &metav1.Duration{
-				Duration: 5 * time.Minute,
+		chartRepo, err := helm.NewChartRepository(undistroRepo, getters, clientOpts)
+		if err != nil {
+			return err
+		}
+		err = chartRepo.DownloadIndex()
+		if err != nil {
+			return errors.Errorf("failed to download repository index: %w", err)
+		}
+		chartRepo.Index.SortEntries()
+		chartName := "undistro"
+		versions := chartRepo.Index.Entries[chartName]
+		if versions.Len() == 0 {
+			return errors.New("undistro chart not found")
+		}
+		version := versions[0]
+		ch, err := chartRepo.Get(chartName, version.Version)
+		if err != nil {
+			return err
+		}
+		res, err := chartRepo.DownloadChart(ch)
+		if err != nil {
+			return err
+		}
+		chart, err := loader.LoadArchive(res)
+		if err != nil {
+			return err
+		}
+		runner, err := helm.NewRunner(restGetter, ns, log.Log)
+		if err != nil {
+			return err
+		}
+		wait := true
+		hr := appv1alpha1.HelmRelease{
+			Spec: appv1alpha1.HelmReleaseSpec{
+				ReleaseName:     chartName,
+				TargetNamespace: ns,
+				Wait:            &wait,
+				Timeout: &metav1.Duration{
+					Duration: 5 * time.Minute,
+				},
 			},
-		},
-	}
-	_, err = runner.Install(hr, chart, chart.Values)
-	if err != nil {
-		return err
-	}
-	p := configv1alpha1.Provider{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      chartName,
-			Namespace: ns,
-			Labels: map[string]string{
-				meta.LabelProviderType: "core",
+		}
+		_, err = runner.Install(hr, chart, chart.Values)
+		if err != nil {
+			return err
+		}
+		p := configv1alpha1.Provider{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      chartName,
+				Namespace: ns,
+				Labels: map[string]string{
+					meta.LabelProviderType: "core",
+				},
 			},
-		},
-		Spec: configv1alpha1.ProviderSpec{
-			ProviderName:    chartName,
-			ProviderVersion: version.Version,
-			AutoUpgrade:     true,
-		},
-	}
-	if private {
-		p.Spec.Repository.SecretRef = &corev1.LocalObjectReference{
-			Name: secretName,
+			Spec: configv1alpha1.ProviderSpec{
+				ProviderName:    chartName,
+				ProviderVersion: version.Version,
+			},
+		}
+		if private {
+			p.Spec.Repository.SecretRef = &corev1.LocalObjectReference{
+				Name: secretName,
+			}
 		}
 	}
-	return nil
+	return o.installProviders(cmd.Context(), cfg.Providers)
 }
