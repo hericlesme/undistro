@@ -106,6 +106,10 @@ func (o *InstallOptions) installProviders(ctx context.Context, c client.Client, 
 			})
 		}
 		s := corev1.Secret{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "v1",
+				Kind:       "Secret",
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      secretName,
 				Namespace: ns,
@@ -117,6 +121,10 @@ func (o *InstallOptions) installProviders(ctx context.Context, c client.Client, 
 			return err
 		}
 		provider := configv1alpha1.Provider{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: configv1alpha1.GroupVersion.String(),
+				Kind:       "Provider",
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      p.Name,
 				Namespace: ns,
@@ -144,7 +152,7 @@ func (o *InstallOptions) installProviders(ctx context.Context, c client.Client, 
 }
 
 func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error {
-	const undistroRepo = "http://repo.undistro.io"
+	const undistroRepo = "https://charts.undistro.io"
 	cfg := Config{}
 	if o.ConfigPath != "" {
 		err := viper.Unmarshal(&cfg)
@@ -182,11 +190,16 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		}
 	}
 	_, err = util.CreateOrUpdate(cmd.Context(), c, &corev1.Namespace{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Namespace",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: ns,
 		},
 	})
 	if err != nil {
+		fmt.Println(">>>>>>>>", err)
 		return err
 	}
 	var clientOpts []getter.Option
@@ -198,6 +211,10 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		userb64 := base64.StdEncoding.EncodeToString([]byte(cfg.Credentials.Username))
 		passb64 := base64.StdEncoding.EncodeToString([]byte(cfg.Credentials.Password))
 		s := corev1.Secret{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "v1",
+				Kind:       "Secret",
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      secretName,
 				Namespace: ns,

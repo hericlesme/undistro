@@ -52,7 +52,7 @@ func (r *Provider) Default() {
 	r.Labels[meta.LabelUndistroClusterName] = ""
 	r.Labels[meta.LabelUndistroClusterType] = "management"
 	if r.Spec.Repository.URL == "" {
-		r.Spec.Repository.URL = "http://repo.undistro.io"
+		r.Spec.Repository.URL = "https://charts.undistro.io"
 	}
 }
 

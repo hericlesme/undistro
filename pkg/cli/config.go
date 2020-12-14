@@ -34,11 +34,9 @@ type ConfigFlags struct {
 
 // NewConfigFlags returns ConfigFlags with default values set
 func NewConfigFlags() *ConfigFlags {
-	home := homedir.HomeDir()
-	cfgPath := filepath.Join(home, ".undistro", "undistro.yaml")
 	return &ConfigFlags{
 		Verbosity:   intptr(0),
-		ConfigFile:  stringptr(cfgPath),
+		ConfigFile:  stringptr(""),
 		ConfigFlags: genericclioptions.NewConfigFlags(true),
 	}
 }
@@ -57,7 +55,13 @@ func (f *ConfigFlags) AddFlags(flags *pflag.FlagSet, goflags *flag.FlagSet) {
 func (f *ConfigFlags) Init() func() {
 	return func() {
 		log.SetLogger(log.Log.V(*f.Verbosity))
-		viper.SetConfigFile(*f.ConfigFile)
+		home := homedir.HomeDir()
+		cfgPath := filepath.Join(home, ".undistro", "undistro.yaml")
+		if *f.ConfigFile != "" {
+			viper.SetConfigFile(*f.ConfigFile)
+		} else {
+			viper.SetConfigFile(cfgPath)
+		}
 		viper.AutomaticEnv()
 		if err := viper.ReadInConfig(); err == nil {
 			log.Log.Info("using config", "file", viper.ConfigFileUsed())
