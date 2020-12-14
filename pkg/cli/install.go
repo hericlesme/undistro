@@ -181,6 +181,14 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			return err
 		}
 	}
+	_, err = util.CreateOrUpdate(cmd.Context(), c, &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: ns,
+		},
+	})
+	if err != nil {
+		return err
+	}
 	var clientOpts []getter.Option
 	var secretRef *corev1.LocalObjectReference
 	if cfg.Credentials.Username != "" && cfg.Credentials.Password != "" {
