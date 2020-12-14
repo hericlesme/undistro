@@ -36,8 +36,6 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
-
-
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool

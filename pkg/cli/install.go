@@ -149,7 +149,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	if o.ConfigPath != "" {
 		err := viper.Unmarshal(&cfg)
 		if err != nil {
-			return errors.Errorf("unable to unmarshal config", err)
+			return errors.Errorf("unable to unmarshal config: %v", err)
 		}
 	}
 	restCfg, err := f.ToRESTConfig()
@@ -218,7 +218,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		}
 		err = chartRepo.DownloadIndex()
 		if err != nil {
-			return errors.Errorf("failed to download repository index: %w", err)
+			return fmt.Errorf("failed to download repository index: %w", err)
 		}
 		chartRepo.Index.SortEntries()
 		chartName := "undistro"
