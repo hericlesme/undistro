@@ -18,11 +18,13 @@ package cli
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"os"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/cloud"
 	"github.com/getupio-undistro/undistro/pkg/helm"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
@@ -49,21 +51,23 @@ var (
 			New:     getter.NewHTTPGetter,
 		},
 	}
+
+	ns = "undistro-system"
 )
 
-type InitOptions struct {
+type InstallOptions struct {
 	ConfigPath  string
 	ClusterName string
 	genericclioptions.IOStreams
 }
 
-func NewInitOptions(streams genericclioptions.IOStreams) *InitOptions {
-	return &InitOptions{
+func NewInstallOptions(streams genericclioptions.IOStreams) *InstallOptions {
+	return &InstallOptions{
 		IOStreams: streams,
 	}
 }
 
-func (o *InitOptions) Complete(f *ConfigFlags, cmd *cobra.Command, args []string) error {
+func (o *InstallOptions) Complete(f *ConfigFlags, cmd *cobra.Command, args []string) error {
 	o.ConfigPath = *f.ConfigFile
 	switch len(args) {
 	case 0:
@@ -76,7 +80,7 @@ func (o *InitOptions) Complete(f *ConfigFlags, cmd *cobra.Command, args []string
 	return nil
 }
 
-func (o *InitOptions) Validate() error {
+func (o *InstallOptions) Validate() error {
 	if o.ConfigPath != "" {
 		_, err := os.Stat(o.ConfigPath)
 		if err != nil {
@@ -86,11 +90,60 @@ func (o *InitOptions) Validate() error {
 	return nil
 }
 
-func (o *InitOptions) installProviders(ctx context.Context, providers []Provider) error {
+func (o *InstallOptions) installProviders(ctx context.Context, c client.Client, providers []Provider, secretRef *corev1.LocalObjectReference) error {
+	for _, p := range providers {
+		secretName := fmt.Sprintf("undistro-%s-config", p.Name)
+		secretData := make(map[string][]byte)
+		valuesRef := make([]appv1alpha1.ValuesReference, 0)
+		for k, v := range p.Configuration {
+			vb64 := base64.StdEncoding.EncodeToString([]byte(v))
+			secretData[k] = []byte(vb64)
+			valuesRef = append(valuesRef, appv1alpha1.ValuesReference{
+				Kind:       "Secret",
+				Name:       secretName,
+				ValuesKey:  k,
+				TargetPath: k,
+			})
+		}
+		s := corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secretName,
+				Namespace: ns,
+			},
+			Data: secretData,
+		}
+		hasDiff, err := util.CreateOrUpdate(ctx, c, &s)
+		if err != nil {
+			return err
+		}
+		provider := configv1alpha1.Provider{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      p.Name,
+				Namespace: ns,
+			},
+			Spec: configv1alpha1.ProviderSpec{
+				ProviderName:      p.Name,
+				ConfigurationFrom: valuesRef,
+				Repository: configv1alpha1.Repository{
+					SecretRef: secretRef,
+				},
+			},
+		}
+		if hasDiff {
+			provider, err = cloud.Init(ctx, c, provider)
+			if err != nil {
+				return err
+			}
+		}
+		_, err = util.CreateOrUpdate(ctx, c, &provider)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (o *InitOptions) RunInit(f cmdutil.Factory, cmd *cobra.Command) error {
+func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error {
 	const undistroRepo = "http://repo.undistro.io"
 	cfg := Config{}
 	if o.ConfigPath != "" {
@@ -103,7 +156,6 @@ func (o *InitOptions) RunInit(f cmdutil.Factory, cmd *cobra.Command) error {
 	if err != nil {
 		return err
 	}
-	ns := "undistro-system"
 	secretName := "undistro-config"
 	c, err := client.New(restCfg, client.Options{
 		Scheme: scheme.Scheme,
@@ -111,26 +163,30 @@ func (o *InitOptions) RunInit(f cmdutil.Factory, cmd *cobra.Command) error {
 	if err != nil {
 		return err
 	}
-	restGetter := kube.NewInClusterRESTClientGetter(restCfg, ns)
+	restGetter := kube.NewInClusterRESTClientGetter(restCfg, "")
 	if o.ClusterName != "" {
 		byt, err := kubeconfig.FromSecret(cmd.Context(), c, util.ObjectKeyFromString(o.ClusterName))
 		if err != nil {
 			return err
 		}
-		restGetter = kube.NewMemoryRESTClientGetter(byt, ns)
+		restGetter = kube.NewMemoryRESTClientGetter(byt, "")
 		restCfg, err = restGetter.ToRESTConfig()
 		if err != nil {
 			return err
 		}
-		c, err = client.New(restCfg, client.Options{})
+		c, err = client.New(restCfg, client.Options{
+			Scheme: scheme.Scheme,
+		})
 		if err != nil {
 			return err
 		}
 	}
 	var clientOpts []getter.Option
-	var private bool
+	var secretRef *corev1.LocalObjectReference
 	if cfg.Credentials.Username != "" && cfg.Credentials.Password != "" {
-		private = true
+		secretRef = &corev1.LocalObjectReference{
+			Name: secretName,
+		}
 		userb64 := base64.StdEncoding.EncodeToString([]byte(cfg.Credentials.Username))
 		passb64 := base64.StdEncoding.EncodeToString([]byte(cfg.Credentials.Password))
 		s := corev1.Secret{
@@ -213,13 +269,41 @@ func (o *InitOptions) RunInit(f cmdutil.Factory, cmd *cobra.Command) error {
 			Spec: configv1alpha1.ProviderSpec{
 				ProviderName:    chartName,
 				ProviderVersion: version.Version,
+				Repository: configv1alpha1.Repository{
+					SecretRef: secretRef,
+				},
 			},
 		}
-		if private {
-			p.Spec.Repository.SecretRef = &corev1.LocalObjectReference{
-				Name: secretName,
-			}
+		err = c.Create(cmd.Context(), &p)
+		if err != nil {
+			return err
 		}
 	}
-	return o.installProviders(cmd.Context(), cfg.Providers)
+	return o.installProviders(cmd.Context(), c, cfg.Providers, secretRef)
+}
+
+func NewCmdInstall(f *ConfigFlags, streams genericclioptions.IOStreams) *cobra.Command {
+	o := NewInstallOptions(streams)
+	cmd := &cobra.Command{
+		Use:                   "install [cluster namespace/cluster name]",
+		DisableFlagsInUseLine: true,
+		Short:                 "Install UnDistro",
+		Long: LongDesc(`Install UnDistro.
+		If cluster argument exists UnDistro will be installed in this remote cluster.
+		If config file exists UnDistro will be installed using file's configurations`),
+		Example: Examples(`
+		# Install UnDistro in local cluster
+		undistro install
+		# Install UnDistro in remote cluster
+		undistro install undistro-production/cool-product-cluster
+		# Install UnDistro with configuration file
+		undistro --config undistro-config.yaml install undistro-production/cool-product-cluster
+		`),
+		Run: func(cmd *cobra.Command, args []string) {
+			cmdutil.CheckErr(o.Complete(f, cmd, args))
+			cmdutil.CheckErr(o.Validate())
+			cmdutil.CheckErr(o.RunInstall(cmdutil.NewFactory(f), cmd))
+		},
+	}
+	return cmd
 }

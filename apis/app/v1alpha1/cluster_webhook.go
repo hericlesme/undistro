@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/version"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -46,6 +47,12 @@ var _ webhook.Defaulter = &Cluster{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *Cluster) Default() {
 	clusterlog.Info("default", "name", r.Name)
+	if r.Labels == nil {
+		r.Labels = make(map[string]string)
+	}
+	r.Labels[meta.LabelUndistro] = ""
+	r.Labels[meta.LabelUndistroClusterName] = r.Name
+	r.Labels[meta.LabelUndistroClusterType] = "workload"
 	if r.Spec.Bastion == nil {
 		r.Spec.Bastion = &Bastion{
 			Enabled:             true,

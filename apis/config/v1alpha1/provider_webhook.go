@@ -48,6 +48,7 @@ func (r *Provider) Default() {
 	if r.Labels == nil {
 		r.Labels = make(map[string]string)
 	}
+	r.Labels[meta.LabelUndistro] = ""
 	r.Labels[meta.LabelUndistroClusterName] = ""
 	r.Labels[meta.LabelUndistroClusterType] = "management"
 	if r.Spec.Repository.URL == "" {
@@ -64,12 +65,6 @@ func (r *Provider) validate(old *Provider) error {
 	if r.Spec.ProviderName == "" {
 		allErrs = append(allErrs, field.Required(
 			field.NewPath("spec", "providerName"),
-			"spec.providerName to be populated",
-		))
-	}
-	if r.Spec.ProviderVersion == "" {
-		allErrs = append(allErrs, field.Required(
-			field.NewPath("spec", "providerVersion"),
 			"spec.providerName to be populated",
 		))
 	}

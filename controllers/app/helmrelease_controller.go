@@ -28,6 +28,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/predicate"
+	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/getupio-undistro/undistro/pkg/version"
 	"github.com/go-logr/logr"
@@ -150,21 +151,30 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 	}
 	chartRepo.Index.SortEntries()
 	versions := chartRepo.Index.Entries[hr.Spec.Chart.Name]
-	if versions.Len() > 0 && hr.Spec.AutoUpgrade {
+	if versions.Len() > 0 {
 		latestVersion := versions[0]
 		lv, err := version.ParseVersion(latestVersion.Version)
 		if err != nil {
 			return hr, ctrl.Result{Requeue: true}, err
 		}
-		acv, err := version.ParseVersion(hr.Spec.Chart.Version)
-		if err != nil {
-			return hr, ctrl.Result{Requeue: true}, err
-		}
-		if lv.GreaterThan(acv) && lv.Major() == acv.Major() {
+		if hr.Spec.Chart.Version == "" {
 			hr.Spec.Chart.Version = lv.String()
 			err = r.Update(ctx, &hr)
 			if err != nil {
 				return hr, ctrl.Result{Requeue: true}, err
+			}
+		}
+		if hr.Spec.AutoUpgrade {
+			acv, err := version.ParseVersion(hr.Spec.Chart.Version)
+			if err != nil {
+				return hr, ctrl.Result{Requeue: true}, err
+			}
+			if lv.GreaterThan(acv) && lv.Major() == acv.Major() {
+				hr.Spec.Chart.Version = lv.String()
+				err = r.Update(ctx, &hr)
+				if err != nil {
+					return hr, ctrl.Result{Requeue: true}, err
+				}
 			}
 		}
 	}
@@ -202,18 +212,32 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.StorageOperationFailedReason, err.Error())
 		return hr, ctrl.Result{Requeue: true}, err
 	}
-	err = r.applyObjs(ctx, hr.Spec.BeforeApplyObjects)
+	getter, err := r.getRESTClientGetter(ctx, hr)
+	if err != nil {
+		return hr, ctrl.Result{Requeue: true}, err
+	}
+	restCfg, err := getter.ToRESTConfig()
+	if err != nil {
+		return hr, ctrl.Result{Requeue: true}, err
+	}
+	workloadClient, err := client.New(restCfg, client.Options{
+		Scheme: scheme.Scheme,
+	})
+	if err != nil {
+		return hr, ctrl.Result{Requeue: true}, err
+	}
+	err = r.applyObjs(ctx, workloadClient, hr.Spec.BeforeApplyObjects)
 	if err != nil {
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ObjectsApliedFailedReason, err.Error())
 		return hr, ctrl.Result{Requeue: true}, err
 	}
 	meta.SetResourceCondition(&hr, meta.ObjectsAppliedCondition, metav1.ConditionTrue, meta.ObjectsAppliedSuccessReason, "objects successfully applied before install")
-	hr, err = r.reconcileRelease(ctx, log, *hr.DeepCopy(), hc, values)
+	hr, err = r.reconcileRelease(ctx, getter, log, *hr.DeepCopy(), hc, values)
 	if err != nil {
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ReconciliationFailedReason, err.Error())
 		return hr, ctrl.Result{Requeue: true}, err
 	}
-	err = r.applyObjs(ctx, hr.Spec.AfterApplyObjects)
+	err = r.applyObjs(ctx, workloadClient, hr.Spec.AfterApplyObjects)
 	if err != nil {
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ObjectsApliedFailedReason, err.Error())
 		return hr, ctrl.Result{Requeue: true}, err
@@ -222,14 +246,14 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 	return hr, ctrl.Result{RequeueAfter: 10 * time.Minute}, nil
 }
 
-func (r *HelmReleaseReconciler) applyObjs(ctx context.Context, objs []apiextensionsv1.JSON) error {
+func (r *HelmReleaseReconciler) applyObjs(ctx context.Context, c client.Client, objs []apiextensionsv1.JSON) error {
 	for _, raw := range objs {
 		uobjs, err := util.ToUnstructured(raw.Raw)
 		if err != nil {
 			return err
 		}
 		for _, o := range uobjs {
-			_, err = util.CreateOrUpdate(ctx, r.Client, &o)
+			_, err = util.CreateOrUpdate(ctx, c, &o)
 			if err != nil {
 				return err
 			}
@@ -238,12 +262,9 @@ func (r *HelmReleaseReconciler) applyObjs(ctx context.Context, objs []apiextensi
 	return nil
 }
 
-func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, log logr.Logger,
+func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, getter genericclioptions.RESTClientGetter, log logr.Logger,
 	hr appv1alpha1.HelmRelease, chart *chart.Chart, values chartutil.Values) (appv1alpha1.HelmRelease, error) {
-	getter, err := r.getRESTClientGetter(ctx, hr)
-	if err != nil {
-		return appv1alpha1.HelmReleaseNotReady(hr, meta.InitFailedReason, err.Error()), err
-	}
+
 	runner, err := helm.NewRunner(getter, hr.GetNamespace(), log)
 	if err != nil {
 		return appv1alpha1.HelmReleaseNotReady(hr, meta.InitFailedReason, "failed to initialize Helm action runner"), err
@@ -459,17 +480,14 @@ func (r *HelmReleaseReconciler) patchStatus(ctx context.Context, hr *appv1alpha1
 
 func (r *HelmReleaseReconciler) getRESTClientGetter(ctx context.Context, hr appv1alpha1.HelmRelease) (genericclioptions.RESTClientGetter, error) {
 	if hr.Spec.ClusterName == "" {
-		return kube.NewInClusterRESTClientGetter(r.config, hr.GetNamespace()), nil
+		return kube.NewInClusterRESTClientGetter(r.config, ""), nil
 	}
-	key := client.ObjectKey{
-		Name:      hr.Spec.ClusterName,
-		Namespace: hr.GetNamespace(),
-	}
+	key := util.ObjectKeyFromString(hr.Spec.ClusterName)
 	kubeConfig, err := kubeconfig.FromSecret(ctx, r.Client, key)
 	if err != nil {
 		return nil, err
 	}
-	return kube.NewMemoryRESTClientGetter(kubeConfig, hr.GetNamespace()), nil
+	return kube.NewMemoryRESTClientGetter(kubeConfig, ""), nil
 }
 
 func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, logger logr.Logger, hr appv1alpha1.HelmRelease) (ctrl.Result, error) {

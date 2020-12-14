@@ -99,6 +99,7 @@ func NewUndistroCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	cmd.AddCommand(apply.NewCmdApply("undistro", f, ioStreams))
 	cmd.AddCommand(logs.NewCmdLogs(f, ioStreams))
 	cmd.AddCommand(version.NewVersionCommand())
+	cmd.AddCommand(NewCmdInstall(cfgFlags, ioStreams))
 	cobra.OnInitialize(cfgFlags.Init())
 	return cmd
 }

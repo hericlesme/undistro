@@ -79,8 +79,8 @@ type Credentials struct {
 }
 
 type Provider struct {
-	Name          string                 `mapstructure:"name"`
-	Configuration map[string]interface{} `mapstructure:"configuration"`
+	Name          string            `mapstructure:"name"`
+	Configuration map[string]string `mapstructure:"configuration"`
 }
 
 type Config struct {

@@ -50,6 +50,7 @@ func (r *HelmRelease) Default() {
 	if r.Labels == nil {
 		r.Labels = make(map[string]string)
 	}
+	r.Labels[meta.LabelUndistro] = ""
 	r.Labels[meta.LabelUndistroClusterName] = r.Spec.ClusterName
 	if r.Spec.ClusterName == "" {
 		r.Labels[meta.LabelUndistroClusterType] = "management"
@@ -106,12 +107,6 @@ func (r *HelmRelease) validate(old *HelmRelease) error {
 		allErrs = append(allErrs, field.Required(
 			field.NewPath("spec", "chart", "name"),
 			"spec.chart.name to be populated",
-		))
-	}
-	if r.Spec.Chart.Version == "" {
-		allErrs = append(allErrs, field.Required(
-			field.NewPath("spec", "chart", "version"),
-			"spec.chart.version to be populated",
 		))
 	}
 	for _, d := range r.Spec.Dependencies {
