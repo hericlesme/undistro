@@ -11,6 +11,7 @@ metadata:
   annotations:
     cert-manager.io/inject-ca-from: undistro-system/undistro-serving-cert
     controller-gen.kubebuilder.io/version: v0.4.1
+    helm.sh/hook: pre-install
   name: clusters.app.undistro.io
 spec:
   conversion:
@@ -433,6 +434,7 @@ metadata:
   annotations:
     cert-manager.io/inject-ca-from: undistro-system/undistro-serving-cert
     controller-gen.kubebuilder.io/version: v0.4.1
+    helm.sh/hook: pre-install
   name: helmreleases.app.undistro.io
 spec:
   conversion:
@@ -739,6 +741,7 @@ metadata:
   annotations:
     cert-manager.io/inject-ca-from: undistro-system/undistro-serving-cert
     controller-gen.kubebuilder.io/version: v0.4.1
+    helm.sh/hook: pre-install
   name: providers.config.undistro.io
 spec:
   conversion:

@@ -4,6 +4,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.9
+    helm.sh/hook: pre-install
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
@@ -114,6 +115,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.9
+    helm.sh/hook: pre-install
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
@@ -299,6 +301,7 @@ metadata:
   annotations:
     cert-manager.io/inject-ca-from: undistro-system/capi-serving-cert
     controller-gen.kubebuilder.io/version: v0.2.9
+    helm.sh/hook: pre-install
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
@@ -739,6 +742,7 @@ metadata:
   annotations:
     cert-manager.io/inject-ca-from: undistro-system/capi-serving-cert
     controller-gen.kubebuilder.io/version: v0.2.9
+    helm.sh/hook: pre-install
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
@@ -1781,6 +1785,7 @@ metadata:
   annotations:
     cert-manager.io/inject-ca-from: undistro-system/capi-serving-cert
     controller-gen.kubebuilder.io/version: v0.2.9
+    helm.sh/hook: pre-install
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
@@ -2073,6 +2078,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.9
+    helm.sh/hook: pre-install
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
@@ -2614,6 +2620,7 @@ metadata:
   annotations:
     cert-manager.io/inject-ca-from: undistro-system/capi-serving-cert
     controller-gen.kubebuilder.io/version: v0.2.9
+    helm.sh/hook: pre-install
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
@@ -3346,6 +3353,7 @@ metadata:
   annotations:
     cert-manager.io/inject-ca-from: undistro-system/capi-serving-cert
     controller-gen.kubebuilder.io/version: v0.2.9
+    helm.sh/hook: pre-install
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
