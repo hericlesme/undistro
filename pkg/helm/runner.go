@@ -54,6 +54,7 @@ func (r *Runner) Install(hr appv1alpha1.HelmRelease, chart *chart.Chart, values 
 	install.Timeout = hr.Spec.Timeout.Duration
 	install.Wait = *hr.Spec.Wait
 	install.SkipCRDs = hr.Spec.SkipCRDs
+	install.DependencyUpdate = true
 	return install.Run(chart, values.AsMap())
 }
 
@@ -68,7 +69,6 @@ func (r *Runner) Upgrade(hr appv1alpha1.HelmRelease, chart *chart.Chart, values 
 	upgrade.Wait = *hr.Spec.Wait
 	upgrade.Force = hr.Spec.ForceUpgrade
 	upgrade.CleanupOnFail = true
-
 	return upgrade.Run(hr.Spec.ReleaseName, chart, values.AsMap())
 }
 
