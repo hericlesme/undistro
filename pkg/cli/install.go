@@ -243,7 +243,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(cmd.OutOrStdout(), "Downloading repository index")
+		fmt.Fprintf(cmd.OutOrStdout(), "Downloading repository index\n")
 		err = chartRepo.DownloadIndex()
 		if err != nil {
 			return fmt.Errorf("failed to download repository index: %w", err)
