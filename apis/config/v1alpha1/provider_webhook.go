@@ -32,6 +32,8 @@ import (
 // log is for logging in this package.
 var providerlog = logf.Log.WithName("provider-resource")
 
+const defaultRepo = "https://charts.undistro.io"
+
 func (r *Provider) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(r).
@@ -52,7 +54,10 @@ func (r *Provider) Default() {
 	r.Labels[meta.LabelUndistroClusterName] = ""
 	r.Labels[meta.LabelUndistroClusterType] = "management"
 	if r.Spec.Repository.URL == "" {
-		r.Spec.Repository.URL = "https://charts.undistro.io"
+		r.Spec.Repository.URL = defaultRepo
+	}
+	if r.Spec.ProviderName == "undistro" && r.Spec.Repository.URL == defaultRepo {
+		r.Labels[meta.LabelProviderType] = "core"
 	}
 }
 
