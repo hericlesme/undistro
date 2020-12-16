@@ -28,6 +28,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/helm"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/pkg/errors"
@@ -199,7 +200,6 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		},
 	})
 	if err != nil {
-		fmt.Println(">>>>>>>>", err)
 		return err
 	}
 	var clientOpts []getter.Option
@@ -237,74 +237,78 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	}
 	err = c.List(cmd.Context(), &configv1alpha1.ProviderList{})
 	if err != nil {
-		chartRepo, err := helm.NewChartRepository(undistroRepo, getters, clientOpts)
-		if err != nil {
-			return err
-		}
-		err = chartRepo.DownloadIndex()
-		if err != nil {
-			return fmt.Errorf("failed to download repository index: %w", err)
-		}
-		chartRepo.Index.SortEntries()
-		chartName := "undistro"
-		versions := chartRepo.Index.Entries[chartName]
-		if versions.Len() == 0 {
-			return errors.New("undistro chart not found")
-		}
-		version := versions[0]
-		ch, err := chartRepo.Get(chartName, version.Version)
-		if err != nil {
-			return err
-		}
-		res, err := chartRepo.DownloadChart(ch)
-		if err != nil {
-			return err
-		}
-		chart, err := loader.LoadArchive(res)
-		if err != nil {
-			return err
-		}
-		runner, err := helm.NewRunner(restGetter, ns, log.Log)
-		if err != nil {
-			return err
-		}
-		wait := true
-		hr := appv1alpha1.HelmRelease{
-			Spec: appv1alpha1.HelmReleaseSpec{
-				ReleaseName:     chartName,
-				TargetNamespace: ns,
-				Wait:            &wait,
-				Timeout: &metav1.Duration{
-					Duration: 5 * time.Minute,
+		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+			chartRepo, err := helm.NewChartRepository(undistroRepo, getters, clientOpts)
+			if err != nil {
+				return err
+			}
+			err = chartRepo.DownloadIndex()
+			if err != nil {
+				return fmt.Errorf("failed to download repository index: %w", err)
+			}
+			chartRepo.Index.SortEntries()
+			chartName := "undistro"
+			versions := chartRepo.Index.Entries[chartName]
+			if versions.Len() == 0 {
+				return errors.New("undistro chart not found")
+			}
+			version := versions[0]
+			ch, err := chartRepo.Get(chartName, version.Version)
+			if err != nil {
+				return err
+			}
+			res, err := chartRepo.DownloadChart(ch)
+			if err != nil {
+				return err
+			}
+			chart, err := loader.LoadArchive(res)
+			if err != nil {
+				return err
+			}
+			runner, err := helm.NewRunner(restGetter, ns, log.Log)
+			if err != nil {
+				return err
+			}
+			wait := true
+			hr := appv1alpha1.HelmRelease{
+				Spec: appv1alpha1.HelmReleaseSpec{
+					ReleaseName:     chartName,
+					TargetNamespace: ns,
+					Wait:            &wait,
+					Timeout: &metav1.Duration{
+						Duration: 5 * time.Minute,
+					},
 				},
-			},
-		}
-		_, err = runner.Install(hr, chart, chart.Values)
-		if err != nil {
-			return err
-		}
-		p := configv1alpha1.Provider{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      chartName,
-				Namespace: ns,
-				Labels: map[string]string{
-					meta.LabelProviderType: "core",
+			}
+			_, err = runner.Install(hr, chart, chart.Values)
+			if err != nil {
+				return err
+			}
+			p := configv1alpha1.Provider{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      chartName,
+					Namespace: ns,
+					Labels: map[string]string{
+						meta.LabelProviderType: "core",
+					},
 				},
-			},
-			Spec: configv1alpha1.ProviderSpec{
-				ProviderName:    chartName,
-				ProviderVersion: version.Version,
-				Repository: configv1alpha1.Repository{
-					SecretRef: secretRef,
+				Spec: configv1alpha1.ProviderSpec{
+					ProviderName:    chartName,
+					ProviderVersion: version.Version,
+					Repository: configv1alpha1.Repository{
+						SecretRef: secretRef,
+					},
 				},
-			},
-		}
-		err = c.Create(cmd.Context(), &p)
+			}
+			return c.Create(cmd.Context(), &p)
+		})
 		if err != nil {
 			return err
 		}
 	}
-	return o.installProviders(cmd.Context(), c, cfg.Providers, secretRef)
+	return retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+		return o.installProviders(cmd.Context(), c, cfg.Providers, secretRef)
+	})
 }
 
 func NewCmdInstall(f *ConfigFlags, streams genericclioptions.IOStreams) *cobra.Command {
