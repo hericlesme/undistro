@@ -93,8 +93,6 @@ func ProviderAttempted(p Provider, releaseName, version string) Provider {
 // +kubebuilder:resource:path=providers,scope=Namespaced
 // +kubebuilder:printcolumn:name="Provider Name",type="string",JSONPath=".spec.providerName"
 // +kubebuilder:printcolumn:name="Provider Version",type="string",JSONPath=".spec.providerVersion"
-// +kubebuilder:printcolumn:name="Provider Type",type="string",JSONPath=".spec.repository.type"
-// +kubebuilder:printcolumn:name="Provider URL",type="string",JSONPath=".status.url"
 // +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description=""
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].message",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""

@@ -771,12 +771,6 @@ spec:
     - jsonPath: .spec.providerVersion
       name: Provider Version
       type: string
-    - jsonPath: .spec.repository.type
-      name: Provider Type
-      type: string
-    - jsonPath: .status.url
-      name: Provider URL
-      type: string
     - jsonPath: .status.conditions[?(@.type=="Ready")].status
       name: Ready
       type: string
