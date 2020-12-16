@@ -1,4 +1,7 @@
+installCRDs: true
 cert-manager:
   enabled: true
+  installCRDs: true
 cluster-api:
   enabled: true
+  installCRDs: true
