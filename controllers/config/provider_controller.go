@@ -95,6 +95,10 @@ func (r *ProviderReconciler) reconcileDelete(ctx context.Context, logger logr.Lo
 		}
 		return ctrl.Result{}, nil
 	}
+	err = r.Delete(ctx, &hr)
+	if err != nil {
+		return ctrl.Result{Requeue: true}, err
+	}
 	return ctrl.Result{Requeue: true}, nil
 }
 

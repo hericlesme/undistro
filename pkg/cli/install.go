@@ -239,39 +239,39 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	}
 	err = c.List(cmd.Context(), &configv1alpha1.ProviderList{})
 	if err != nil {
+		chartRepo, err := helm.NewChartRepository(undistroRepo, getters, clientOpts)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(cmd.OutOrStdout(), "Downloading repository index")
+		err = chartRepo.DownloadIndex()
+		if err != nil {
+			return fmt.Errorf("failed to download repository index: %w", err)
+		}
+		chartRepo.Index.SortEntries()
+		chartName := "undistro"
+		versions := chartRepo.Index.Entries[chartName]
+		if versions.Len() == 0 {
+			return errors.New("undistro chart not found")
+		}
+		version := versions[0]
+		ch, err := chartRepo.Get(chartName, version.Version)
+		if err != nil {
+			return err
+		}
+		res, err := chartRepo.DownloadChart(ch)
+		if err != nil {
+			return err
+		}
+		chart, err := loader.LoadArchive(res)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(cmd.OutOrStdout(), "Installing %s version %s\n", chart.Name(), chart.AppVersion())
+		for _, dep := range chart.Dependencies() {
+			fmt.Fprintf(cmd.OutOrStdout(), "Installing %s version %s\n", dep.Name(), dep.AppVersion())
+		}
 		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-			chartRepo, err := helm.NewChartRepository(undistroRepo, getters, clientOpts)
-			if err != nil {
-				return err
-			}
-			err = chartRepo.DownloadIndex()
-			if err != nil {
-				return fmt.Errorf("failed to download repository index: %w", err)
-			}
-			chartRepo.Index.SortEntries()
-			chartName := "undistro"
-			versions := chartRepo.Index.Entries[chartName]
-			if versions.Len() == 0 {
-				return errors.New("undistro chart not found")
-			}
-			version := versions[0]
-			ch, err := chartRepo.Get(chartName, version.Version)
-			if err != nil {
-				return err
-			}
-			res, err := chartRepo.DownloadChart(ch)
-			if err != nil {
-				return err
-			}
-			chart, err := loader.LoadArchive(res)
-			if err != nil {
-				return err
-			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Installing %s version %s\n", chart.Name(), chart.AppVersion())
-			for _, dep := range chart.Dependencies() {
-				fmt.Fprintf(cmd.OutOrStdout(), "Installing %s version %s\n", dep.Name(), dep.AppVersion())
-
-			}
 			runner, err := helm.NewRunner(restGetter, ns, log.Log)
 			if err != nil {
 				return err
@@ -287,11 +287,20 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 					},
 				},
 			}
-			_, err = runner.Install(hr, chart, chart.Values)
-			if err != nil {
-				return err
+			rel, _ := runner.ObserveLastRelease(hr)
+			if rel == nil {
+				_, err = runner.Install(hr, chart, chart.Values)
+				if err != nil {
+					return err
+				}
+			} else {
+				<-time.After(15 * time.Second)
 			}
 			p := configv1alpha1.Provider{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: configv1alpha1.GroupVersion.String(),
+					Kind:       "Provider",
+				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      chartName,
 					Namespace: ns,
@@ -307,7 +316,11 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 					},
 				},
 			}
-			return c.Create(cmd.Context(), &p)
+			_, err = util.CreateOrUpdate(cmd.Context(), c, &p)
+			if err != nil {
+				return err
+			}
+			return nil
 		})
 		if err != nil {
 			return err
