@@ -80,7 +80,8 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// Add our finalizer if it does not exist
 	if !controllerutil.ContainsFinalizer(&hr, meta.Finalizer) {
 		controllerutil.AddFinalizer(&hr, meta.Finalizer)
-		if err := r.Update(ctx, &hr); err != nil {
+		_, err := util.CreateOrUpdate(ctx, r.Client, &hr)
+		if err != nil {
 			log.Error(err, "unable to register finalizer")
 			return ctrl.Result{}, err
 		}
@@ -159,7 +160,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		}
 		if hr.Spec.Chart.Version == "" {
 			hr.Spec.Chart.Version = lv.String()
-			err = r.Update(ctx, &hr)
+			_, err = util.CreateOrUpdate(ctx, r.Client, &hr)
 			if err != nil {
 				return hr, ctrl.Result{Requeue: true}, err
 			}
@@ -171,7 +172,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 			}
 			if lv.GreaterThan(acv) && lv.Major() == acv.Major() {
 				hr.Spec.Chart.Version = lv.String()
-				err = r.Update(ctx, &hr)
+				_, err = util.CreateOrUpdate(ctx, r.Client, &hr)
 				if err != nil {
 					return hr, ctrl.Result{Requeue: true}, err
 				}
@@ -512,7 +513,8 @@ func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, logger logr
 	}
 	// Remove our finalizer from the list and update it.
 	controllerutil.RemoveFinalizer(&hr, meta.Finalizer)
-	if err := r.Update(ctx, &hr); err != nil {
+	_, err = util.CreateOrUpdate(ctx, r.Client, &hr)
+	if err != nil {
 		return ctrl.Result{Requeue: true}, err
 	}
 

@@ -63,7 +63,8 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// Add our finalizer if it does not exist
 	if !controllerutil.ContainsFinalizer(&cl, meta.Finalizer) {
 		controllerutil.AddFinalizer(&cl, meta.Finalizer)
-		if err := r.Update(ctx, &cl); err != nil {
+		_, err := util.CreateOrUpdate(ctx, r.Client, &cl)
+		if err != nil {
 			log.Error(err, "unable to register finalizer")
 			return ctrl.Result{}, err
 		}
@@ -222,13 +223,15 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	}
 	if !reflect.DeepEqual(*capiCluster.Spec.ClusterNetwork, capi.ClusterNetwork{}) && reflect.DeepEqual(cl.Spec.Network.ClusterNetwork, capi.ClusterNetwork{}) {
 		cl.Spec.Network.ClusterNetwork = *capiCluster.Spec.ClusterNetwork
-		if err := r.Update(ctx, &cl); err != nil {
+		_, err := util.CreateOrUpdate(ctx, r.Client, &cl)
+		if err != nil {
 			return cl, ctrl.Result{Requeue: true}, err
 		}
 	}
 	if !reflect.DeepEqual(capiCluster.Spec.ControlPlaneEndpoint, capi.APIEndpoint{}) && reflect.DeepEqual(cl.Spec.ControlPlane.Endpoint, capi.APIEndpoint{}) {
 		cl.Spec.ControlPlane.Endpoint = capiCluster.Spec.ControlPlaneEndpoint
-		if err := r.Update(ctx, &cl); err != nil {
+		_, err := util.CreateOrUpdate(ctx, r.Client, &cl)
+		if err != nil {
 			return cl, ctrl.Result{Requeue: true}, err
 		}
 	}
@@ -315,7 +318,8 @@ func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Log
 		return ctrl.Result{Requeue: true}, nil
 	}
 	controllerutil.RemoveFinalizer(&cl, meta.Finalizer)
-	if err := r.Update(ctx, &cl); err != nil {
+	_, err := util.CreateOrUpdate(ctx, r.Client, &cl)
+	if err != nil {
 		return ctrl.Result{Requeue: true}, err
 	}
 	return ctrl.Result{}, nil

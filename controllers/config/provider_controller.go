@@ -54,7 +54,8 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// Add our finalizer if it does not exist
 	if !controllerutil.ContainsFinalizer(&p, meta.Finalizer) {
 		controllerutil.AddFinalizer(&p, meta.Finalizer)
-		if err := r.Update(ctx, &p); err != nil {
+		_, err := util.CreateOrUpdate(ctx, r.Client, &p)
+		if err != nil {
 			log.Error(err, "unable to register finalizer")
 			return ctrl.Result{}, err
 		}
@@ -88,7 +89,8 @@ func (r *ProviderReconciler) reconcileDelete(ctx context.Context, logger logr.Lo
 	if apierrors.IsNotFound(err) {
 		// Remove our finalizer from the list and update it.
 		controllerutil.RemoveFinalizer(&p, meta.Finalizer)
-		if err := r.Update(ctx, &p); err != nil {
+		_, err = util.CreateOrUpdate(ctx, r.Client, &p)
+		if err != nil {
 			return ctrl.Result{Requeue: true}, err
 		}
 		return ctrl.Result{}, nil

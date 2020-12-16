@@ -19,6 +19,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -91,9 +92,10 @@ func (o *InstallOptions) Validate() error {
 	return nil
 }
 
-func (o *InstallOptions) installProviders(ctx context.Context, c client.Client, providers []Provider, secretRef *corev1.LocalObjectReference) error {
+func (o *InstallOptions) installProviders(ctx context.Context, w io.Writer, c client.Client, providers []Provider, secretRef *corev1.LocalObjectReference) error {
 	for _, p := range providers {
 		secretName := fmt.Sprintf("undistro-%s-config", p.Name)
+		fmt.Fprintf(w, "Installing provider undistro-%s latest version\n", p.Name)
 		secretData := make(map[string][]byte)
 		valuesRef := make([]appv1alpha1.ValuesReference, 0)
 		for k, v := range p.Configuration {
@@ -265,6 +267,11 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			if err != nil {
 				return err
 			}
+			fmt.Fprintf(cmd.OutOrStdout(), "Installing %s version %s\n", chart.Name(), chart.AppVersion())
+			for _, dep := range chart.Dependencies() {
+				fmt.Fprintf(cmd.OutOrStdout(), "Installing %s version %s\n", dep.Name(), dep.AppVersion())
+
+			}
 			runner, err := helm.NewRunner(restGetter, ns, log.Log)
 			if err != nil {
 				return err
@@ -307,7 +314,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		}
 	}
 	return retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-		return o.installProviders(cmd.Context(), c, cfg.Providers, secretRef)
+		return o.installProviders(cmd.Context(), cmd.OutOrStdout(), c, cfg.Providers, secretRef)
 	})
 }
 
