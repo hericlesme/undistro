@@ -102,7 +102,7 @@ func (o *InstallOptions) installProviders(ctx context.Context, w io.Writer, c cl
 		}
 		version := versions[0]
 		secretName := fmt.Sprintf("%s-config", chart)
-		fmt.Fprintf(w, "Installing provider %s latest version\n", p.Name)
+		fmt.Fprintf(w, "Installing provider %s version %s\n", p.Name, version.AppVersion)
 		secretData := make(map[string][]byte)
 		valuesRef := make([]appv1alpha1.ValuesReference, 0)
 		for k, v := range p.Configuration {
@@ -355,7 +355,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			}
 		}
 		if ready {
-			fmt.Fprintln(cmd.OutOrStdout(), "\nmanagement cluster is ready to use.")
+			fmt.Fprintln(cmd.OutOrStdout(), "\n\nManagement cluster is ready to use.")
 			return nil
 		}
 		fmt.Fprint(cmd.OutOrStdout(), ".")

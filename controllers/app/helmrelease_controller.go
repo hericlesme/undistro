@@ -44,9 +44,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cluster-api/util/kubeconfig"
+	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -90,19 +92,22 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		log.Info("Reconciliation is paused for this object")
 		return ctrl.Result{}, nil
 	}
-
+	// Initialize the patch helper.
+	patchHelper, err := patch.NewHelper(&hr, r.Client)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	patchOpts := []patch.Option{}
 	if !hr.DeletionTimestamp.IsZero() {
 		return r.reconcileDelete(ctx, log, hr)
 	}
 	hr, result, err := r.reconcile(ctx, log, hr)
-	// Update status after reconciliation.
-	if _, updateErr := util.CreateOrUpdate(ctx, r.Client, &hr); updateErr != nil {
-		log.Error(updateErr, "unable to update object after reconciliation")
-		return ctrl.Result{Requeue: true}, updateErr
+	if err == nil {
+		patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
 	}
-	if updateStatusErr := r.patchStatus(ctx, &hr); updateStatusErr != nil {
-		log.Error(updateStatusErr, "unable to update status after reconciliation")
-		return ctrl.Result{Requeue: true}, updateStatusErr
+	patchErr := patchHelper.Patch(ctx, &hr, patchOpts...)
+	if err != nil {
+		err = kerrors.NewAggregate([]error{patchErr, err})
 	}
 	return result, err
 }

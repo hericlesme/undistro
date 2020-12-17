@@ -34,9 +34,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
+	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -73,8 +75,14 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		log.Info("Reconciliation is paused for this object")
 		return ctrl.Result{}, nil
 	}
+	// Initialize the patch helper.
+	patchHelper, err := patch.NewHelper(&cl, r.Client)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	patchOpts := []patch.Option{}
 	capiCluster := capi.Cluster{}
-	err := r.Get(ctx, client.ObjectKeyFromObject(&cl), &capiCluster)
+	err = r.Get(ctx, client.ObjectKeyFromObject(&cl), &capiCluster)
 	if client.IgnoreNotFound(err) != nil {
 		return ctrl.Result{Requeue: true}, err
 	}
@@ -82,13 +90,12 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return r.reconcileDelete(ctx, log, cl, capiCluster)
 	}
 	cl, result, err := r.reconcile(ctx, log, cl, capiCluster)
-	if _, updateErr := util.CreateOrUpdate(ctx, r.Client, &cl); updateErr != nil {
-		log.Error(updateErr, "unable to update object after reconciliation")
-		return ctrl.Result{Requeue: true}, updateErr
+	if err == nil {
+		patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
 	}
-	if updateStatusErr := r.patchStatus(ctx, &cl); updateStatusErr != nil {
-		log.Error(updateStatusErr, "unable to update status after reconciliation")
-		return ctrl.Result{Requeue: true}, updateStatusErr
+	patchErr := patchHelper.Patch(ctx, &cl, patchOpts...)
+	if err != nil {
+		err = kerrors.NewAggregate([]error{patchErr, err})
 	}
 	return result, err
 }

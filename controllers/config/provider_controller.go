@@ -30,6 +30,8 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	kerrors "k8s.io/apimachinery/pkg/util/errors"
+	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -63,18 +65,22 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		log.Info("Reconciliation is paused for this object")
 		return ctrl.Result{}, nil
 	}
+	// Initialize the patch helper.
+	patchHelper, err := patch.NewHelper(&p, r.Client)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	patchOpts := []patch.Option{}
 	if !p.DeletionTimestamp.IsZero() {
 		return r.reconcileDelete(ctx, log, p)
 	}
 	p, result, err := r.reconcile(ctx, log, p)
-	// Update status after reconciliation.
-	if _, updateErr := util.CreateOrUpdate(ctx, r.Client, &p); updateErr != nil {
-		log.Error(updateErr, "unable to update object after reconciliation")
-		return ctrl.Result{Requeue: true}, updateErr
+	if err == nil {
+		patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
 	}
-	if updateStatusErr := r.patchStatus(ctx, &p); updateStatusErr != nil {
-		log.Error(updateStatusErr, "unable to update status after reconciliation")
-		return ctrl.Result{Requeue: true}, updateStatusErr
+	patchErr := patchHelper.Patch(ctx, &p, patchOpts...)
+	if err != nil {
+		err = kerrors.NewAggregate([]error{patchErr, err})
 	}
 	return result, err
 }
