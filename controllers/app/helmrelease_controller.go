@@ -96,6 +96,10 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 	hr, result, err := r.reconcile(ctx, log, hr)
 	// Update status after reconciliation.
+	if _, updateErr := util.CreateOrUpdate(ctx, r.Client, &hr); updateErr != nil {
+		log.Error(updateErr, "unable to update object after reconciliation")
+		return ctrl.Result{Requeue: true}, updateErr
+	}
 	if updateStatusErr := r.patchStatus(ctx, &hr); updateStatusErr != nil {
 		log.Error(updateStatusErr, "unable to update status after reconciliation")
 		return ctrl.Result{Requeue: true}, updateStatusErr

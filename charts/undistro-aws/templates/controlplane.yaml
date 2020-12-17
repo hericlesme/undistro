@@ -284,7 +284,7 @@ spec:
       volumes:
       - name: credentials
         secret:
-          secretName: undustro-aws-config
+          secretName: undistro-aws-config
 ---
 apiVersion: apps/v1
 kind: Deployment

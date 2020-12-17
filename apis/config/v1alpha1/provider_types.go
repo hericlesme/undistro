@@ -73,7 +73,7 @@ func ProviderNotReady(p Provider, reason, message string) Provider {
 
 // ProviderReady registers a successful reconciliation of the given Provider.
 func ProviderReady(p Provider) Provider {
-	msg := "Release reconciliation succeeded"
+	msg := "Provider reconciliation succeeded"
 	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationSucceededReason, msg)
 	p.Status.LastAppliedVersion = p.Status.LastAttemptedVersion
 	return p

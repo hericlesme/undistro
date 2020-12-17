@@ -82,6 +82,10 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return r.reconcileDelete(ctx, log, cl, capiCluster)
 	}
 	cl, result, err := r.reconcile(ctx, log, cl, capiCluster)
+	if _, updateErr := util.CreateOrUpdate(ctx, r.Client, &cl); updateErr != nil {
+		log.Error(updateErr, "unable to update object after reconciliation")
+		return ctrl.Result{Requeue: true}, updateErr
+	}
 	if updateStatusErr := r.patchStatus(ctx, &cl); updateStatusErr != nil {
 		log.Error(updateStatusErr, "unable to update status after reconciliation")
 		return ctrl.Result{Requeue: true}, updateStatusErr

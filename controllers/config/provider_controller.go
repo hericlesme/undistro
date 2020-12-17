@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
@@ -69,6 +68,10 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	p, result, err := r.reconcile(ctx, log, p)
 	// Update status after reconciliation.
+	if _, updateErr := util.CreateOrUpdate(ctx, r.Client, &p); updateErr != nil {
+		log.Error(updateErr, "unable to update object after reconciliation")
+		return ctrl.Result{Requeue: true}, updateErr
+	}
 	if updateStatusErr := r.patchStatus(ctx, &p); updateStatusErr != nil {
 		log.Error(updateStatusErr, "unable to update status after reconciliation")
 		return ctrl.Result{Requeue: true}, updateStatusErr
@@ -140,25 +143,18 @@ func (r *ProviderReconciler) patchStatus(ctx context.Context, p *configv1alpha1.
 }
 
 func (r *ProviderReconciler) reconcileChart(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
-	name := fmt.Sprintf("undistro-%s", p.Spec.ProviderName)
-	labels := p.GetLabels()
-	if labels != nil {
-		if labels[meta.LabelProviderType] == "core" {
-			name = p.Spec.ProviderName
-		}
-	}
 	hr := appv1alpha1.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: appv1alpha1.GroupVersion.String(),
 			Kind:       "HelmRelease",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      p.Name,
 			Namespace: "undistro-system",
 		},
 		Spec: appv1alpha1.HelmReleaseSpec{
 			TargetNamespace: "undistro-system",
-			ReleaseName:     name,
+			ReleaseName:     p.Spec.ProviderName,
 			ValuesFrom:      p.Spec.ConfigurationFrom,
 			Chart: appv1alpha1.ChartSource{
 				RepoChartSource: appv1alpha1.RepoChartSource{
@@ -184,7 +180,7 @@ func (r *ProviderReconciler) reconcileChart(ctx context.Context, log logr.Logger
 			return configv1alpha1.ProviderNotReady(p, meta.InitFailedReason, err.Error()), err
 		}
 	}
-	return configv1alpha1.ProviderAttempted(p, name, p.Spec.ProviderVersion), nil
+	return configv1alpha1.ProviderAttempted(p, p.Name, p.Spec.ProviderVersion), nil
 }
 
 func (r *ProviderReconciler) checkState(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {

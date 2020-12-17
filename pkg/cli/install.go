@@ -37,6 +37,7 @@ import (
 	"github.com/spf13/viper"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/getter"
+	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -92,10 +93,16 @@ func (o *InstallOptions) Validate() error {
 	return nil
 }
 
-func (o *InstallOptions) installProviders(ctx context.Context, w io.Writer, c client.Client, providers []Provider, secretRef *corev1.LocalObjectReference) error {
+func (o *InstallOptions) installProviders(ctx context.Context, w io.Writer, c client.Client, providers []Provider, indexFile *repo.IndexFile, secretRef *corev1.LocalObjectReference) error {
 	for _, p := range providers {
-		secretName := fmt.Sprintf("undistro-%s-config", p.Name)
-		fmt.Fprintf(w, "Installing provider undistro-%s latest version\n", p.Name)
+		chart := fmt.Sprintf("undistro-%s", p.Name)
+		versions := indexFile.Entries[chart]
+		if versions.Len() == 0 {
+			return errors.Errorf("chart %s not found", chart)
+		}
+		version := versions[0]
+		secretName := fmt.Sprintf("%s-config", chart)
+		fmt.Fprintf(w, "Installing provider %s latest version\n", p.Name)
 		secretData := make(map[string][]byte)
 		valuesRef := make([]appv1alpha1.ValuesReference, 0)
 		for k, v := range p.Configuration {
@@ -133,7 +140,8 @@ func (o *InstallOptions) installProviders(ctx context.Context, w io.Writer, c cl
 				Namespace: ns,
 			},
 			Spec: configv1alpha1.ProviderSpec{
-				ProviderName:      p.Name,
+				ProviderName:      chart,
+				ProviderVersion:   version.Version,
 				ConfigurationFrom: valuesRef,
 				Repository: configv1alpha1.Repository{
 					SecretRef: secretRef,
@@ -237,18 +245,17 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		defer cleanup()
 		clientOpts = opts
 	}
+	chartRepo, err := helm.NewChartRepository(undistroRepo, getters, clientOpts)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(cmd.OutOrStdout(), "Downloading repository index\n")
+	err = chartRepo.DownloadIndex()
+	if err != nil {
+		return fmt.Errorf("failed to download repository index: %w", err)
+	}
 	err = c.List(cmd.Context(), &configv1alpha1.ProviderList{})
 	if err != nil {
-		chartRepo, err := helm.NewChartRepository(undistroRepo, getters, clientOpts)
-		if err != nil {
-			return err
-		}
-		fmt.Fprintf(cmd.OutOrStdout(), "Downloading repository index\n")
-		err = chartRepo.DownloadIndex()
-		if err != nil {
-			return fmt.Errorf("failed to download repository index: %w", err)
-		}
-		chartRepo.Index.SortEntries()
 		chartName := "undistro"
 		versions := chartRepo.Index.Entries[chartName]
 		if versions.Len() == 0 {
@@ -259,6 +266,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		if err != nil {
 			return err
 		}
+		fmt.Fprintf(cmd.OutOrStdout(), "Downloading required resources to perform installation\n")
 		res, err := chartRepo.DownloadChart(ch)
 		if err != nil {
 			return err
@@ -326,9 +334,33 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			return err
 		}
 	}
-	return retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-		return o.installProviders(cmd.Context(), cmd.OutOrStdout(), c, cfg.Providers, secretRef)
+	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+		return o.installProviders(cmd.Context(), cmd.OutOrStdout(), c, cfg.Providers, chartRepo.Index, secretRef)
 	})
+	if err != nil {
+		return err
+	}
+	fmt.Fprint(cmd.OutOrStdout(), "Waiting all providers to be ready")
+	for {
+		list := configv1alpha1.ProviderList{}
+		err = c.List(cmd.Context(), &list, client.InNamespace(ns))
+		if err != nil {
+			return err
+		}
+		ready := true
+		for _, item := range list.Items {
+			if !meta.InReadyCondition(item.Status.Conditions) {
+				ready = false
+				break
+			}
+		}
+		if ready {
+			fmt.Fprintln(cmd.OutOrStdout(), "\nmanagement cluster is ready to use.")
+			return nil
+		}
+		fmt.Fprint(cmd.OutOrStdout(), ".")
+		<-time.After(15 * time.Second)
+	}
 }
 
 func NewCmdInstall(f *ConfigFlags, streams genericclioptions.IOStreams) *cobra.Command {
