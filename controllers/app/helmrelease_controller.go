@@ -117,7 +117,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 	if hr.Status.ObservedGeneration != hr.Generation {
 		hr.Status.ObservedGeneration = hr.Generation
 		hr = appv1alpha1.HelmReleaseProgressing(hr)
-		if updateStatusErr := r.patchStatus(ctx, &hr); updateStatusErr != nil {
+		if _, updateStatusErr := util.CreateOrUpdate(ctx, r.Client, &hr); updateStatusErr != nil {
 			log.Error(updateStatusErr, "unable to update status after generation update")
 			return hr, ctrl.Result{Requeue: true}, updateStatusErr
 		}
@@ -289,7 +289,7 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, getter gen
 	hr, hasNewState := appv1alpha1.HelmReleaseAttempted(hr, revision, releaseRevision, valuesChecksum)
 	if hasNewState {
 		hr = appv1alpha1.HelmReleaseProgressing(hr)
-		if updateStatusErr := r.patchStatus(ctx, &hr); updateStatusErr != nil {
+		if _, updateStatusErr := util.CreateOrUpdate(ctx, r.Client, &hr); updateStatusErr != nil {
 			log.Error(updateStatusErr, "unable to update status after state update")
 			return hr, updateStatusErr
 		}
@@ -478,14 +478,6 @@ func (r *HelmReleaseReconciler) composeValues(ctx context.Context, hr appv1alpha
 		json.Unmarshal(hr.Spec.Values.Raw, &m)
 	}
 	return util.MergeMaps(result, m), nil
-}
-
-func (r *HelmReleaseReconciler) patchStatus(ctx context.Context, hr *appv1alpha1.HelmRelease) error {
-	latest := &appv1alpha1.HelmRelease{}
-	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(hr), latest); err != nil {
-		return err
-	}
-	return r.Client.Status().Patch(ctx, hr, client.MergeFrom(latest))
 }
 
 func (r *HelmReleaseReconciler) getRESTClientGetter(ctx context.Context, hr appv1alpha1.HelmRelease) (genericclioptions.RESTClientGetter, error) {

@@ -117,7 +117,7 @@ func (r *ProviderReconciler) reconcile(ctx context.Context, log logr.Logger, p c
 	if p.Status.ObservedGeneration != p.Generation {
 		p.Status.ObservedGeneration = p.Generation
 		p = configv1alpha1.ProviderProgressing(p)
-		if updateStatusErr := r.patchStatus(ctx, &p); updateStatusErr != nil {
+		if _, updateStatusErr := util.CreateOrUpdate(ctx, r.Client, &p); updateStatusErr != nil {
 			log.Error(updateStatusErr, "unable to update status after generation update")
 			return p, ctrl.Result{Requeue: true}, updateStatusErr
 		}
@@ -143,14 +143,6 @@ func (r *ProviderReconciler) reconcile(ctx context.Context, log logr.Logger, p c
 		return p, ctrl.Result{Requeue: true}, err
 	}
 	return configv1alpha1.ProviderReady(p), ctrl.Result{}, nil
-}
-
-func (r *ProviderReconciler) patchStatus(ctx context.Context, p *configv1alpha1.Provider) error {
-	latest := &configv1alpha1.Provider{}
-	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(p), latest); err != nil {
-		return err
-	}
-	return r.Client.Status().Patch(ctx, p, client.MergeFrom(latest))
 }
 
 func (r *ProviderReconciler) reconcileChart(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {

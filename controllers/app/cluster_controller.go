@@ -205,7 +205,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		for _, w := range cl.Spec.Workers {
 			cl.Status.TotalWorkerReplicas += *w.Replicas
 		}
-		if updateStatusErr := r.patchStatus(ctx, &cl); updateStatusErr != nil {
+		if _, updateStatusErr := util.CreateOrUpdate(ctx, r.Client, &cl); updateStatusErr != nil {
 			log.Error(updateStatusErr, "unable to update status after generation update")
 			return cl, ctrl.Result{Requeue: true}, updateStatusErr
 		}
@@ -311,14 +311,6 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl appv1alpha1.Clust
 		}
 	}
 	return nil
-}
-
-func (r *ClusterReconciler) patchStatus(ctx context.Context, cl *appv1alpha1.Cluster) error {
-	latest := &appv1alpha1.HelmRelease{}
-	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(cl), latest); err != nil {
-		return err
-	}
-	return r.Client.Status().Patch(ctx, cl, client.MergeFrom(latest))
 }
 
 func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (ctrl.Result, error) {
