@@ -39,6 +39,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+var errNotReady = errors.New("chart isn't in ready condition")
+
 // ProviderReconciler reconciles a Provider object
 type ProviderReconciler struct {
 	client.Client
@@ -135,6 +137,9 @@ func (r *ProviderReconciler) reconcile(ctx context.Context, log logr.Logger, p c
 	p, err = r.checkState(ctx, log, p)
 	if err != nil {
 		p = configv1alpha1.ProviderNotReady(p, meta.WaitChartReason, err.Error())
+		if err == errNotReady {
+			err = nil
+		}
 		return p, ctrl.Result{Requeue: true}, err
 	}
 	return configv1alpha1.ProviderReady(p), ctrl.Result{}, nil
@@ -200,7 +205,7 @@ func (r *ProviderReconciler) checkState(ctx context.Context, log logr.Logger, p 
 		return p, err
 	}
 	if !meta.InReadyCondition(hr.Status.Conditions) {
-		return p, errors.New("chart isn't in ready condition")
+		return p, errNotReady
 	}
 
 	p.Status.LastAppliedVersion = p.Spec.ProviderVersion
