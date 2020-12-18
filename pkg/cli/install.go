@@ -249,7 +249,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(cmd.OutOrStdout(), "Downloading repository index\n")
+	fmt.Fprintf(o.IOStreams.Out, "Downloading repository index\n")
 	err = chartRepo.DownloadIndex()
 	if err != nil {
 		return fmt.Errorf("failed to download repository index: %w", err)
@@ -266,7 +266,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(cmd.OutOrStdout(), "Downloading required resources to perform installation\n")
+		fmt.Fprintf(o.IOStreams.Out, "Downloading required resources to perform installation\n")
 		res, err := chartRepo.DownloadChart(ch)
 		if err != nil {
 			return err
@@ -275,9 +275,9 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(cmd.OutOrStdout(), "Installing %s version %s\n", chart.Name(), chart.AppVersion())
+		fmt.Fprintf(o.IOStreams.Out, "Installing %s version %s\n", chart.Name(), chart.AppVersion())
 		for _, dep := range chart.Dependencies() {
-			fmt.Fprintf(cmd.OutOrStdout(), "Installing %s version %s\n", dep.Name(), dep.AppVersion())
+			fmt.Fprintf(o.IOStreams.Out, "Installing %s version %s\n", dep.Name(), dep.AppVersion())
 		}
 		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
 			runner, err := helm.NewRunner(restGetter, ns, log.Log)
@@ -335,12 +335,12 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		}
 	}
 	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-		return o.installProviders(cmd.Context(), cmd.OutOrStdout(), c, cfg.Providers, chartRepo.Index, secretRef)
+		return o.installProviders(cmd.Context(), o.IOStreams.Out, c, cfg.Providers, chartRepo.Index, secretRef)
 	})
 	if err != nil {
 		return err
 	}
-	fmt.Fprint(cmd.OutOrStdout(), "Waiting all providers to be ready")
+	fmt.Fprint(o.IOStreams.Out, "Waiting all providers to be ready")
 	for {
 		list := configv1alpha1.ProviderList{}
 		err = c.List(cmd.Context(), &list, client.InNamespace(ns))
@@ -355,10 +355,10 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			}
 		}
 		if ready {
-			fmt.Fprintln(cmd.OutOrStdout(), "\n\nManagement cluster is ready to use.")
+			fmt.Fprintln(o.IOStreams.Out, "\n\nManagement cluster is ready to use.")
 			return nil
 		}
-		fmt.Fprint(cmd.OutOrStdout(), ".")
+		fmt.Fprint(o.IOStreams.Out, ".")
 		<-time.After(15 * time.Second)
 	}
 }

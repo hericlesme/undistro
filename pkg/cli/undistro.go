@@ -25,6 +25,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/version"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/kubectl/pkg/cmd/apiresources"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/create"
 	"k8s.io/kubectl/pkg/cmd/delete"
@@ -98,8 +99,11 @@ func NewUndistroCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	cmd.AddCommand(patch.NewCmdPatch(f, ioStreams))
 	cmd.AddCommand(apply.NewCmdApply("undistro", f, ioStreams))
 	cmd.AddCommand(logs.NewCmdLogs(f, ioStreams))
-	cmd.AddCommand(version.NewVersionCommand())
+	cmd.AddCommand(apiresources.NewCmdAPIVersions(f, ioStreams))
+	cmd.AddCommand(apiresources.NewCmdAPIResources(f, ioStreams))
+	cmd.AddCommand(NewCmdGet(f, ioStreams))
 	cmd.AddCommand(NewCmdInstall(cfgFlags, ioStreams))
+	cmd.AddCommand(version.NewVersionCommand())
 	cobra.OnInitialize(cfgFlags.Init())
 	return cmd
 }
