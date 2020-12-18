@@ -232,11 +232,13 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		}
 		return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
 	}
-	if !reflect.DeepEqual(*capiCluster.Spec.ClusterNetwork, capi.ClusterNetwork{}) && reflect.DeepEqual(cl.Spec.Network.ClusterNetwork, capi.ClusterNetwork{}) {
-		cl.Spec.Network.ClusterNetwork = *capiCluster.Spec.ClusterNetwork
-		_, err := util.CreateOrUpdate(ctx, r.Client, &cl)
-		if err != nil {
-			return cl, ctrl.Result{Requeue: true}, err
+	if capiCluster.Spec.ClusterNetwork != nil {
+		if !reflect.DeepEqual(*capiCluster.Spec.ClusterNetwork, capi.ClusterNetwork{}) && reflect.DeepEqual(cl.Spec.Network.ClusterNetwork, capi.ClusterNetwork{}) {
+			cl.Spec.Network.ClusterNetwork = *capiCluster.Spec.ClusterNetwork
+			_, err := util.CreateOrUpdate(ctx, r.Client, &cl)
+			if err != nil {
+				return cl, ctrl.Result{Requeue: true}, err
+			}
 		}
 	}
 	if !reflect.DeepEqual(capiCluster.Spec.ControlPlaneEndpoint, capi.APIEndpoint{}) && reflect.DeepEqual(cl.Spec.ControlPlane.Endpoint, capi.APIEndpoint{}) {
