@@ -180,6 +180,7 @@ spec:
 {{$k8s := .Cluster.Spec.KubernetesVersion}}
 {{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
 {{$uuid := .Cluster.Status.LastUsedUID}}
+{{$region := .Cluster.Spec.InfrastructureProvider.Region}}
 {{range $index, $element := .Cluster.Spec.WorkerNodes}}
 ---
 apiVersion: exp.cluster.x-k8s.io/v1alpha3
@@ -226,7 +227,7 @@ spec:
     {{end}}
   {{end}}
   availabilityZones: 
-    - '{{variable "AWS_REGION"}}'
+    - "{{$region}}"
   awsLaunchTemplate:
     instanceType: "{{$element.MachineType}}"
     sshKeyName: "{{$sshKey}}"
