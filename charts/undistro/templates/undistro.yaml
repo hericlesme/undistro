@@ -114,6 +114,28 @@ subjects:
   name: default
   namespace: undistro-system
 ---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: undistro-serving-cert
+  namespace: undistro-system
+spec:
+  dnsNames:
+  - undistro-webhook-service.undistro-system.svc
+  - undistro-webhook-service.undistro-system.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: undistro-selfsigned-issuer
+  secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: undistro-selfsigned-issuer
+  namespace: undistro-system
+spec:
+  selfSigned: {}
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -197,28 +219,6 @@ spec:
         secret:
           defaultMode: 420
           secretName: webhook-server-cert
----
-apiVersion: cert-manager.io/v1alpha2
-kind: Certificate
-metadata:
-  name: undistro-serving-cert
-  namespace: undistro-system
-spec:
-  dnsNames:
-  - undistro-webhook-service.undistro-system.svc
-  - undistro-webhook-service.undistro-system.svc.cluster.local
-  issuerRef:
-    kind: Issuer
-    name: undistro-selfsigned-issuer
-  secretName: webhook-server-cert
----
-apiVersion: cert-manager.io/v1alpha2
-kind: Issuer
-metadata:
-  name: undistro-selfsigned-issuer
-  namespace: undistro-system
-spec:
-  selfSigned: {}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
