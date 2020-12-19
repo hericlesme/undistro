@@ -7,16 +7,16 @@ metadata:
 spec:
   {{if .Cluster.Spec.Network}}
   clusterNetwork:
-    {{if .Cluster.Spec.Network.PodsCIDR}}
+    {{if .Cluster.Spec.Network.Pods}}
     pods:
-      {{range .Cluster.Spec.Network.PodsCIDR}}
+      {{range .Cluster.Spec.Network.Pods}}
       cidrBlocks:
         - {{. | quote}}
       {{end}}
     {{end}}
-    {{if .Cluster.Spec.Network.ServicesCIDR}}
+    {{if .Cluster.Spec.Network.Services}}
     services:
-      {{range .Cluster.Spec.Network.ServicesCIDR}}
+      {{range .Cluster.Spec.Network.Services}}
       cidrBlocks:
         - {{. | quote}}
       {{end}}
@@ -108,7 +108,7 @@ metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
 spec:
-  replicas: {{ .Cluster.Spec.ControlPlaneNode.Replicas}}
+  replicas: {{ .Cluster.Spec.ControlPlane.Replicas}}
   infrastructureTemplate:
     kind: AWSMachineTemplate
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
@@ -120,11 +120,11 @@ spec:
         name: {{"'{{ ds.meta_data.local_hostname }}'"}}
         kubeletExtraArgs:
           cloud-provider: aws
-          {{$taints := .Cluster.Spec.ControlPlaneNode.TaintTmpl}}
+          {{$taints := .Cluster.Spec.ControlPlane.TaintTmpl}}
           {{if $taints}}
           register-with-taints: "{{$taints}}"
           {{end}}
-          {{$labels := .Cluster.Spec.ControlPlaneNode.LabelsTmpl}}
+          {{$labels := .Cluster.Spec.ControlPlane.LabelsTmpl}}
           {{if $labels}}
           node-labels: "{{$labels}}"
           {{end}}
@@ -143,11 +143,11 @@ spec:
         name: {{"'{{ ds.meta_data.local_hostname }}'"}}
         kubeletExtraArgs:
           cloud-provider: aws
-          {{$taints := .Cluster.Spec.ControlPlaneNode.TaintTmpl}}
+          {{$taints := .Cluster.Spec.ControlPlane.TaintTmpl}}
           {{if $taints}}
           register-with-taints: "{{$taints}}"
           {{end}}
-          {{$labels := .Cluster.Spec.ControlPlaneNode.LabelsTmpl}}
+          {{$labels := .Cluster.Spec.ControlPlane.LabelsTmpl}}
           {{if $labels}}
           node-labels: "{{$labels}}"
           {{end}}
@@ -161,18 +161,18 @@ metadata:
 spec:
   template:
     spec:
-      instanceType: "{{.Cluster.Spec.ControlPlaneNode.MachineType}}"
+      instanceType: "{{.Cluster.Spec.ControlPlane.MachineType}}"
       iamInstanceProfile: "control-plane.cluster-api-provider-aws.sigs.k8s.io"
       sshKeyName: "{{.Cluster.Spec.InfrastructureProvider.SSHKey}}"
-      {{if .Cluster.Spec.ControlPlaneNode.ProviderTags}}
+      {{if .Cluster.Spec.ControlPlane.ProviderTags}}
       additionalTags:
-        {{range $key, $value := .Cluster.Spec.ControlPlaneNode.ProviderTags}}
+        {{range $key, $value := .Cluster.Spec.ControlPlane.ProviderTags}}
         {{$key}}: {{$value | quote}}
         {{end}}
       {{end}}
-      {{if .Cluster.Spec.ControlPlaneNode.Subnet}}
+      {{if .Cluster.Spec.ControlPlane.Subnet}}
       subnet:
-        id: {{.Cluster.Spec.ControlPlaneNode.Subnet}}
+        id: {{.Cluster.Spec.ControlPlane.Subnet}}
       {{end}}
 
 {{$name := .Cluster.Name}}

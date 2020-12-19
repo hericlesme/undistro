@@ -27,12 +27,12 @@ import (
 )
 
 type Node struct {
-	Replicas    *int32            `json:"replicas,omitempty"`
-	MachineType string            `json:"machineType,omitempty"`
-	Subnet      string            `json:"subnet,omitempty"`
-	Taints      []corev1.Taint    `json:"taints,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
-	ClusterTags map[string]string `json:"providerTags,omitempty"`
+	Replicas     *int32            `json:"replicas,omitempty"`
+	MachineType  string            `json:"machineType,omitempty"`
+	Subnet       string            `json:"subnet,omitempty"`
+	Taints       []corev1.Taint    `json:"taints,omitempty"`
+	Labels       map[string]string `json:"labels,omitempty"`
+	ProviderTags map[string]string `json:"providerTags,omitempty"`
 }
 
 func (n Node) TaintTmpl() string {

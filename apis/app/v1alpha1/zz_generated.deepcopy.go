@@ -444,8 +444,8 @@ func (in *Node) DeepCopyInto(out *Node) {
 			(*out)[key] = val
 		}
 	}
-	if in.ClusterTags != nil {
-		in, out := &in.ClusterTags, &out.ClusterTags
+	if in.ProviderTags != nil {
+		in, out := &in.ProviderTags, &out.ProviderTags
 		*out = make(map[string]string, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val

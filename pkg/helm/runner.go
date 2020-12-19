@@ -105,6 +105,22 @@ func (r *Runner) Uninstall(hr appv1alpha1.HelmRelease) error {
 	return err
 }
 
+func (r *Runner) Status(hr appv1alpha1.HelmRelease) (release.Status, error) {
+	status := action.NewStatus(r.config)
+	rel, err := status.Run(hr.Spec.ReleaseName)
+	if err != nil {
+		return release.StatusFailed, err
+	}
+	return rel.Info.Status, nil
+}
+
+func (r *Runner) List() ([]*release.Release, error) {
+	list := action.NewList(r.config)
+	list.AllNamespaces = true
+	list.All = true
+	return list.Run()
+}
+
 // ObserveLastRelease observes the last revision, if there is one,
 // for the actual Helm release associated with the given v2beta1.HelmRelease.
 func (r *Runner) ObserveLastRelease(hr appv1alpha1.HelmRelease) (*release.Release, error) {

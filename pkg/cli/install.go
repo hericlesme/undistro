@@ -32,12 +32,14 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
+	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/getter"
+	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -163,28 +165,48 @@ func (o *InstallOptions) installProviders(ctx context.Context, w io.Writer, c cl
 	return nil
 }
 
-func (o *InstallOptions) installChart(ctx context.Context, c client.Client, restGetter genericclioptions.RESTClientGetter, chartRepo *helm.ChartRepository, secretRef *corev1.LocalObjectReference, chartName string) error {
+func (o *InstallOptions) installChart(ctx context.Context, c client.Client, restGetter genericclioptions.RESTClientGetter, chartRepo *helm.ChartRepository, secretRef *corev1.LocalObjectReference, chartName string) (*configv1alpha1.Provider, error) {
 	versions := chartRepo.Index.Entries[chartName]
 	if versions.Len() == 0 {
-		return errors.Errorf("chart %s not found", chartName)
+		return nil, errors.Errorf("chart %s not found", chartName)
 	}
 	version := versions[0]
 	ch, err := chartRepo.Get(chartName, version.Version)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	fmt.Fprintf(o.IOStreams.Out, "Downloading required resources to perform %s installation\n", chartName)
 	res, err := chartRepo.DownloadChart(ch)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	chart, err := loader.LoadArchive(res)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	fmt.Fprintf(o.IOStreams.Out, "Installing %s version %s\n", chart.Name(), chart.AppVersion())
 	for _, dep := range chart.Dependencies() {
 		fmt.Fprintf(o.IOStreams.Out, "Installing %s version %s\n", dep.Name(), dep.AppVersion())
+	}
+	p := configv1alpha1.Provider{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: configv1alpha1.GroupVersion.String(),
+			Kind:       "Provider",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      chartName,
+			Namespace: ns,
+			Labels: map[string]string{
+				meta.LabelProviderType: "core",
+			},
+		},
+		Spec: configv1alpha1.ProviderSpec{
+			ProviderName:    chartName,
+			ProviderVersion: version.Version,
+			Repository: configv1alpha1.Repository{
+				SecretRef: secretRef,
+			},
+		},
 	}
 	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
 		runner, err := helm.NewRunner(restGetter, ns, log.Log)
@@ -211,33 +233,9 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 		} else {
 			<-time.After(15 * time.Second)
 		}
-		p := configv1alpha1.Provider{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: configv1alpha1.GroupVersion.String(),
-				Kind:       "Provider",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      chartName,
-				Namespace: ns,
-				Labels: map[string]string{
-					meta.LabelProviderType: "core",
-				},
-			},
-			Spec: configv1alpha1.ProviderSpec{
-				ProviderName:    chartName,
-				ProviderVersion: version.Version,
-				Repository: configv1alpha1.Repository{
-					SecretRef: secretRef,
-				},
-			},
-		}
-		_, err = util.CreateOrUpdate(ctx, c, &p)
-		if err != nil {
-			return err
-		}
 		return nil
 	})
-	return err
+	return &p, err
 }
 
 func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error {
@@ -330,7 +328,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	fmt.Fprintf(o.IOStreams.Out, "Downloading repository index\n")
 	err = chartRepo.DownloadIndex()
 	if err != nil {
-		return errors.Errorf("failed to download repository index: %w", err)
+		return errors.Wrap(err, "failed to download repository index")
 	}
 	fmt.Fprintf(o.IOStreams.Out, "Ensure cert-manager is installed\n")
 	certObjs, err := util.ToUnstructured([]byte(certmanager.TestResources))
@@ -345,11 +343,13 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			break
 		}
 	}
+	providers := make([]*configv1alpha1.Provider, 0)
 	if installCert {
-		err = o.installChart(cmd.Context(), c, restGetter, chartRepo, secretRef, "cert-manager")
+		provider, err := o.installChart(cmd.Context(), c, restGetter, chartRepo, secretRef, "cert-manager")
 		if err != nil {
 			return err
 		}
+		providers = append(providers, provider)
 		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
 			for _, o := range certObjs {
 				_, errCert := util.CreateOrUpdate(cmd.Context(), c, &o)
@@ -363,16 +363,56 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			return err
 		}
 	}
-	err = c.List(cmd.Context(), &configv1alpha1.ProviderList{})
+	installUndistro := false
+	undistroObjs, err := util.ToUnstructured([]byte(undistro.TestResources))
 	if err != nil {
-		err = o.installChart(cmd.Context(), c, restGetter, chartRepo, secretRef, "undistro")
+		return err
+	}
+	for _, o := range undistroObjs {
+		_, errUndistro := util.CreateOrUpdate(cmd.Context(), c, &o)
+		if errUndistro != nil {
+			installUndistro = true
+			break
+		}
+	}
+	if installUndistro {
+		providerUndistro, err := o.installChart(cmd.Context(), c, restGetter, chartRepo, secretRef, "undistro")
+		if err != nil {
+			return err
+		}
+		providers = append(providers, providerUndistro)
+		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+			for _, o := range undistroObjs {
+				_, errCert := util.CreateOrUpdate(cmd.Context(), c, &o)
+				if errCert != nil {
+					return errCert
+				}
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}
 	}
 	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+		for _, p := range providers {
+			_, err = util.CreateOrUpdate(cmd.Context(), c, p)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
 		return o.installProviders(cmd.Context(), o.IOStreams.Out, c, cfg.Providers, chartRepo.Index, secretRef)
 	})
+	if err != nil {
+		return err
+	}
+	runner, err := helm.NewRunner(restGetter, ns, log.Log)
 	if err != nil {
 		return err
 	}
@@ -386,6 +426,16 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		ready := true
 		for _, item := range list.Items {
 			if !meta.InReadyCondition(item.Status.Conditions) {
+				ready = false
+				break
+			}
+		}
+		rels, err := runner.List()
+		if err != nil {
+			return err
+		}
+		for _, rel := range rels {
+			if rel.Info.Status != release.StatusDeployed {
 				ready = false
 				break
 			}
