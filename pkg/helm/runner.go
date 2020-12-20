@@ -105,13 +105,13 @@ func (r *Runner) Uninstall(hr appv1alpha1.HelmRelease) error {
 	return err
 }
 
-func (r *Runner) Status(hr appv1alpha1.HelmRelease) (release.Status, error) {
+func (r *Runner) Status(hr appv1alpha1.HelmRelease) (*release.Release, error) {
 	status := action.NewStatus(r.config)
 	rel, err := status.Run(hr.Spec.ReleaseName)
 	if err != nil {
-		return release.StatusFailed, err
+		return nil, err
 	}
-	return rel.Info.Status, nil
+	return rel, nil
 }
 
 func (r *Runner) List() ([]*release.Release, error) {

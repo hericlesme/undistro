@@ -154,6 +154,7 @@ func (r *ProviderReconciler) reconcileChart(ctx context.Context, log logr.Logger
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      p.Name,
 			Namespace: "undistro-system",
+			Labels:    p.Labels,
 		},
 		Spec: appv1alpha1.HelmReleaseSpec{
 			TargetNamespace: "undistro-system",

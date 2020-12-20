@@ -396,6 +396,10 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	}
 	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
 		for _, p := range providers {
+			if p.Labels == nil {
+				p.Labels = make(map[string]string)
+			}
+			p.Labels[meta.LabelProviderType] = "core"
 			_, err = util.CreateOrUpdate(cmd.Context(), c, p)
 			if err != nil {
 				return err
@@ -438,6 +442,19 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			if rel.Info.Status != release.StatusDeployed {
 				ready = false
 				break
+			}
+		}
+		// retest objects because certmanager update certs when new pod is added
+		for _, o := range certObjs {
+			_, err = util.CreateOrUpdate(cmd.Context(), c, &o)
+			if err != nil {
+				ready = false
+			}
+		}
+		for _, o := range undistroObjs {
+			_, err = util.CreateOrUpdate(cmd.Context(), c, &o)
+			if err != nil {
+				ready = false
 			}
 		}
 		if ready {

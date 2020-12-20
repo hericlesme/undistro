@@ -294,6 +294,11 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, getter gen
 			return hr, updateStatusErr
 		}
 	}
+	if hr.Labels[meta.LabelProviderType] == "core" && rel != nil {
+		if rel.Chart.Metadata.Version == hr.Spec.Chart.Version {
+			return appv1alpha1.HelmReleaseReady(hr), nil
+		}
+	}
 	// Check status of any previous release attempt.
 	released := apimeta.FindStatusCondition(hr.Status.Conditions, meta.ReleasedCondition)
 	if released != nil {

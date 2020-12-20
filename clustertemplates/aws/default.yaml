@@ -181,7 +181,7 @@ spec:
 {{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
 {{$uuid := .Cluster.Status.LastUsedUID}}
 {{$region := .Cluster.Spec.InfrastructureProvider.Region}}
-{{range $index, $element := .Cluster.Spec.WorkerNodes}}
+{{range $index, $element := .Cluster.Spec.Workers}}
 ---
 apiVersion: exp.cluster.x-k8s.io/v1alpha3
 kind: MachinePool
