@@ -183,21 +183,24 @@ func (r *ClusterReconciler) reconcileMachines(ctx context.Context, capiCluster *
 
 func (r *ClusterReconciler) getBastionIP(ctx context.Context, log logr.Logger, capiCluster capi.Cluster) (string, error) {
 	ref := capiCluster.Spec.InfrastructureRef
-	key := client.ObjectKey{
-		Name:      ref.Name,
-		Namespace: ref.Namespace,
+	if ref != nil {
+		key := client.ObjectKey{
+			Name:      ref.Name,
+			Namespace: ref.Namespace,
+		}
+		o := unstructured.Unstructured{}
+		o.SetGroupVersionKind(ref.GroupVersionKind())
+		err := r.Get(ctx, key, &o)
+		if err != nil {
+			return "", err
+		}
+		ip, _, err := unstructured.NestedString(o.Object, "status", "bastion", "publicIp")
+		if err != nil {
+			return "", err
+		}
+		return ip, nil
 	}
-	o := unstructured.Unstructured{}
-	o.SetGroupVersionKind(ref.GroupVersionKind())
-	err := r.Get(ctx, key, &o)
-	if err != nil {
-		return "", err
-	}
-	ip, _, err := unstructured.NestedString(o.Object, "status", "bastion", "publicIp")
-	if err != nil {
-		return "", err
-	}
-	return ip, nil
+	return "", nil
 }
 
 func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (appv1alpha1.Cluster, ctrl.Result, error) {

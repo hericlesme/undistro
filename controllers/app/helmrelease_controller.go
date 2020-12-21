@@ -36,6 +36,7 @@ import (
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/getter"
+	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/strvals"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -304,6 +305,12 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, getter gen
 	if released != nil {
 		if released.Status == metav1.ConditionTrue {
 			return appv1alpha1.HelmReleaseReady(hr), nil
+		}
+	}
+	srel, _ := runner.Status(hr)
+	if srel != nil {
+		if srel.Info.Status != release.StatusDeployed && srel.Info.Status != release.StatusFailed {
+			return hr, nil
 		}
 	}
 	if rel == nil {
