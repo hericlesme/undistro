@@ -25,6 +25,7 @@ import (
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/capi"
 	"github.com/getupio-undistro/undistro/pkg/certmanager"
 	"github.com/getupio-undistro/undistro/pkg/cloud"
 	"github.com/getupio-undistro/undistro/pkg/helm"
@@ -393,6 +394,37 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			return err
 		}
 	}
+	installCapi := false
+	capiObjs, err := util.ToUnstructured([]byte(capi.TestResources))
+	if err != nil {
+		return err
+	}
+	for _, o := range capiObjs {
+		_, errCapi := util.CreateOrUpdate(cmd.Context(), c, &o)
+		if errCapi != nil {
+			installCapi = true
+			break
+		}
+	}
+	if installCapi {
+		providerCapi, err := o.installChart(cmd.Context(), c, restGetter, chartRepo, secretRef, "cluster-api")
+		if err != nil {
+			return err
+		}
+		providers = append(providers, providerCapi)
+		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+			for _, o := range undistroObjs {
+				_, errCert := util.CreateOrUpdate(cmd.Context(), c, &o)
+				if errCert != nil {
+					return errCert
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
 	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
 		for _, p := range providers {
 			if p.Labels == nil {
@@ -465,6 +497,12 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			}
 		}
 		for _, o := range undistroObjs {
+			_, err = util.CreateOrUpdate(cmd.Context(), c, &o)
+			if err != nil {
+				ready = false
+			}
+		}
+		for _, o := range capiObjs {
 			_, err = util.CreateOrUpdate(cmd.Context(), c, &o)
 			if err != nil {
 				ready = false
