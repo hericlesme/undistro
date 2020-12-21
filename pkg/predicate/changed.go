@@ -31,6 +31,7 @@ func (Changed) Update(e event.UpdateEvent) bool {
 	if e.ObjectNew.GetGeneration() != e.ObjectOld.GetGeneration() {
 		return true
 	}
+
 	// handle force sync
 	if val, ok := meta.ReconcileAnnotationValue(e.ObjectNew.GetAnnotations()); ok {
 		if valOld, okOld := meta.ReconcileAnnotationValue(e.ObjectOld.GetAnnotations()); okOld {

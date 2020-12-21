@@ -144,7 +144,7 @@ type ClusterStatus struct {
 // +kubebuilder:printcolumn:name="Infra",type="string",JSONPath=".spec.kubernetesVersion",description=""
 // +kubebuilder:printcolumn:name="Worker Pools",type="integer",JSONPath=".status.totalWorkerPools",description=""
 // +kubebuilder:printcolumn:name="Worker Replicas",type="integer",JSONPath=".status.totalWorkerReplicas",description=""
-// +kubebuilder:printcolumn:name="ControlPlane Replicas",type="integer",JSONPath=".status.controlPlane.replicas",description=""
+// +kubebuilder:printcolumn:name="ControlPlane Replicas",type="integer",JSONPath=".spec.controlPlane.replicas",description=""
 // +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description=""
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].message",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""

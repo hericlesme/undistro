@@ -109,8 +109,7 @@ func (o *InstallOptions) installProviders(ctx context.Context, w io.Writer, c cl
 		secretData := make(map[string][]byte)
 		valuesRef := make([]appv1alpha1.ValuesReference, 0)
 		for k, v := range p.Configuration {
-			vb64 := base64.StdEncoding.EncodeToString([]byte(v))
-			secretData[k] = []byte(vb64)
+			secretData[k] = []byte(v)
 			valuesRef = append(valuesRef, appv1alpha1.ValuesReference{
 				Kind:       "Secret",
 				Name:       secretName,
@@ -423,7 +422,13 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	fmt.Fprint(o.IOStreams.Out, "Waiting all providers to be ready")
 	for {
 		list := configv1alpha1.ProviderList{}
-		err = c.List(cmd.Context(), &list, client.InNamespace(ns))
+		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+			err = c.List(cmd.Context(), &list, client.InNamespace(ns))
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}
@@ -434,10 +439,18 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 				break
 			}
 		}
-		rels, err := runner.List()
+		rels := make([]*release.Release, 0)
+		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+			rels, err = runner.List()
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}
+
 		for _, rel := range rels {
 			if rel.Info.Status != release.StatusDeployed {
 				ready = false

@@ -15,7 +15,7 @@
                 "--v",
                 "10",
                 "--config",
-                "${workspaceFolder}/undistro.yaml",
+                "${workspaceFolder}/undistro-config.yaml",
                 "install"
             ]
         }

@@ -25,7 +25,7 @@ apiVersion: app.undistro.io/v1alpha1
 kind: Cluster
 metadata:
   name: undistro-test
-  namespace: default
+  namespace: undistro-test
 spec:
   paused: true
   kubernetesVersion: v1.18.2

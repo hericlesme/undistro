@@ -49,7 +49,7 @@ spec:
     - jsonPath: .status.totalWorkerReplicas
       name: Worker Replicas
       type: integer
-    - jsonPath: .status.controlPlane.replicas
+    - jsonPath: .spec.controlPlane.replicas
       name: ControlPlane Replicas
       type: integer
     - jsonPath: .status.conditions[?(@.type=="Ready")].status

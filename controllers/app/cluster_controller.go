@@ -27,6 +27,7 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/predicate"
+	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/template"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
@@ -272,7 +273,13 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
 	}
 	for _, o := range objs {
-		_, err = util.CreateOrUpdate(ctx, r.Client, &o)
+		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+			_, err = util.CreateOrUpdate(ctx, r.Client, &o)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return cl, ctrl.Result{Requeue: true}, err
 		}

@@ -24,6 +24,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/cloud"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/predicate"
+	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
@@ -146,43 +147,49 @@ func (r *ProviderReconciler) reconcile(ctx context.Context, log logr.Logger, p c
 }
 
 func (r *ProviderReconciler) reconcileChart(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
-	hr := appv1alpha1.HelmRelease{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: appv1alpha1.GroupVersion.String(),
-			Kind:       "HelmRelease",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      p.Name,
-			Namespace: "undistro-system",
-			Labels:    p.Labels,
-		},
-		Spec: appv1alpha1.HelmReleaseSpec{
-			TargetNamespace: "undistro-system",
-			ReleaseName:     p.Spec.ProviderName,
-			ValuesFrom:      p.Spec.ConfigurationFrom,
-			Chart: appv1alpha1.ChartSource{
-				RepoChartSource: appv1alpha1.RepoChartSource{
-					RepoURL: p.Spec.Repository.URL,
-					Name:    p.Spec.ProviderName,
-					Version: p.Spec.ProviderVersion,
-				},
-				SecretRef: p.Spec.Repository.SecretRef,
+	err := retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+		hr := appv1alpha1.HelmRelease{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: appv1alpha1.GroupVersion.String(),
+				Kind:       "HelmRelease",
 			},
-		},
-	}
-	err := ctrl.SetControllerReference(&p, &hr, r.Scheme)
-	if err != nil {
-		return p, err
-	}
-	hasDiff, err := util.CreateOrUpdate(ctx, r.Client, &hr)
-	if err != nil {
-		return p, err
-	}
-	if hasDiff {
-		p, err := cloud.Upgrade(ctx, r.Client, p)
-		if err != nil {
-			return configv1alpha1.ProviderNotReady(p, meta.InitFailedReason, err.Error()), err
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      p.Name,
+				Namespace: "undistro-system",
+				Labels:    p.Labels,
+			},
+			Spec: appv1alpha1.HelmReleaseSpec{
+				TargetNamespace: "undistro-system",
+				ReleaseName:     p.Spec.ProviderName,
+				ValuesFrom:      p.Spec.ConfigurationFrom,
+				Chart: appv1alpha1.ChartSource{
+					RepoChartSource: appv1alpha1.RepoChartSource{
+						RepoURL: p.Spec.Repository.URL,
+						Name:    p.Spec.ProviderName,
+						Version: p.Spec.ProviderVersion,
+					},
+					SecretRef: p.Spec.Repository.SecretRef,
+				},
+			},
 		}
+		err := ctrl.SetControllerReference(&p, &hr, r.Scheme)
+		if err != nil {
+			return err
+		}
+		hasDiff, err := util.CreateOrUpdate(ctx, r.Client, &hr)
+		if err != nil {
+			return err
+		}
+		if hasDiff {
+			p, err = cloud.Upgrade(ctx, r.Client, p)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return configv1alpha1.ProviderNotReady(p, meta.InitFailedReason, err.Error()), err
 	}
 	return configv1alpha1.ProviderAttempted(p, p.Name, p.Spec.ProviderVersion), nil
 }

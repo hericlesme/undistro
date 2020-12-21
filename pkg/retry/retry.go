@@ -28,7 +28,7 @@ func NewBackoff() wait.Backoff {
 	// Example: 0, .5s, 1.2s, 2.3s, 4s, 6s, 10s, 16s, 24s, 37s
 	// Jitter is added as a random fraction of the duration multiplied by the jitter factor.
 	return wait.Backoff{
-		Duration: 500 * time.Millisecond,
+		Duration: time.Second,
 		Factor:   1.5,
 		Steps:    10,
 		Jitter:   0.4,

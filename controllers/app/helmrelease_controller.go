@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"reflect"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
@@ -54,6 +55,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	ctrlpredicate "sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
 var (
@@ -532,5 +535,20 @@ func (r *HelmReleaseReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appv1alpha1.HelmRelease{}, builder.WithPredicates(predicate.Changed{})).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
+		WithEventFilter(ctrlpredicate.Funcs{
+			UpdateFunc: r.updateFilter,
+		}).
 		Complete(r)
+}
+
+func (r *HelmReleaseReconciler) updateFilter(e event.UpdateEvent) bool {
+	newHr, ok := e.ObjectNew.(*appv1alpha1.HelmRelease)
+	if !ok {
+		return false
+	}
+	oldHr, ok := e.ObjectOld.(*appv1alpha1.HelmRelease)
+	if !ok {
+		return false
+	}
+	return reflect.DeepEqual(oldHr.Spec, newHr.Spec)
 }

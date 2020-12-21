@@ -18,7 +18,6 @@ package aws
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"text/template"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -75,8 +74,7 @@ func (c awsCredentials) setBase64EncodedAWSDefaultProfile(ctx context.Context, c
 	if err != nil {
 		return appv1alpha1.ValuesReference{}, err
 	}
-	b64 := base64.StdEncoding.EncodeToString([]byte(profile))
-	secret.Data[key] = []byte(b64)
+	secret.Data[key] = []byte(profile)
 	err = cl.Update(ctx, secret)
 	if err != nil {
 		return appv1alpha1.ValuesReference{}, err
@@ -163,13 +161,9 @@ func credentialsFromSecret(s *corev1.Secret) (awsCredentials, error) {
 }
 
 func getData(secret *corev1.Secret, key string) string {
-	b64, ok := secret.Data[key]
+	b, ok := secret.Data[key]
 	if !ok {
 		return ""
 	}
-	s, err := base64.StdEncoding.DecodeString(string(b64))
-	if err != nil {
-		return string(b64)
-	}
-	return string(s)
+	return string(b)
 }
