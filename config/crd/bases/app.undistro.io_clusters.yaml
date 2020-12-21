@@ -22,7 +22,7 @@ spec:
     - jsonPath: .spec.kubernetesVersion
       name: k8s
       type: string
-    - jsonPath: .spec.kubernetesVersion
+    - jsonPath: .spec.infrastructureProvider.name
       name: Infra
       type: string
     - jsonPath: .status.totalWorkerPools
@@ -34,6 +34,9 @@ spec:
     - jsonPath: .spec.controlPlane.replicas
       name: ControlPlane Replicas
       type: integer
+    - jsonPath: .status.bastionPublicIP
+      name: Bastion IP
+      type: string
     - jsonPath: .status.conditions[?(@.type=="Ready")].status
       name: Ready
       type: string

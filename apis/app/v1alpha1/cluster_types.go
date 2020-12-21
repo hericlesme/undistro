@@ -141,10 +141,11 @@ type ClusterStatus struct {
 // +kubebuilder:resource:shortName=cl,scope=Namespaced
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="k8s",type="string",JSONPath=".spec.kubernetesVersion",description=""
-// +kubebuilder:printcolumn:name="Infra",type="string",JSONPath=".spec.kubernetesVersion",description=""
+// +kubebuilder:printcolumn:name="Infra",type="string",JSONPath=".spec.infrastructureProvider.name",description=""
 // +kubebuilder:printcolumn:name="Worker Pools",type="integer",JSONPath=".status.totalWorkerPools",description=""
 // +kubebuilder:printcolumn:name="Worker Replicas",type="integer",JSONPath=".status.totalWorkerReplicas",description=""
 // +kubebuilder:printcolumn:name="ControlPlane Replicas",type="integer",JSONPath=".spec.controlPlane.replicas",description=""
+// +kubebuilder:printcolumn:name="Bastion IP",type="string",JSONPath=".status.bastionPublicIP",description=""
 // +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].status",description=""
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.conditions[?(@.type==\"Ready\")].message",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""

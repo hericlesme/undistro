@@ -25,9 +25,11 @@ import (
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/predicate"
 	"github.com/getupio-undistro/undistro/pkg/retry"
+	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/template"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
@@ -39,6 +41,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
+	"sigs.k8s.io/cluster-api/util/kubeconfig"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -216,6 +219,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	}
 	if capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioning {
 		if capiCluster.Status.ControlPlaneInitialized && !capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureProvider.Managed {
+			log.Info("installing calico")
 			err := r.installCNI(ctx, cl)
 			if err != nil {
 				meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionFalse, meta.CNIInstalledFailedReason, err.Error())
@@ -313,8 +317,23 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl appv1alpha1.Clust
 	if err != nil {
 		return err
 	}
+	byt, err := kubeconfig.FromSecret(ctx, r.Client, client.ObjectKeyFromObject(&cl))
+	if err != nil {
+		return err
+	}
+	restGetter := kube.NewMemoryRESTClientGetter(byt, cl.GetNamespace())
+	workloadClientConfig, err := restGetter.ToRESTConfig()
+	if err != nil {
+		return err
+	}
+	workloadClient, err := client.New(workloadClientConfig, client.Options{
+		Scheme: scheme.Scheme,
+	})
+	if err != nil {
+		return err
+	}
 	for _, o := range objs {
-		_, err = util.CreateOrUpdate(ctx, r.Client, &o)
+		_, err = util.CreateOrUpdate(ctx, workloadClient, &o)
 		if err != nil {
 			return err
 		}
