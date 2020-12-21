@@ -226,16 +226,17 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 				return cl, ctrl.Result{}, err
 			}
 			meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
-			if cl.Spec.Bastion != nil {
-				if cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
-					cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, log, capiCluster)
-					if err != nil {
-						return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{Requeue: true}, nil
-					}
-				}
-			}
 		}
 		return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
+	}
+	if cl.Spec.Bastion != nil {
+		if cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
+			var err error
+			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, log, capiCluster)
+			if err != nil {
+				return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{Requeue: true}, nil
+			}
+		}
 	}
 	if capiCluster.Spec.ClusterNetwork != nil {
 		if !reflect.DeepEqual(*capiCluster.Spec.ClusterNetwork, capi.ClusterNetwork{}) && reflect.DeepEqual(cl.Spec.Network.ClusterNetwork, capi.ClusterNetwork{}) {
