@@ -140,7 +140,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    control-plane: controller-manager
+    control-plane: undistro-controller-manager
   name: undistro-controller-manager-metrics-service
   namespace: undistro-system
 spec:
@@ -149,7 +149,7 @@ spec:
     port: 8443
     targetPort: https
   selector:
-    control-plane: controller-manager
+    control-plane: undistro-controller-manager
 ---
 apiVersion: v1
 kind: Service
@@ -161,24 +161,24 @@ spec:
   - port: 443
     targetPort: 9443
   selector:
-    control-plane: controller-manager
+    control-plane: undistro-controller-manager
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    control-plane: controller-manager
+    control-plane: undistro-controller-manager
   name: undistro-controller-manager
   namespace: undistro-system
 spec:
   replicas: 1
   selector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: undistro-controller-manager
   template:
     metadata:
       labels:
-        control-plane: controller-manager
+        control-plane: undistro-controller-manager
     spec:
       containers:
       - args:

@@ -503,7 +503,7 @@ kind: Service
 metadata:
   labels:
     cluster.x-k8s.io/provider: cluster-api
-    control-plane: controller-manager
+    control-plane: capi-controller-manager
   name: capi-controller-manager-metrics-service
   namespace: undistro-system
 spec:
@@ -513,7 +513,7 @@ spec:
     targetPort: https
   selector:
     cluster.x-k8s.io/provider: cluster-api
-    control-plane: controller-manager
+    control-plane: capi-controller-manager
 ---
 apiVersion: v1
 kind: Service
@@ -534,7 +534,7 @@ kind: Deployment
 metadata:
   labels:
     cluster.x-k8s.io/provider: cluster-api
-    control-plane: controller-manager
+    control-plane: capi-controller-manager
   name: capi-controller-manager
   namespace: undistro-system
 spec:
@@ -542,12 +542,12 @@ spec:
   selector:
     matchLabels:
       cluster.x-k8s.io/provider: cluster-api
-      control-plane: controller-manager
+      control-plane: capi-controller-manager
   template:
     metadata:
       labels:
         cluster.x-k8s.io/provider: cluster-api
-        control-plane: controller-manager
+        control-plane: capi-controller-manager
     spec:
       containers:
       - args:
@@ -591,7 +591,7 @@ kind: Deployment
 metadata:
   labels:
     cluster.x-k8s.io/provider: cluster-api
-    control-plane: controller-manager
+    control-plane: capi-controller-manager
   name: capi-controller-manager-webhook
   namespace: undistro-system
 spec:
@@ -599,12 +599,12 @@ spec:
   selector:
     matchLabels:
       cluster.x-k8s.io/provider: cluster-api
-      control-plane: controller-manager
+      control-plane: capi-controller-manager
   template:
     metadata:
       labels:
         cluster.x-k8s.io/provider: cluster-api
-        control-plane: controller-manager
+        control-plane: capi-controller-manager
     spec:
       containers:
       - args:

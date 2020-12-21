@@ -91,6 +91,13 @@ func (r *Cluster) validate(old *Cluster) error {
 			))
 		}
 	}
+	if old != nil {
+		if !reflect.DeepEqual(old.Spec.ControlPlane.Endpoint, capi.APIEndpoint{}) && !reflect.DeepEqual(old.Spec.Network.ClusterNetwork, capi.ClusterNetwork{}) {
+			if !meta.InReadyCondition(r.Status.Conditions) {
+				return apierrors.NewBadRequest("can't update cluster that isn't ready")
+			}
+		}
+	}
 	if len(allErrs) == 0 {
 		return nil
 	}
