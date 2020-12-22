@@ -266,7 +266,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	if capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioning {
 		return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
 	}
-	if (!hasDiff || !cl.Spec.InfrastructureProvider.Managed) && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && capiCluster.Status.ControlPlaneReady {
+	if !hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && capiCluster.Status.ControlPlaneReady {
 		return appv1alpha1.ClusterReady(cl), ctrl.Result{}, nil
 	}
 	if hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureProvider.Managed {
@@ -302,6 +302,9 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		if err != nil {
 			return cl, ctrl.Result{Requeue: true}, err
 		}
+	}
+	if capiCluster.Status.InfrastructureReady && capiCluster.Status.ControlPlaneReady {
+		return appv1alpha1.ClusterReady(cl), ctrl.Result{}, nil
 	}
 	return cl, ctrl.Result{Requeue: true}, nil
 }
