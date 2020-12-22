@@ -72,7 +72,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		_, err := util.CreateOrUpdate(ctx, r.Client, &cl)
 		if err != nil {
 			log.Error(err, "unable to register finalizer")
-			return ctrl.Result{}, err
+			return ctrl.Result{Requeue: true}, err
 		}
 	}
 	if cl.Spec.Paused {
@@ -82,7 +82,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&cl, r.Client)
 	if err != nil {
-		return ctrl.Result{}, err
+		return ctrl.Result{Requeue: true}, err
 	}
 	patchOpts := []patch.Option{}
 	capiCluster := capi.Cluster{}
@@ -229,7 +229,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		err := r.installCNI(ctx, cl)
 		if err != nil {
 			meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionFalse, meta.CNIInstalledFailedReason, err.Error())
-			return cl, ctrl.Result{}, err
+			return cl, ctrl.Result{Requeue: true}, err
 		}
 		meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
 	}
