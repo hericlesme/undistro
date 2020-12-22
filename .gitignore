@@ -23,4 +23,5 @@ bin
 *.swo
 *~
 
+demos/
 undistro-config.yaml

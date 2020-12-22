@@ -91,6 +91,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{Requeue: true}, err
 	}
 	if !cl.DeletionTimestamp.IsZero() {
+		log.Info("Deleting")
 		return r.reconcileDelete(ctx, log, cl, capiCluster)
 	}
 	cl, result, err := r.reconcile(ctx, log, cl, capiCluster)
@@ -220,17 +221,14 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	for _, cond := range cl.Status.Conditions {
 		meta.SetResourceCondition(&cl, cond.Type, cond.Status, cond.Reason, cond.Message)
 	}
-	if capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioning {
-		if capiCluster.Status.ControlPlaneInitialized && !capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureProvider.Managed {
-			log.Info("installing calico")
-			err := r.installCNI(ctx, cl)
-			if err != nil {
-				meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionFalse, meta.CNIInstalledFailedReason, err.Error())
-				return cl, ctrl.Result{}, err
-			}
-			meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
+	if capiCluster.Status.ControlPlaneInitialized && !capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureProvider.Managed {
+		log.Info("installing calico")
+		err := r.installCNI(ctx, cl)
+		if err != nil {
+			meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionFalse, meta.CNIInstalledFailedReason, err.Error())
+			return cl, ctrl.Result{}, err
 		}
-		return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
+		meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
 	}
 	if cl.Spec.Bastion != nil {
 		if cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
@@ -261,8 +259,18 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
 	}
-	if !hasDiff && meta.InReadyCondition(cl.Status.Conditions) {
+
+	if capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioning {
+		return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
+	}
+	if !hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && capiCluster.Status.ControlPlaneReady {
 		return appv1alpha1.ClusterReady(cl), ctrl.Result{}, nil
+	}
+	if hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && capiCluster.Status.ControlPlaneReady {
+		meta.SetResourceCondition(&cl, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationSucceededReason, "updating")
+	}
+	if !hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && !capiCluster.Status.ControlPlaneReady {
+		return appv1alpha1.ClusterNotReady(cl, meta.ArtifactFailedReason, "wait control plane to be ready"), ctrl.Result{Requeue: true}, nil
 	}
 	vars, err := r.templateVariables(ctx, &capiCluster, &cl, hasDiff)
 	if err != nil {
@@ -355,6 +363,10 @@ func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Log
 	controllerutil.RemoveFinalizer(&cl, meta.Finalizer)
 	_, err := util.CreateOrUpdate(ctx, r.Client, &cl)
 	if err != nil {
+		return ctrl.Result{Requeue: true}, err
+	}
+	err = r.Delete(ctx, &cl)
+	if client.IgnoreNotFound(err) != nil {
 		return ctrl.Result{Requeue: true}, err
 	}
 	return ctrl.Result{}, nil
