@@ -27,6 +27,7 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/undistro/pkg/predicate"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/template"
@@ -43,6 +44,7 @@ import (
 	"sigs.k8s.io/cluster-api/util/kubeconfig"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -180,8 +182,11 @@ func (r *ClusterReconciler) reconcileMachines(ctx context.Context, capiCluster *
 	return false, nil
 }
 
-func (r *ClusterReconciler) getBastionIP(ctx context.Context, log logr.Logger, capiCluster capi.Cluster) (string, error) {
+func (r *ClusterReconciler) getBastionIP(ctx context.Context, log logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (string, error) {
 	ref := capiCluster.Spec.InfrastructureRef
+	if cl.Spec.InfrastructureProvider.Managed {
+		ref = capiCluster.Spec.ControlPlaneRef
+	}
 	if ref != nil {
 		key := client.ObjectKey{
 			Name:      ref.Name,
@@ -231,7 +236,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	if cl.Spec.Bastion != nil {
 		if cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
 			var err error
-			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, log, capiCluster)
+			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, log, cl, capiCluster)
 			if err != nil {
 				return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{Requeue: true}, nil
 			}
@@ -261,10 +266,10 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	if capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioning {
 		return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
 	}
-	if !hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && capiCluster.Status.ControlPlaneReady {
+	if (!hasDiff || !cl.Spec.InfrastructureProvider.Managed) && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && capiCluster.Status.ControlPlaneReady {
 		return appv1alpha1.ClusterReady(cl), ctrl.Result{}, nil
 	}
-	if hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && capiCluster.Status.ControlPlaneReady {
+	if hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureProvider.Managed {
 		meta.SetResourceCondition(&cl, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationSucceededReason, "updating")
 	}
 	if !hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && !capiCluster.Status.ControlPlaneReady {
@@ -372,7 +377,7 @@ func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Log
 
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&appv1alpha1.Cluster{}).
+		For(&appv1alpha1.Cluster{}, builder.WithPredicates(predicate.Changed{})).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
 		Complete(r)
 }

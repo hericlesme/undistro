@@ -106,7 +106,9 @@ func CreateOrUpdate(ctx context.Context, r client.Client, o client.Object) (bool
 		}
 		return true, nil
 	}
-	uo.SetResourceVersion(old.GetResourceVersion())
+	if uo.GetResourceVersion() == "" {
+		uo.SetResourceVersion(old.GetResourceVersion())
+	}
 	merge := client.MergeFrom(&old)
 	byt, err := merge.Data(uo)
 	if err != nil {
