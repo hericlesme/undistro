@@ -48,6 +48,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // ClusterReconciler reconciles a Cluster object
@@ -378,9 +380,27 @@ func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Log
 	return ctrl.Result{}, nil
 }
 
+func (r *ClusterReconciler) capiToUndistro(o client.Object) []ctrl.Request {
+	capiCluster, ok := o.(*capi.Cluster)
+	if !ok {
+		return nil
+	}
+	return []ctrl.Request{
+		{
+			NamespacedName: client.ObjectKeyFromObject(capiCluster),
+		},
+	}
+}
+
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appv1alpha1.Cluster{}, builder.WithPredicates(predicate.Changed{})).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
+		Watches(
+			&source.Kind{
+				Type: &capi.Cluster{},
+			},
+			handler.EnqueueRequestsFromMapFunc(r.capiToUndistro),
+		).
 		Complete(r)
 }
