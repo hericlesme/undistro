@@ -46,17 +46,15 @@ kind: AWSManagedCluster
 metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
+{{if and .Cluster.Spec.ControlPlane.Endpoint.Host .Cluster.Spec.ControlPlane.Endpoint.Port}}
 spec:
-  {{if .Cluster.Spec.ControlPlane}}
-  {{if .Cluster.Spec.ControlPlane.Endpoint}}
   controlPlaneEndpoint:
     host: {{.Cluster.Spec.ControlPlane.Endpoint.Host}}
     port: {{.Cluster.Spec.ControlPlane.Endpoint.Port}}
-  {{end}}
-  {{end}}
+{{end}}
 
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
 kind: AWSManagedControlPlane
 metadata:
   name: "{{.Cluster.Name}}"
@@ -87,7 +85,7 @@ spec:
       {{if  .Cluster.Spec.Network.MultiZone}}
       availabilityZoneUsageLimit: 3
       {{else}}
-      availabilityZoneUsageLimit: 1
+      availabilityZoneUsageLimit: 2
       {{end}}
       {{if  .Cluster.Spec.Network.VPC.CIDRBlock}}
       cidrBlock: {{ .Cluster.Spec.Network.VPC.CIDRBlock}}
