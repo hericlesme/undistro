@@ -33,12 +33,12 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/template"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
+	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/util/kubeconfig"
@@ -107,7 +107,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	return result, err
 }
 
-func (r *ClusterReconciler) templateVariables(ctx context.Context, capiCluster *capi.Cluster, cl *appv1alpha1.Cluster, hasDiff bool) (map[string]interface{}, error) {
+func (r *ClusterReconciler) templateVariables(ctx context.Context, capiCluster *capi.Cluster, cl *appv1alpha1.Cluster) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	v := make(map[string]interface{})
 	err := template.SetVariablesFromEnvVar(ctx, template.VariablesInput{
@@ -121,67 +121,10 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, capiCluster *
 	}
 	vars["Cluster"] = cl
 	vars["ENV"] = v
-	if hasDiff {
+	if r.hasDiff(ctx, cl) {
 		cl.Status.LastUsedUID = string(uuid.NewUUID())
 	}
 	return vars, nil
-}
-
-func (r *ClusterReconciler) reconcileMachines(ctx context.Context, capiCluster *capi.Cluster, cl *appv1alpha1.Cluster) (bool, error) {
-	cpMachines, wMachines, err := util.GetMachinesForCluster(ctx, r.Client, capiCluster)
-	if err != nil {
-		return false, err
-	}
-	if len(cpMachines.Items) == 0 && len(wMachines.Items) == 0 {
-		return true, nil
-	}
-	for _, wm := range wMachines.Items {
-		if wm.Spec.Version != nil {
-			if *wm.Spec.Version != cl.Spec.KubernetesVersion {
-				return true, nil
-			}
-		}
-	}
-	if cl.Spec.ControlPlane != nil {
-		cpProvider, err := util.GetProviderMachinesUnstructured(ctx, r.Client, cpMachines)
-		if err != nil {
-			return false, err
-		}
-		for _, o := range cpProvider.Items {
-			mt, ok, err := unstructured.NestedString(o.Object, "spec", "instanceType")
-			if err != nil {
-				return false, err
-			}
-			if !ok {
-				continue
-			}
-			if mt != cl.Spec.ControlPlane.MachineType {
-				return true, nil
-			}
-		}
-	}
-	acceptableTypes := make([]string, len(cl.Spec.Workers))
-	for i := range cl.Spec.Workers {
-		acceptableTypes[i] = cl.Spec.Workers[i].MachineType
-	}
-	typesSet := sets.NewString(acceptableTypes...)
-	wProvider, err := util.GetProviderMachinesUnstructured(ctx, r.Client, wMachines)
-	if err != nil {
-		return false, err
-	}
-	for _, o := range wProvider.Items {
-		mt, ok, err := unstructured.NestedString(o.Object, "spec", "instanceType")
-		if err != nil {
-			return false, err
-		}
-		if !ok {
-			continue
-		}
-		if !util.ContainsStringInSlice(typesSet.List(), mt) {
-			return true, nil
-		}
-	}
-	return false, nil
 }
 
 func (r *ClusterReconciler) getBastionIP(ctx context.Context, log logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (string, error) {
@@ -260,24 +203,11 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 			return cl, ctrl.Result{Requeue: true}, err
 		}
 	}
-	hasDiff, err := r.reconcileMachines(ctx, &capiCluster, &cl)
-	if err != nil {
-		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
-	}
 
 	if capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioning {
 		return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
 	}
-	if !hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && capiCluster.Status.ControlPlaneReady {
-		return appv1alpha1.ClusterReady(cl), ctrl.Result{}, nil
-	}
-	if hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureProvider.Managed {
-		meta.SetResourceCondition(&cl, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationSucceededReason, "updating")
-	}
-	if !hasDiff && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned && !capiCluster.Status.ControlPlaneReady {
-		return appv1alpha1.ClusterNotReady(cl, meta.ArtifactFailedReason, "wait control plane to be ready"), ctrl.Result{Requeue: true}, nil
-	}
-	vars, err := r.templateVariables(ctx, &capiCluster, &cl, hasDiff)
+	vars, err := r.templateVariables(ctx, &capiCluster, &cl)
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
 	}
@@ -305,10 +235,29 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 			return cl, ctrl.Result{Requeue: true}, err
 		}
 	}
-	if capiCluster.Status.InfrastructureReady && capiCluster.Status.ControlPlaneReady {
+	cl.Status.KubernetesVersion = cl.Spec.KubernetesVersion
+	cl.Status.ControlPlane = *cl.Spec.ControlPlane
+	cl.Status.Workers = cl.Spec.Workers
+	cl.Status.BastionConfig = cl.Spec.Bastion
+	if capiCluster.Status.InfrastructureReady && capiCluster.Status.ControlPlaneReady && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned {
 		return appv1alpha1.ClusterReady(cl), ctrl.Result{}, nil
 	}
 	return cl, ctrl.Result{Requeue: true}, nil
+}
+
+func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *appv1alpha1.Cluster) bool {
+	diffCP := cmp.Diff(*cl.Spec.ControlPlane, cl.Status.ControlPlane)
+	diffW := cmp.Diff(cl.Spec.Workers, cl.Status.Workers)
+	diffBastion := cmp.Diff(cl.Spec.Bastion, cl.Status.BastionConfig)
+	switch {
+	case cl.Spec.KubernetesVersion != cl.Status.KubernetesVersion,
+		diffCP != "",
+		diffW != "",
+		diffBastion != "":
+		return true
+	default:
+		return false
+	}
 }
 
 func (r *ClusterReconciler) installCNI(ctx context.Context, cl appv1alpha1.Cluster) error {

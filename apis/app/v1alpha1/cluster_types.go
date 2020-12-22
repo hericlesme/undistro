@@ -134,6 +134,10 @@ type ClusterStatus struct {
 	TotalWorkerPools    int32              `json:"totalWorkerPools,omitempty"`
 	BastionPublicIP     string             `json:"bastionPublicIP,omitempty"`
 	LastUsedUID         string             `json:"lastUsedUID,omitempty"`
+	BastionConfig       *Bastion           `json:"bastionConfig,omitempty"`
+	KubernetesVersion   string             `json:"kubernetesVersion,omitempty"`
+	ControlPlane        ControlPlaneNode   `json:"controlPlane,omitempty"`
+	Workers             []WorkerNode       `json:"workers,omitempty"`
 }
 
 // +genclient
