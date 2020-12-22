@@ -179,7 +179,6 @@ spec:
 {{$namespace := .Cluster.Namespace}}
 {{$k8s := .Cluster.Spec.KubernetesVersion}}
 {{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
-{{$uuid := .Cluster.Status.LastUsedUID}}
 {{$region := .Cluster.Spec.InfrastructureProvider.Region}}
 {{range $index, $element := .Cluster.Spec.Workers}}
 ---

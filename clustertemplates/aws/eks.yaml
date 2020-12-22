@@ -1,0 +1,189 @@
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  {{if .Cluster.Spec.Network}}
+  clusterNetwork:
+    {{if .Cluster.Spec.Network.Pods}}
+    pods:
+      {{range .Cluster.Spec.Network.Pods}}
+      cidrBlocks:
+        - {{. | quote}}
+      {{end}}
+    {{end}}
+    {{if .Cluster.Spec.Network.Services}}
+    services:
+      {{range .Cluster.Spec.Network.Services}}
+      cidrBlocks:
+        - {{. | quote}}
+      {{end}}
+    {{end}}
+  {{end}}
+  {{if .Cluster.Spec.ControlPlane}}
+  {{if .Cluster.Spec.ControlPlane.Endpoint}}
+  controlPlaneEndpoint:
+    host: {{.Cluster.Spec.ControlPlane.Endpoint.Host}}
+    port: {{.Cluster.Spec.ControlPlane.Endpoint.Port}}
+  {{end}}
+  {{end}}
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    kind: AWSManagedCluster
+    name: "{{.Cluster.Name}}"
+    namespace: "{{.Cluster.Namespace}}"
+  controlPlaneRef:
+    kind: AWSManagedControlPlane
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    name: "{{.Cluster.Name}}"
+    namespace: "{{.Cluster.Namespace}}"
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSManagedCluster
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  {{if .Cluster.Spec.ControlPlane}}
+  {{if .Cluster.Spec.ControlPlane.Endpoint}}
+  controlPlaneEndpoint:
+    host: {{.Cluster.Spec.ControlPlane.Endpoint.Host}}
+    port: {{.Cluster.Spec.ControlPlane.Endpoint.Port}}
+  {{end}}
+  {{end}}
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSManagedControlPlane
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  version: "{{.Cluster.Spec.KubernetesVersion}}"
+  sshKeyName: "{{.Cluster.Spec.InfrastructureProvider.SSHKey}}"
+  region:  "{{ .Cluster.Spec.InfrastructureProvider.Region}}"
+  {{if .Cluster.Spec.ControlPlane.InternalLB}}
+  endpointAccess:
+    private: true
+  {{end}}
+  bastion:
+    enabled: {{ .Cluster.Spec.Bastion.Enabled}}
+    disableIngressRules: {{ .Cluster.Spec.Bastion.DisableIngressRules}}
+    instanceType: {{ .Cluster.Spec.Bastion.InstanceType}}
+    allowedCIDRBlocks:
+    {{range  .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
+      - {{.}}
+    {{end}}
+  {{if  .Cluster.Spec.Network}}
+  networkSpec:
+    {{if  .Cluster.Spec.Network.VPC}}
+    vpc:
+      {{if  .Cluster.Spec.Network.VPC.ID}}
+      id: {{ .Cluster.Spec.Network.VPC.ID}}
+      {{end}}
+      {{if  .Cluster.Spec.Network.MultiZone}}
+      availabilityZoneUsageLimit: 3
+      {{else}}
+      availabilityZoneUsageLimit: 1
+      {{end}}
+      {{if  .Cluster.Spec.Network.VPC.CIDRBlock}}
+      cidrBlock: {{ .Cluster.Spec.Network.VPC.CIDRBlock}}
+      {{end}}
+    {{end}}
+    subnets:
+    {{range  .Cluster.Spec.Network.Subnets}}
+    -
+     {{if .ID}}
+     id: {{.ID}}
+     {{end}}
+     {{if .CIDRBlock}}
+     cidrBlock: {{.CIDRBlock}}
+     {{end}}
+     {{if .Zone}}
+     availabilityZone: {{.Zone}}
+     {{end}}
+     {{if .IsPublic}}
+     isPublic: {{.IsPublic}}
+     {{end}}
+    {{end}}
+  {{end}}
+
+{{$name := .Cluster.Name}}
+{{$namespace := .Cluster.Namespace}}
+{{$k8s := .Cluster.Spec.KubernetesVersion}}
+{{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
+{{range $index, $element := .Cluster.Spec.Workers}}
+---
+apiVersion: exp.cluster.x-k8s.io/v1alpha3
+kind: MachinePool
+metadata:
+  name: "{{$name}}-mp-{{$index}}"
+  namespace: "{{$namespace}}"
+spec:
+  clusterName: {{$name}}
+  replicas: {{$element.Replicas}}
+  template:
+    spec:
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+          kind: EKSConfig
+          name: "{{$name}}-mp-{{$index}}"
+          namespace: "{{$namespace}}"
+      clusterName: {{$name}}
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+        kind: AWSManagedMachinePool
+        name: "{{$name}}-mp-{{$index}}"
+        namespace: "{{$namespace}}"
+      version: "{{$k8s}}"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSManagedMachinePool
+metadata:
+  name: "{{$name}}-mp-{{$index}}"
+  namespace: "{{$namespace}}"
+spec:
+  eksNodegroupName: "{{$name}}-mp-{{$index}}"
+  {{if $element.ProviderTags}}
+  additionalTags:
+    {{range $key, $value := $element.ProviderTags}}
+    {{$key}}: {{$value | quote}}
+    {{end}}
+  {{end}}
+  scaling:
+    {{if $element.Autoscale.Enabled}}
+    minSize: {{$element.Autoscale.MinSize}}
+    maxSize: {{$element.Autoscale.MaxSize}}
+    {{else}}
+    minSize: {{$element.Replicas}}
+    maxSize: {{$element.Replicas}}
+  {{end}}
+  instanceType: "{{$element.MachineType}}"
+  roleName: "nodes.cluster-api-provider-aws.sigs.k8s.io"
+  remoteAccess:
+    sshKeyName: "{{$sshKey}}"
+  {{if $element.Subnet}}
+  subnetIDs:
+    - {{$element.Subnet}}
+  {{end}}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: EKSConfig
+metadata:
+  name: "{{$name}}-mp-{{$index}}"
+  namespace: "{{$namespace}}"
+spec:
+  KubeletExtraArgs:
+    {{$taints := $element.TaintTmpl}}
+    {{if $taints}}
+    register-with-taints: "{{$taints}}"
+    {{end}}
+    {{$labels := $element.LabelsTmpl}}
+    {{if $labels}}
+    node-labels: "{{$labels}}"
+    {{end}}
+{{end}}
