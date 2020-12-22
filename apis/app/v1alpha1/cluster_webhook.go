@@ -53,6 +53,9 @@ func (r *Cluster) Default() {
 	r.Labels[meta.LabelUndistro] = ""
 	r.Labels[meta.LabelUndistroClusterName] = r.Name
 	r.Labels[meta.LabelUndistroClusterType] = "workload"
+	if r.Spec.ControlPlane == nil {
+		r.Spec.ControlPlane = &ControlPlaneNode{}
+	}
 	if r.Spec.Bastion == nil {
 		r.Spec.Bastion = &Bastion{
 			Enabled:             true,
