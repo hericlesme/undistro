@@ -8,6 +8,7 @@ metadata:
     cert-manager.io/inject-ca-from-secret: 'cert-manager/cert-manager-webhook-ca'
   labels:
     app: 'cert-manager'
+    undistro.io: undistro
     app.kubernetes.io/name: 'cert-manager'
     app.kubernetes.io/instance: 'cert-manager'
     app.kubernetes.io/managed-by: 'Helm'
@@ -574,6 +575,7 @@ metadata:
     cert-manager.io/inject-ca-from-secret: 'cert-manager/cert-manager-webhook-ca'
   labels:
     app: 'cert-manager'
+    undistro.io: undistro
     app.kubernetes.io/name: 'cert-manager'
     app.kubernetes.io/instance: 'cert-manager'
     app.kubernetes.io/managed-by: 'Helm'
@@ -1786,6 +1788,7 @@ metadata:
     cert-manager.io/inject-ca-from-secret: 'cert-manager/cert-manager-webhook-ca'
   labels:
     app: 'cert-manager'
+    undistro.io: undistro
     app.kubernetes.io/name: 'cert-manager'
     app.kubernetes.io/instance: 'cert-manager'
     app.kubernetes.io/managed-by: 'Helm'
@@ -6249,6 +6252,7 @@ metadata:
     cert-manager.io/inject-ca-from-secret: 'cert-manager/cert-manager-webhook-ca'
   labels:
     app: 'cert-manager'
+    undistro.io: undistro
     app.kubernetes.io/name: 'cert-manager'
     app.kubernetes.io/instance: 'cert-manager'
     app.kubernetes.io/managed-by: 'Helm'
@@ -12073,6 +12077,7 @@ metadata:
     cert-manager.io/inject-ca-from-secret: 'cert-manager/cert-manager-webhook-ca'
   labels:
     app: 'cert-manager'
+    undistro.io: undistro
     app.kubernetes.io/name: 'cert-manager'
     app.kubernetes.io/instance: 'cert-manager'
     app.kubernetes.io/managed-by: 'Helm'
@@ -17894,6 +17899,7 @@ metadata:
     cert-manager.io/inject-ca-from-secret: 'cert-manager/cert-manager-webhook-ca'
   labels:
     app: 'cert-manager'
+    undistro.io: undistro
     app.kubernetes.io/name: 'cert-manager'
     app.kubernetes.io/instance: 'cert-manager'
     app.kubernetes.io/managed-by: 'Helm'

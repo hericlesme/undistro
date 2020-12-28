@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -29,52 +30,52 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha4"
-	clusterctlv1 "sigs.k8s.io/cluster-api/cmd/clusterctl/api/v1alpha3"
-	logf "sigs.k8s.io/cluster-api/cmd/clusterctl/log"
-	addonsv1 "sigs.k8s.io/cluster-api/exp/addons/api/v1alpha4"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	addonsv1 "sigs.k8s.io/cluster-api/exp/addons/api/v1alpha3"
 	secretutil "sigs.k8s.io/cluster-api/util/secret"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-type empty struct{}
+type Empty struct{}
 
 type ownerReferenceAttributes struct {
 	Controller         *bool
 	BlockOwnerDeletion *bool
 }
 
-// node defines a node in the Kubernetes object graph that is visited during the discovery phase for the move operation.
-type node struct {
-	identity corev1.ObjectReference
+// Node defines a Node in the Kubernetes object graph that is visited during the discovery phase for the move operation.
+type Node struct {
+	Identity corev1.ObjectReference
 
-	// owners contains the list of nodes that are owned by the current node.
-	owners map[*node]ownerReferenceAttributes
+	// Owners contains the list of nodes that are owned by the current node.
+	Owners map[*Node]ownerReferenceAttributes
 
-	// softOwners contains the list of nodes that are soft-owned by the current node.
+	// SoftOwners contains the list of nodes that are soft-owned by the current node.
 	// E.g. secrets are soft-owned by a cluster via a naming convention, but without an explicit OwnerReference.
-	softOwners map[*node]empty
+	SoftOwners map[*Node]Empty
 
-	// forceMove is set to true if the CRD of this object has the "move" label attached.
+	// ForceMove is set to true if the CRD of this object has the "move" label attached.
 	// This ensures the node is moved, regardless of its owner refs.
-	forceMove bool
+	ForceMove bool
 
-	// isGlobal gets set to true if this object is a global resource (no namespace).
-	isGlobal bool
+	// IsGlobal gets set to true if this object is a global resource (no namespace).
+	IsGlobal bool
 
-	// virtual records if this node was discovered indirectly, e.g. by processing an OwnerRef, but not yet observed as a concrete object.
-	virtual bool
+	// Virtual records if this node was discovered indirectly, e.g. by processing an OwnerRef, but not yet observed as a concrete object.
+	Virtual bool
 
 	//newID stores the new UID the objects gets once created in the target cluster.
-	newUID types.UID
+	NewUID types.UID
 
-	// tenantClusters define the list of Clusters which are tenant for the node, no matter if the node has a direct OwnerReference to the Cluster or if
+	// TenantClusters define the list of Clusters which are tenant for the node, no matter if the node has a direct OwnerReference to the Cluster or if
 	// the node is linked to a Cluster indirectly in the OwnerReference chain.
-	tenantClusters map[*node]empty
+	TenantClusters map[*Node]Empty
 
-	// tenantCRSs define the list of ClusterResourceSet which are tenant for the node, no matter if the node has a direct OwnerReference to the ClusterResourceSet or if
+	// TenantCRSs define the list of ClusterResourceSet which are tenant for the node, no matter if the node has a direct OwnerReference to the ClusterResourceSet or if
 	// the node is linked to a ClusterResourceSet indirectly in the OwnerReference chain.
-	tenantCRSs map[*node]empty
+	TenantCRSs map[*Node]Empty
 }
 
 type discoveryTypeInfo struct {
@@ -83,45 +84,48 @@ type discoveryTypeInfo struct {
 }
 
 // markObserved marks the fact that a node was observed as a concrete object.
-func (n *node) markObserved() {
-	n.virtual = false
+func (n *Node) markObserved() {
+	n.Virtual = false
 }
 
-func (n *node) addOwner(owner *node, attributes ownerReferenceAttributes) {
-	n.owners[owner] = attributes
+func (n *Node) addOwner(owner *Node, attributes ownerReferenceAttributes) {
+	n.Owners[owner] = attributes
 }
 
-func (n *node) addSoftOwner(owner *node) {
-	n.softOwners[owner] = struct{}{}
+func (n *Node) addSoftOwner(owner *Node) {
+	n.SoftOwners[owner] = struct{}{}
 }
 
-func (n *node) isOwnedBy(other *node) bool {
-	_, ok := n.owners[other]
+func (n *Node) isOwnedBy(other *Node) bool {
+	_, ok := n.Owners[other]
 	return ok
 }
 
-func (n *node) isSoftOwnedBy(other *node) bool {
-	_, ok := n.softOwners[other]
+func (n *Node) isSoftOwnedBy(other *Node) bool {
+	_, ok := n.SoftOwners[other]
 	return ok
 }
 
-// objectGraph manages the Kubernetes object graph that is generated during the discovery phase for the move operation.
-type objectGraph struct {
+// ObjectGraph manages the Kubernetes object graph that is generated during the discovery phase for the move operation.
+type ObjectGraph struct {
 	proxy     client.Client
-	uidToNode map[types.UID]*node
+	uidToNode map[types.UID]*Node
 	types     map[string]*discoveryTypeInfo
+	genericclioptions.IOStreams
 }
 
-func NewObjectGraph(proxy client.Client) *objectGraph {
-	return &objectGraph{
+func NewObjectGraph(proxy client.Client, streams genericclioptions.IOStreams) *ObjectGraph {
+	return &ObjectGraph{
 		proxy:     proxy,
-		uidToNode: map[types.UID]*node{},
+		uidToNode: map[types.UID]*Node{},
+		types:     map[string]*discoveryTypeInfo{},
+		IOStreams: streams,
 	}
 }
 
 // addObj adds a Kubernetes object to the object graph that is generated during the move discovery phase.
 // During add, OwnerReferences are processed in order to create the dependency graph.
-func (o *objectGraph) addObj(obj *unstructured.Unstructured) {
+func (o *ObjectGraph) addObj(obj *unstructured.Unstructured) {
 	// Adds the node to the Graph.
 	newNode := o.objToNode(obj)
 
@@ -129,7 +133,7 @@ func (o *objectGraph) addObj(obj *unstructured.Unstructured) {
 	for _, ownerReference := range obj.GetOwnerReferences() {
 		ownerNode, ok := o.uidToNode[ownerReference.UID]
 		if !ok {
-			ownerNode = o.ownerToVirtualNode(ownerReference, newNode.identity.Namespace)
+			ownerNode = o.ownerToVirtualNode(ownerReference, newNode.Identity.Namespace)
 		}
 
 		newNode.addOwner(ownerNode, ownerReferenceAttributes{
@@ -141,37 +145,37 @@ func (o *objectGraph) addObj(obj *unstructured.Unstructured) {
 
 // ownerToVirtualNode creates a virtual node as a placeholder for the Kubernetes owner object received in input.
 // The virtual node will be eventually converted to an actual node when the node will be visited during discovery.
-func (o *objectGraph) ownerToVirtualNode(owner metav1.OwnerReference, namespace string) *node {
+func (o *ObjectGraph) ownerToVirtualNode(owner metav1.OwnerReference, namespace string) *Node {
 	isGlobal := false
 	if namespace == "" {
 		isGlobal = true
 	}
 
-	ownerNode := &node{
-		identity: corev1.ObjectReference{
+	ownerNode := &Node{
+		Identity: corev1.ObjectReference{
 			APIVersion: owner.APIVersion,
 			Kind:       owner.Kind,
 			Name:       owner.Name,
 			UID:        owner.UID,
 			Namespace:  namespace,
 		},
-		owners:         make(map[*node]ownerReferenceAttributes),
-		softOwners:     make(map[*node]empty),
-		tenantClusters: make(map[*node]empty),
-		tenantCRSs:     make(map[*node]empty),
-		virtual:        true,
-		forceMove:      o.getForceMove(owner.Kind, owner.APIVersion, nil),
-		isGlobal:       isGlobal,
+		Owners:         make(map[*Node]ownerReferenceAttributes),
+		SoftOwners:     make(map[*Node]Empty),
+		TenantClusters: make(map[*Node]Empty),
+		TenantCRSs:     make(map[*Node]Empty),
+		Virtual:        true,
+		ForceMove:      o.getForceMove(owner.Kind, owner.APIVersion, nil),
+		IsGlobal:       isGlobal,
 	}
 
-	o.uidToNode[ownerNode.identity.UID] = ownerNode
+	o.uidToNode[ownerNode.Identity.UID] = ownerNode
 	return ownerNode
 }
 
 // objToNode creates a node for the Kubernetes object received in input.
 // If the node corresponding to the Kubernetes object already exists as a virtual node detected when processing OwnerReferences,
 // the node is marked as Observed.
-func (o *objectGraph) objToNode(obj *unstructured.Unstructured) *node {
+func (o *ObjectGraph) objToNode(obj *unstructured.Unstructured) *Node {
 	existingNode, found := o.uidToNode[obj.GetUID()]
 	if found {
 		existingNode.markObserved()
@@ -179,7 +183,7 @@ func (o *objectGraph) objToNode(obj *unstructured.Unstructured) *node {
 		// In order to compensate the lack of labels when adding a virtual node,
 		// it is required to re-compute the forceMove flag when the real node is processed
 		// Without this, there is the risk that, forceMove will report false negatives depending on the discovery order
-		existingNode.forceMove = o.getForceMove(obj.GetKind(), obj.GetAPIVersion(), obj.GetLabels())
+		existingNode.ForceMove = o.getForceMove(obj.GetKind(), obj.GetAPIVersion(), obj.GetLabels())
 		return existingNode
 	}
 
@@ -188,29 +192,29 @@ func (o *objectGraph) objToNode(obj *unstructured.Unstructured) *node {
 		isGlobal = true
 	}
 
-	newNode := &node{
-		identity: corev1.ObjectReference{
+	newNode := &Node{
+		Identity: corev1.ObjectReference{
 			APIVersion: obj.GetAPIVersion(),
 			Kind:       obj.GetKind(),
 			UID:        obj.GetUID(),
 			Name:       obj.GetName(),
 			Namespace:  obj.GetNamespace(),
 		},
-		owners:         make(map[*node]ownerReferenceAttributes),
-		softOwners:     make(map[*node]empty),
-		tenantClusters: make(map[*node]empty),
-		tenantCRSs:     make(map[*node]empty),
-		virtual:        false,
-		forceMove:      o.getForceMove(obj.GetKind(), obj.GetAPIVersion(), obj.GetLabels()),
-		isGlobal:       isGlobal,
+		Owners:         make(map[*Node]ownerReferenceAttributes),
+		SoftOwners:     make(map[*Node]Empty),
+		TenantClusters: make(map[*Node]Empty),
+		TenantCRSs:     make(map[*Node]Empty),
+		Virtual:        false,
+		ForceMove:      o.getForceMove(obj.GetKind(), obj.GetAPIVersion(), obj.GetLabels()),
+		IsGlobal:       isGlobal,
 	}
 
-	o.uidToNode[newNode.identity.UID] = newNode
+	o.uidToNode[newNode.Identity.UID] = newNode
 	return newNode
 }
 
-func (o *objectGraph) getForceMove(kind, apiVersion string, labels map[string]string) bool {
-	if _, ok := labels[clusterctlv1.ClusterctlMoveLabelName]; ok {
+func (o *ObjectGraph) getForceMove(kind, apiVersion string, labels map[string]string) bool {
+	if _, ok := labels[meta.LabelUndistroMove]; ok {
 		return true
 	}
 
@@ -224,7 +228,7 @@ func (o *objectGraph) getForceMove(kind, apiVersion string, labels map[string]st
 
 // getDiscoveryTypes returns the list of TypeMeta to be considered for the the move discovery phase.
 // This list includes all the types defines by the CRDs installed by clusterctl and the ConfigMap/Secret core types.
-func (o *objectGraph) GetDiscoveryTypes() error {
+func (o *ObjectGraph) GetDiscoveryTypes() error {
 	crdList := &apiextensionsv1.CustomResourceDefinitionList{}
 	if err := retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
 		return getCRDList(context.Background(), o.proxy, crdList)
@@ -241,7 +245,7 @@ func (o *objectGraph) GetDiscoveryTypes() error {
 			}
 
 			forceMove := false
-			if _, ok := crd.Labels[clusterctlv1.ClusterctlMoveLabelName]; ok {
+			if _, ok := crd.Labels[meta.LabelUndistroMove]; ok {
 				forceMove = true
 			}
 
@@ -278,8 +282,7 @@ func getKindAPIString(typeMeta metav1.TypeMeta) string {
 }
 
 func getCRDList(ctx context.Context, c client.Client, crdList *apiextensionsv1.CustomResourceDefinitionList) error {
-
-	if err := c.List(ctx, crdList); err != nil {
+	if err := c.List(ctx, crdList, client.HasLabels{meta.LabelUndistro}); err != nil {
 		return errors.Wrap(err, "failed to get the list of CRDs required for the move discovery phase")
 	}
 	return nil
@@ -287,9 +290,9 @@ func getCRDList(ctx context.Context, c client.Client, crdList *apiextensionsv1.C
 
 // Discovery reads all the Kubernetes objects existing in a namespace (or in all namespaces if empty) for the types received in input, and then adds
 // everything to the objects graph.
-func (o *objectGraph) Discovery(namespace string) error {
-	log := logf.Log
-	log.Info("Discovering Cluster API objects")
+func (o *ObjectGraph) Discovery(namespace string) error {
+	log := log.Log
+	fmt.Fprintln(o.Out, "discovering objects")
 
 	selectors := []client.ListOption{}
 	if namespace != "" {
@@ -345,11 +348,11 @@ func getObjList(c client.Client, typeMeta metav1.TypeMeta, selectors []client.Li
 	return nil
 }
 
-// getClusters returns the list of Clusters existing in the object graph.
-func (o *objectGraph) getClusters() []*node {
-	clusters := []*node{}
+// GetClusters returns the list of Clusters existing in the object graph.
+func (o *ObjectGraph) GetClusters() []*Node {
+	clusters := []*Node{}
 	for _, node := range o.uidToNode {
-		if node.identity.GroupVersionKind().GroupKind() == appv1alpha1.GroupVersion.WithKind("Cluster").GroupKind() {
+		if node.Identity.GroupVersionKind().GroupKind() == appv1alpha1.GroupVersion.WithKind("Cluster").GroupKind() {
 			clusters = append(clusters, node)
 		}
 	}
@@ -357,10 +360,10 @@ func (o *objectGraph) getClusters() []*node {
 }
 
 // getClusters returns the list of Secrets existing in the object graph.
-func (o *objectGraph) getSecrets() []*node {
-	secrets := []*node{}
+func (o *ObjectGraph) getSecrets() []*Node {
+	secrets := []*Node{}
 	for _, node := range o.uidToNode {
-		if node.identity.APIVersion == "v1" && node.identity.Kind == "Secret" {
+		if node.Identity.APIVersion == "v1" && node.Identity.Kind == "Secret" {
 			secrets = append(secrets, node)
 		}
 	}
@@ -368,8 +371,8 @@ func (o *objectGraph) getSecrets() []*node {
 }
 
 // getNodes returns the list of nodes existing in the object graph.
-func (o *objectGraph) getNodes() []*node {
-	nodes := []*node{}
+func (o *ObjectGraph) getNodes() []*Node {
+	nodes := []*Node{}
 	for _, node := range o.uidToNode {
 		nodes = append(nodes, node)
 	}
@@ -377,22 +380,22 @@ func (o *objectGraph) getNodes() []*node {
 }
 
 // getCRSs returns the list of ClusterResourceSet existing in the object graph.
-func (o *objectGraph) getCRSs() []*node {
-	clusters := []*node{}
+func (o *ObjectGraph) getCRSs() []*Node {
+	clusters := []*Node{}
 	for _, node := range o.uidToNode {
-		if node.identity.GroupVersionKind().GroupKind() == addonsv1.GroupVersion.WithKind("ClusterResourceSet").GroupKind() {
+		if node.Identity.GroupVersionKind().GroupKind() == addonsv1.GroupVersion.WithKind("ClusterResourceSet").GroupKind() {
 			clusters = append(clusters, node)
 		}
 	}
 	return clusters
 }
 
-// getMoveNodes returns the list of nodes existing in the object graph that belong at least to one Cluster or to a ClusterResourceSet
+// GetMoveNodes returns the list of nodes existing in the object graph that belong at least to one Cluster or to a ClusterResourceSet
 // or to a CRD containing the "move" label.
-func (o *objectGraph) getMoveNodes() []*node {
-	nodes := []*node{}
+func (o *ObjectGraph) GetMoveNodes() []*Node {
+	nodes := []*Node{}
 	for _, node := range o.uidToNode {
-		if len(node.tenantClusters) > 0 || len(node.tenantCRSs) > 0 || node.forceMove {
+		if len(node.TenantClusters) > 0 || len(node.TenantCRSs) > 0 || node.ForceMove {
 			nodes = append(nodes, node)
 		}
 	}
@@ -400,10 +403,10 @@ func (o *objectGraph) getMoveNodes() []*node {
 }
 
 // getMachines returns the list of Machine existing in the object graph.
-func (o *objectGraph) getMachines() []*node {
-	machines := []*node{}
+func (o *ObjectGraph) getMachines() []*Node {
+	machines := []*Node{}
 	for _, node := range o.uidToNode {
-		if node.identity.GroupVersionKind().GroupKind() == clusterv1.GroupVersion.WithKind("Machine").GroupKind() {
+		if node.Identity.GroupVersionKind().GroupKind() == clusterv1.GroupVersion.WithKind("Machine").GroupKind() {
 			machines = append(machines, node)
 		}
 	}
@@ -411,26 +414,26 @@ func (o *objectGraph) getMachines() []*node {
 }
 
 // setSoftOwnership searches for soft ownership relations such as secrets linked to the cluster by a naming convention (without any explicit OwnerReference).
-func (o *objectGraph) setSoftOwnership() {
-	log := logf.Log
-	clusters := o.getClusters()
+func (o *ObjectGraph) setSoftOwnership() {
+	log := log.Log
+	clusters := o.GetClusters()
 	for _, secret := range o.getSecrets() {
 		// If the secret has at least one OwnerReference ignore it.
 		// NB. Cluster API generated secrets have an explicit OwnerReference to the ControlPlane or the KubeadmConfig object while user provided secrets might not have one.
-		if len(secret.owners) > 0 {
+		if len(secret.Owners) > 0 {
 			continue
 		}
 
 		// If the secret name is not a valid cluster secret name, ignore it.
-		secretClusterName, _, err := secretutil.ParseSecretName(secret.identity.Name)
+		secretClusterName, _, err := secretutil.ParseSecretName(secret.Identity.Name)
 		if err != nil {
-			log.V(5).Info("Excluding secret from move (not linked with any Cluster)", "name", secret.identity.Name)
+			log.V(5).Info("Excluding secret from move (not linked with any Cluster)", "name", secret.Identity.Name)
 			continue
 		}
 
 		// If the secret is linked to a cluster, then add the cluster to the list of the secrets's softOwners.
 		for _, cluster := range clusters {
-			if secretClusterName == cluster.identity.Name && secret.identity.Namespace == cluster.identity.Namespace {
+			if secretClusterName == cluster.Identity.Name && secret.Identity.Namespace == cluster.Identity.Namespace {
 				secret.addSoftOwner(cluster)
 			}
 		}
@@ -438,15 +441,15 @@ func (o *objectGraph) setSoftOwnership() {
 }
 
 // setClusterTenants sets the cluster tenants for the clusters itself and all their dependent object tree.
-func (o *objectGraph) setClusterTenants() {
-	for _, cluster := range o.getClusters() {
+func (o *ObjectGraph) setClusterTenants() {
+	for _, cluster := range o.GetClusters() {
 		o.setClusterTenant(cluster, cluster)
 	}
 }
 
 // setNodeTenant sets a cluster tenant for a node and for its own dependents/sofDependents.
-func (o *objectGraph) setClusterTenant(node, tenant *node) {
-	node.tenantClusters[tenant] = empty{}
+func (o *ObjectGraph) setClusterTenant(node, tenant *Node) {
+	node.TenantClusters[tenant] = Empty{}
 	for _, other := range o.getNodes() {
 		if other.isOwnedBy(node) || other.isSoftOwnedBy(node) {
 			o.setClusterTenant(other, tenant)
@@ -455,15 +458,15 @@ func (o *objectGraph) setClusterTenant(node, tenant *node) {
 }
 
 // setClusterTenants sets the ClusterResourceSet tenants for the ClusterResourceSet itself and all their dependent object tree.
-func (o *objectGraph) setCRSTenants() {
+func (o *ObjectGraph) setCRSTenants() {
 	for _, crs := range o.getCRSs() {
 		o.setCRSTenant(crs, crs)
 	}
 }
 
 // setCRSTenant sets a ClusterResourceSet tenant for a node and for its own dependents/sofDependents.
-func (o *objectGraph) setCRSTenant(node, tenant *node) {
-	node.tenantCRSs[tenant] = empty{}
+func (o *ObjectGraph) setCRSTenant(node, tenant *Node) {
+	node.TenantCRSs[tenant] = Empty{}
 	for _, other := range o.getNodes() {
 		if other.isOwnedBy(node) {
 			o.setCRSTenant(other, tenant)
@@ -472,11 +475,86 @@ func (o *objectGraph) setCRSTenant(node, tenant *node) {
 }
 
 // checkVirtualNode logs if nodes are still virtual
-func (o *objectGraph) CheckVirtualNode() {
-	log := logf.Log
+func (o *ObjectGraph) CheckVirtualNode() {
+	log := log.Log
 	for _, node := range o.uidToNode {
-		if node.virtual {
-			log.V(5).Info("Object won't be moved because it's not included in GVK considered for move", "kind", node.identity.Kind, "name", node.identity.Name)
+		if node.Virtual {
+			log.V(5).Info("Object won't be moved because it's not included in GVK considered for move", "kind", node.Identity.Kind, "name", node.Identity.Name)
 		}
 	}
+}
+
+// MoveSequence defines a list of group of moveGroups
+type MoveSequence struct {
+	Groups   []MoveGroup
+	NodesMap map[*Node]Empty
+}
+
+// MoveGroup defines is a list of nodes read from the object graph that can be moved in parallel.
+type MoveGroup []*Node
+
+func (s *MoveSequence) AddGroup(group MoveGroup) {
+	// Add the group
+	s.Groups = append(s.Groups, group)
+	// Add all the nodes in the group to the nodeMap so we can check if a node is already in the move sequence or not
+	for _, n := range group {
+		s.NodesMap[n] = Empty{}
+	}
+}
+
+func (s *MoveSequence) HasNode(n *Node) bool {
+	_, ok := s.NodesMap[n]
+	return ok
+}
+
+func (s *MoveSequence) GetGroup(i int) MoveGroup {
+	return s.Groups[i]
+}
+
+// Define the move sequence by processing the ownerReference chain.
+func GetMoveSequence(graph *ObjectGraph) *MoveSequence {
+	moveSequence := &MoveSequence{
+		Groups:   []MoveGroup{},
+		NodesMap: make(map[*Node]Empty),
+	}
+
+	for {
+		// Determine the next move group by processing all the nodes in the graph that belong to a Cluster.
+		// NB. it is necessary to filter out nodes not belonging to a cluster because e.g. discovery reads all the secrets,
+		// but only few of them are related to Clusters/Machines etc.
+		moveGroup := MoveGroup{}
+
+		for _, n := range graph.GetMoveNodes() {
+			// If the node was already included in the moveSequence, skip it.
+			if moveSequence.HasNode(n) {
+				continue
+			}
+
+			// Check if all the ownerReferences are already included in the move sequence; if yes, add the node to move group,
+			// otherwise skip it (the node will be re-processed in the next group).
+			ownersInPlace := true
+			for owner := range n.Owners {
+				if !moveSequence.HasNode(owner) {
+					ownersInPlace = false
+					break
+				}
+			}
+			for owner := range n.SoftOwners {
+				if !moveSequence.HasNode(owner) {
+					ownersInPlace = false
+					break
+				}
+			}
+			if ownersInPlace {
+				moveGroup = append(moveGroup, n)
+			}
+		}
+
+		// If the resulting move group is empty it means that all the nodes are already in the sequence, so exit.
+		if len(moveGroup) == 0 {
+			break
+		}
+		moveSequence.AddGroup(moveGroup)
+	}
+	return moveSequence
 }

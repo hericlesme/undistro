@@ -10,6 +10,7 @@ metadata:
     cluster.x-k8s.io/provider: bootstrap-kubeadm
     cluster.x-k8s.io/v1alpha2: v1alpha2
     cluster.x-k8s.io/v1alpha3: v1alpha3
+    undistro.io: undistro
   name: kubeadmconfigs.bootstrap.cluster.x-k8s.io
 spec:
   conversion:
@@ -1851,6 +1852,7 @@ metadata:
     cluster.x-k8s.io/provider: bootstrap-kubeadm
     cluster.x-k8s.io/v1alpha2: v1alpha2
     cluster.x-k8s.io/v1alpha3: v1alpha3
+    undistro.io: undistro
   name: kubeadmconfigtemplates.bootstrap.cluster.x-k8s.io
 spec:
   conversion:

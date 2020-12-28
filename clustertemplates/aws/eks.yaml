@@ -5,6 +5,7 @@ metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
 spec:
+  paused: {{.Cluster.Spec.Paused}}
   {{if .Cluster.Spec.Network}}
   clusterNetwork:
     {{if .Cluster.Spec.Network.Pods}}

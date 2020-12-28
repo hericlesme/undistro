@@ -8,6 +8,7 @@ metadata:
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
+    undistro.io: undistro
   name: clusterresourcesetbindings.addons.cluster.x-k8s.io
 spec:
   group: addons.cluster.x-k8s.io
@@ -119,6 +120,7 @@ metadata:
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
+    undistro.io: undistro
   name: clusterresourcesets.addons.cluster.x-k8s.io
 spec:
   group: addons.cluster.x-k8s.io
@@ -305,6 +307,7 @@ metadata:
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
+    undistro.io: undistro
   name: clusters.cluster.x-k8s.io
 spec:
   conversion:
@@ -746,6 +749,7 @@ metadata:
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
+    undistro.io: undistro
   name: machinedeployments.cluster.x-k8s.io
 spec:
   conversion:
@@ -1789,6 +1793,7 @@ metadata:
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
+    undistro.io: undistro
   name: machinehealthchecks.cluster.x-k8s.io
 spec:
   conversion:
@@ -2082,6 +2087,7 @@ metadata:
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
+    undistro.io: undistro
   name: machinepools.exp.cluster.x-k8s.io
 spec:
   group: exp.cluster.x-k8s.io
@@ -2624,6 +2630,7 @@ metadata:
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
+    undistro.io: undistro
   name: machines.cluster.x-k8s.io
 spec:
   conversion:
@@ -3357,6 +3364,7 @@ metadata:
   creationTimestamp: null
   labels:
     cluster.x-k8s.io/provider: cluster-api
+    undistro.io: undistro
   name: machinesets.cluster.x-k8s.io
 spec:
   conversion:

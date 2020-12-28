@@ -20,4 +20,5 @@ const (
 	LabelUndistroClusterType = "undistro.io/cluster-type"
 	LabelProviderType        = "undistro.io/provider-type"
 	LabelUndistro            = "undistro.io"
+	LabelUndistroMove        = "undistro.io/move"
 )
