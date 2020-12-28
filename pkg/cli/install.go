@@ -40,7 +40,6 @@ import (
 	"github.com/spf13/viper"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/getter"
-	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -447,10 +446,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	if err != nil {
 		return err
 	}
-	runner, err := helm.NewRunner(restGetter, ns, log.Log)
-	if err != nil {
-		return err
-	}
+
 	fmt.Fprint(o.IOStreams.Out, "Waiting all providers to be ready")
 	for {
 		list := configv1alpha1.ProviderList{}
@@ -471,24 +467,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 				break
 			}
 		}
-		rels := make([]*release.Release, 0)
-		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-			rels, err = runner.List()
-			if err != nil {
-				return err
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
 
-		for _, rel := range rels {
-			if rel.Info.Status != release.StatusDeployed {
-				ready = false
-				break
-			}
-		}
 		// retest objects because certmanager update certs when new pod is added
 		for _, o := range certObjs {
 			_, err = util.CreateOrUpdate(cmd.Context(), c, &o)
