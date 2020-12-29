@@ -203,10 +203,6 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 			return cl, ctrl.Result{Requeue: true}, err
 		}
 	}
-
-	if capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioning {
-		return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
-	}
 	vars, err := r.templateVariables(ctx, &capiCluster, &cl)
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
@@ -253,7 +249,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		}
 		return cl, ctrl.Result{}, nil
 	}
-	return cl, ctrl.Result{Requeue: true}, nil
+	return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
 }
 
 func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *appv1alpha1.Cluster) bool {
