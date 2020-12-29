@@ -13,23 +13,14 @@ RUN go mod download
 COPY . .
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -o manager main.go
-
-RUN curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.9/2020-11-02/bin/linux/amd64/aws-iam-authenticator && chmod +x aws-iam-authenticator && mv aws-iam-authenticator /go/bin
-
-RUN mkdir -p /app
-
-RUN mkdir -p /home/.aws
-
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
-COPY --from=builder --chown=nonroot:nonroot /app /app
-COPY --from=builder --chown=nonroot:nonroot /workspace/clustertemplates /app/clustertemplates
-COPY --from=builder --chown=nonroot:nonroot /home/.aws /home/.aws
-COPY --from=builder /go/bin/aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
-COPY --from=builder /workspace/manager /app/manager
+WORKDIR /
+COPY --from=builder --chown=nonroot:nonroot /workspace/manager .
+COPY --from=builder --chown=nonroot:nonroot /workspace/clustertemplates /clustertemplates
 USER nonroot:nonroot
-WORKDIR /app
-ENTRYPOINT ["/app/manager"]
+
+ENTRYPOINT ["/manager"]

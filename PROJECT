@@ -1,9 +1,18 @@
+domain: undistro.io
+layout: go.kubebuilder.io/v2
+multigroup: true
+projectName: undistro
 repo: github.com/getupio-undistro/undistro
 resources:
-- group: undistro.io
+- group: app
   kind: Cluster
   version: v1alpha1
-- group: undistro.io
+- group: app
   kind: HelmRelease
   version: v1alpha1
-version: "2"
+- group: config
+  kind: Provider
+  version: v1alpha1
+version: 3-alpha
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}
