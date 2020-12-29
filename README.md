@@ -96,7 +96,7 @@ spec:
 
 ### Creating an EKS kubernetes on AWS
 
-We will create a cluster with 3 controlplane node and 3 worker nodes
+We will create a cluster with 3 worker nodes
 
 ```yaml
 apiVersion: app.undistro.io/v1alpha1
