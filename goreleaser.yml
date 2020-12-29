@@ -1,0 +1,18 @@
+builds:
+  - binary: undistro
+    main: ./cmd/undistro/main.go
+    ldflags: -X github.com/getupio-undistro/undistro/pkg/version.buildDate={{.Env.BUILD_DATETIME}} -X github.com/getupio-undistro/undistro/pkg/version.gitCommit={{.Env.BUILD_COMMIT}} -X github.com/getupio-undistro/undistro/pkg/version.gitTreeState={{.Env.BUILD_STATE}} -X github.com/getupio-undistro/undistro/pkg/version.gitMajor={{.Env.GIT_MAJOR}} -X github.com/getupio-undistro/undistro/pkg/version.gitMinor={{.Env.GIT_MINOR}} -X github.com/getupio-undistro/undistro/pkg/version.gitVersion={{.Env.GIT_VERSION}} -X github.com/getupio-undistro/undistro/pkg/version.gitReleaseCommit={{.Env.RELEASE_COMMIT}}
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 7
+
+release:
+  github:
+    owner: getupio-undistro
+    name: undistro
