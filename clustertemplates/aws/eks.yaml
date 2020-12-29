@@ -73,8 +73,9 @@ spec:
   bastion:
     enabled: {{ .Cluster.Spec.Bastion.Enabled}}
     {{if eq $lenBlocks 0}}
-    instanceType: {{ .Cluster.Spec.Bastion.InstanceType}}
+    disableIngressRules: {{.Cluster.Spec.Bastion.DisableIngressRules}}
     {{end}}
+    instanceType: {{ .Cluster.Spec.Bastion.InstanceType}}
     allowedCIDRBlocks:
     {{- range  .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
       - {{.}}
