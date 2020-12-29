@@ -1,0 +1,4 @@
+installCRDs: true
+cluster-api:
+  enabled: true
+  installCRDs: true

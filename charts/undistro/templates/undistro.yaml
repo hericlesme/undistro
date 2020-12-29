@@ -1,0 +1,357 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: undistro-leader-election-role
+  namespace: undistro-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: undistro-manager-role
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: undistro-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: undistro-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: undistro-leader-election-rolebinding
+  namespace: undistro-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: undistro-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: undistro-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: undistro-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: undistro-manager-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: undistro-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: undistro-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: undistro-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: undistro-system
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: undistro-serving-cert
+  namespace: undistro-system
+spec:
+  dnsNames:
+  - undistro-webhook-service.undistro-system.svc
+  - undistro-webhook-service.undistro-system.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: undistro-selfsigned-issuer
+  secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: undistro-selfsigned-issuer
+  namespace: undistro-system
+spec:
+  selfSigned: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: undistro-controller-manager
+  name: undistro-controller-manager-metrics-service
+  namespace: undistro-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    targetPort: https
+  selector:
+    control-plane: undistro-controller-manager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: undistro-webhook-service
+  namespace: undistro-system
+spec:
+  ports:
+  - port: 443
+    targetPort: 9443
+  selector:
+    control-plane: undistro-controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: undistro-controller-manager
+  name: undistro-controller-manager
+  namespace: undistro-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: undistro-controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: undistro-controller-manager
+    spec:
+      containers:
+      - args:
+        - --metrics-addr=127.0.0.1:8080
+        - --enable-leader-election
+        command:
+        - /manager
+        image: getupioundistro/undistro:v0.17.0
+        name: manager
+        ports:
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "1"
+            memory: 512Mi
+          requests:
+            cpu: "0.5"
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
+      - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=10
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: webhook-server-cert
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: undistro-system/undistro-serving-cert
+  name: undistro-mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    service:
+      name: undistro-webhook-service
+      namespace: undistro-system
+      path: /mutate-app-undistro-io-v1alpha1-cluster
+  failurePolicy: Fail
+  name: mcluster.undistro.io
+  rules:
+  - apiGroups:
+    - app.undistro.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clusters
+  sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    service:
+      name: undistro-webhook-service
+      namespace: undistro-system
+      path: /mutate-app-undistro-io-v1alpha1-helmrelease
+  failurePolicy: Fail
+  name: mhelmrelease.undistro.io
+  rules:
+  - apiGroups:
+    - app.undistro.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - helmreleases
+  sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    service:
+      name: undistro-webhook-service
+      namespace: undistro-system
+      path: /mutate-config-undistro-io-v1alpha1-provider
+  failurePolicy: Fail
+  name: mprovider.undistro.io
+  rules:
+  - apiGroups:
+    - config.undistro.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - providers
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: undistro-system/undistro-serving-cert
+  name: undistro-validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    service:
+      name: undistro-webhook-service
+      namespace: undistro-system
+      path: /validate-app-undistro-io-v1alpha1-cluster
+  failurePolicy: Fail
+  name: vcluster.undistro.io
+  rules:
+  - apiGroups:
+    - app.undistro.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clusters
+  sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    service:
+      name: undistro-webhook-service
+      namespace: undistro-system
+      path: /validate-app-undistro-io-v1alpha1-helmrelease
+  failurePolicy: Fail
+  name: vhelmrelease.undistro.io
+  rules:
+  - apiGroups:
+    - app.undistro.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - helmreleases
+  sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    service:
+      name: undistro-webhook-service
+      namespace: undistro-system
+      path: /validate-config-undistro-io-v1alpha1-provider
+  failurePolicy: Fail
+  name: vprovider.undistro.io
+  rules:
+  - apiGroups:
+    - config.undistro.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - providers
+  sideEffects: None

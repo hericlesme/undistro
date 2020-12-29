@@ -1,86 +1,104 @@
 ---
-{{$uuid := uuidv4}}
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
-  name: "{{.Name}}"
-  namespace: "{{.Namespace}}"
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
 spec:
-  {{if .Spec.Network}}
+  paused: {{.Cluster.Spec.Paused}}
+  {{if .Cluster.Spec.Network}}
   clusterNetwork:
-    {{if .Spec.Network.PodsCIDR}}
+    {{if .Cluster.Spec.Network.Pods}}
     pods:
-      {{range .Spec.Network.PodsCIDR}}
+      {{range .Cluster.Spec.Network.Pods}}
       cidrBlocks:
         - {{. | quote}}
       {{end}}
     {{end}}
-    {{if .Spec.Network.ServicesCIDR}}
+    {{if .Cluster.Spec.Network.Services}}
     services:
-      {{range .Spec.Network.ServicesCIDR}}
+      {{range .Cluster.Spec.Network.Services}}
       cidrBlocks:
         - {{. | quote}}
       {{end}}
     {{end}}
+  {{end}}
+  {{if .Cluster.Spec.ControlPlane}}
+  {{if .Cluster.Spec.ControlPlane.Endpoint}}
+  controlPlaneEndpoint:
+    host: {{.Cluster.Spec.ControlPlane.Endpoint.Host}}
+    port: {{.Cluster.Spec.ControlPlane.Endpoint.Port}}
+  {{end}}
   {{end}}
   infrastructureRef:
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
     kind: AWSManagedCluster
-    name: "{{.Name}}"
-    namespace: "{{.Namespace}}"
+    name: "{{.Cluster.Name}}"
+    namespace: "{{.Cluster.Namespace}}"
   controlPlaneRef:
     kind: AWSManagedControlPlane
     apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-    name: "{{.Name}}"
-    namespace: "{{.Namespace}}"
+    name: "{{.Cluster.Name}}"
+    namespace: "{{.Cluster.Namespace}}"
+
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AWSManagedCluster
 metadata:
-  name: "{{.Name}}"
-  namespace: "{{.Namespace}}"
-  
-{{$bastion := .GetBastion}}
----
-kind: AWSManagedControlPlane
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-metadata:
-  name: "{{.Name}}"
-  namespace: "{{.Namespace}}"
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+{{if and .Cluster.Spec.ControlPlane.Endpoint.Host .Cluster.Spec.ControlPlane.Endpoint.Port}}
 spec:
-  {{if .Spec.ControlPlaneNode.InternalLB}}
+  controlPlaneEndpoint:
+    host: {{.Cluster.Spec.ControlPlane.Endpoint.Host}}
+    port: {{.Cluster.Spec.ControlPlane.Endpoint.Port}}
+{{end}}
+
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+kind: AWSManagedControlPlane
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  version: "{{.Cluster.Spec.KubernetesVersion}}"
+  sshKeyName: "{{.Cluster.Spec.InfrastructureProvider.SSHKey}}"
+  region:  "{{ .Cluster.Spec.InfrastructureProvider.Region}}"
+  {{if .Cluster.Spec.ControlPlane.InternalLB}}
   endpointAccess:
     private: true
   {{end}}
-  sshKeyName: "{{.Spec.InfrastructureProvider.SSHKey}}"
-  region: '{{variable "AWS_REGION"}}'
-  version: "{{.Spec.KubernetesVersion}}"
+  {{if .Cluster.Spec.Bastion.Enabled}}
+  {{$lenBlocks := len .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
   bastion:
-    enabled: {{$bastion.Enabled}}
-    disableIngressRules: {{$bastion.DisableIngressRules}}
-    instanceType: {{$bastion.InstanceType}}
-    allowedCIDRBlocks:
-    {{range $bastion.AllowedCIDRBlocks}}
-      - {{.}}
+    enabled: {{ .Cluster.Spec.Bastion.Enabled}}
+    {{if eq $lenBlocks 0}}
+    disableIngressRules: {{.Cluster.Spec.Bastion.DisableIngressRules}}
     {{end}}
-  {{if .Spec.Network}}
+    instanceType: {{ .Cluster.Spec.Bastion.InstanceType}}
+    allowedCIDRBlocks:
+    {{- range  .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
+      - {{.}}
+    {{- end}}
+  {{end}}
+  {{if  .Cluster.Spec.Network}}
   networkSpec:
-    {{if .Spec.Network.VPC}}
+    {{if  .Cluster.Spec.Network.VPC}}
     vpc:
-      {{if .Spec.Network.VPC.ID}}
-      id: {{.Spec.Network.VPC.ID}}
+      {{if  .Cluster.Spec.Network.VPC.ID}}
+      id: {{ .Cluster.Spec.Network.VPC.ID}}
       {{end}}
-      {{if .Spec.Network.MultiZone}}
+      {{if  .Cluster.Spec.Network.MultiZone}}
       availabilityZoneUsageLimit: 3
       {{else}}
       availabilityZoneUsageLimit: 1
       {{end}}
-      {{if .Spec.Network.VPC.CIDRBlock}}
-      cidrBlock: {{.Spec.Network.VPC.CIDRBlock}}
+      {{if  .Cluster.Spec.Network.VPC.CIDRBlock}}
+      cidrBlock: {{ .Cluster.Spec.Network.VPC.CIDRBlock}}
       {{end}}
     {{end}}
     subnets:
-    {{range .Spec.Network.Subnets}}
+    {{range  .Cluster.Spec.Network.Subnets}}
     -
      {{if .ID}}
      id: {{.ID}}
@@ -97,11 +115,11 @@ spec:
     {{end}}
   {{end}}
 
-{{$name := .Name}}
-{{$namespace := .Namespace}}
-{{$k8s := .Spec.KubernetesVersion}}
-{{$sshKey := .Spec.InfrastructureProvider.SSHKey}}
-{{range $index, $element := .Spec.WorkerNodes}}
+{{$name := .Cluster.Name}}
+{{$namespace := .Cluster.Namespace}}
+{{$k8s := .Cluster.Spec.KubernetesVersion}}
+{{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
+{{range $index, $element := .Cluster.Spec.Workers}}
 ---
 apiVersion: exp.cluster.x-k8s.io/v1alpha3
 kind: MachinePool
