@@ -153,7 +153,7 @@ func (r *ClusterReconciler) getBastionIP(ctx context.Context, log logr.Logger, c
 }
 
 func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (appv1alpha1.Cluster, ctrl.Result, error) {
-	if cl.Status.ObservedGeneration != cl.Generation {
+	if cl.Status.ObservedGeneration < cl.Generation {
 		cl.Status.ObservedGeneration = cl.Generation
 		cl = appv1alpha1.ClusterProgressing(cl)
 		cl.Status.TotalWorkerPools = int32(len(cl.Spec.Workers))

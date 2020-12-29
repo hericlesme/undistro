@@ -200,6 +200,7 @@ func (r *ChartRepository) DownloadIndex() error {
 	if err != nil {
 		return err
 	}
+	u.Host = fmt.Sprintf("%s.", u.Host)
 	u.RawPath = path.Join(u.RawPath, "index.yaml")
 	u.Path = path.Join(u.Path, "index.yaml")
 

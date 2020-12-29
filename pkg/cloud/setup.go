@@ -40,7 +40,7 @@ func Init(ctx context.Context, c client.Client, p configv1alpha1.Provider) (conf
 func Upgrade(ctx context.Context, c client.Client, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
 	var err error
 	switch p.Spec.ProviderName {
-	case "aws":
+	case "undistro-aws":
 		p.Spec.ConfigurationFrom, err = aws.Upgrade(ctx, c, p.Spec.ConfigurationFrom, p.Spec.ProviderVersion)
 		if err != nil {
 			return p, err

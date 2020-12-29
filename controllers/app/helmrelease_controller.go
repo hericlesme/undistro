@@ -115,7 +115,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, hr appv1alpha1.HelmRelease) (appv1alpha1.HelmRelease, ctrl.Result, error) {
 	var clientOpts []getter.Option
-	if hr.Status.ObservedGeneration != hr.Generation {
+	if hr.Status.ObservedGeneration < hr.Generation {
 		hr.Status.ObservedGeneration = hr.Generation
 		hr = appv1alpha1.HelmReleaseProgressing(hr)
 		if _, updateStatusErr := util.CreateOrUpdate(ctx, r.Client, &hr); updateStatusErr != nil {

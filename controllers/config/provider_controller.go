@@ -115,7 +115,7 @@ func (r *ProviderReconciler) reconcileDelete(ctx context.Context, logger logr.Lo
 }
 
 func (r *ProviderReconciler) reconcile(ctx context.Context, log logr.Logger, p configv1alpha1.Provider) (configv1alpha1.Provider, ctrl.Result, error) {
-	if p.Status.ObservedGeneration != p.Generation {
+	if p.Status.ObservedGeneration < p.Generation {
 		p.Status.ObservedGeneration = p.Generation
 		p = configv1alpha1.ProviderProgressing(p)
 		if _, updateStatusErr := util.CreateOrUpdate(ctx, r.Client, &p); updateStatusErr != nil {

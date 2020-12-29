@@ -369,37 +369,6 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			return err
 		}
 	}
-	installUndistro := false
-	undistroObjs, err := util.ToUnstructured([]byte(undistro.TestResources))
-	if err != nil {
-		return err
-	}
-	for _, o := range undistroObjs {
-		_, errUndistro := util.CreateOrUpdate(cmd.Context(), c, &o)
-		if errUndistro != nil {
-			installUndistro = true
-			break
-		}
-	}
-	if installUndistro {
-		providerUndistro, err := o.installChart(cmd.Context(), c, restGetter, chartRepo, secretRef, "undistro")
-		if err != nil {
-			return err
-		}
-		providers = append(providers, providerUndistro)
-		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-			for _, o := range undistroObjs {
-				_, errCert := util.CreateOrUpdate(cmd.Context(), c, &o)
-				if errCert != nil {
-					return errCert
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-	}
 	installCapi := false
 	capiObjs, err := util.ToUnstructured([]byte(capi.TestResources))
 	if err != nil {
@@ -418,6 +387,37 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			return err
 		}
 		providers = append(providers, providerCapi)
+		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+			for _, o := range capiObjs {
+				_, errCert := util.CreateOrUpdate(cmd.Context(), c, &o)
+				if errCert != nil {
+					return errCert
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+	installUndistro := false
+	undistroObjs, err := util.ToUnstructured([]byte(undistro.TestResources))
+	if err != nil {
+		return err
+	}
+	for _, o := range undistroObjs {
+		_, errUndistro := util.CreateOrUpdate(cmd.Context(), c, &o)
+		if errUndistro != nil {
+			installUndistro = true
+			break
+		}
+	}
+	if installUndistro {
+		providerUndistro, err := o.installChart(cmd.Context(), c, restGetter, chartRepo, secretRef, "undistro")
+		if err != nil {
+			return err
+		}
+		providers = append(providers, providerUndistro)
 		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
 			for _, o := range undistroObjs {
 				_, errCert := util.CreateOrUpdate(cmd.Context(), c, &o)
