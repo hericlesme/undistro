@@ -50,7 +50,7 @@ metadata:
 spec:
   region:  "{{ .Cluster.Spec.InfrastructureProvider.Region}}"
   sshKeyName: "{{ .Cluster.Spec.InfrastructureProvider.SSHKey}}"
-  {{if  .Cluster.Spec.ControlPlane.InternalLB}}
+  {{if .Cluster.Spec.ControlPlane.InternalLB}}
   controlPlaneLoadBalancer:
     scheme: internal
   {{end}}
@@ -61,32 +61,36 @@ spec:
     port: {{.Cluster.Spec.ControlPlane.Endpoint.Port}}
   {{end}}
   {{end}}
+  {{if .Cluster.Spec.Bastion.Enabled}}
+  {{$lenBlocks := len .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
   bastion:
     enabled: {{ .Cluster.Spec.Bastion.Enabled}}
-    disableIngressRules: {{ .Cluster.Spec.Bastion.DisableIngressRules}}
+    {{if eq $lenBlocks 0}}
     instanceType: {{ .Cluster.Spec.Bastion.InstanceType}}
-    allowedCIDRBlocks:
-    {{range  .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
-      - {{.}}
     {{end}}
-  {{if  .Cluster.Spec.Network}}
+    allowedCIDRBlocks:
+    {{- range  .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
+      - {{.}}
+    {{- end}}
+  {{end}}
+  {{if .Cluster.Spec.Network}}
   networkSpec:
-    {{if  .Cluster.Spec.Network.VPC}}
+    {{if .Cluster.Spec.Network.VPC}}
     vpc:
-      {{if  .Cluster.Spec.Network.VPC.ID}}
+      {{if .Cluster.Spec.Network.VPC.ID}}
       id: {{ .Cluster.Spec.Network.VPC.ID}}
       {{end}}
-      {{if  .Cluster.Spec.Network.MultiZone}}
+      {{if .Cluster.Spec.Network.MultiZone}}
       availabilityZoneUsageLimit: 3
       {{else}}
       availabilityZoneUsageLimit: 1
       {{end}}
-      {{if  .Cluster.Spec.Network.VPC.CIDRBlock}}
+      {{if .Cluster.Spec.Network.VPC.CIDRBlock}}
       cidrBlock: {{ .Cluster.Spec.Network.VPC.CIDRBlock}}
       {{end}}
     {{end}}
     subnets:
-    {{range  .Cluster.Spec.Network.Subnets}}
+    {{range .Cluster.Spec.Network.Subnets}}
     -
      {{if .ID}}
      id: {{.ID}}

@@ -68,14 +68,18 @@ spec:
   endpointAccess:
     private: true
   {{end}}
+  {{if .Cluster.Spec.Bastion.Enabled}}
+  {{$lenBlocks := len .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
   bastion:
     enabled: {{ .Cluster.Spec.Bastion.Enabled}}
-    disableIngressRules: {{ .Cluster.Spec.Bastion.DisableIngressRules}}
+    {{if eq $lenBlocks 0}}
     instanceType: {{ .Cluster.Spec.Bastion.InstanceType}}
-    allowedCIDRBlocks:
-    {{range  .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
-      - {{.}}
     {{end}}
+    allowedCIDRBlocks:
+    {{- range  .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
+      - {{.}}
+    {{- end}}
+  {{end}}
   {{if  .Cluster.Spec.Network}}
   networkSpec:
     {{if  .Cluster.Spec.Network.VPC}}
@@ -86,7 +90,7 @@ spec:
       {{if  .Cluster.Spec.Network.MultiZone}}
       availabilityZoneUsageLimit: 3
       {{else}}
-      availabilityZoneUsageLimit: 2
+      availabilityZoneUsageLimit: 1
       {{end}}
       {{if  .Cluster.Spec.Network.VPC.CIDRBlock}}
       cidrBlock: {{ .Cluster.Spec.Network.VPC.CIDRBlock}}

@@ -349,6 +349,9 @@ func (o *MoveOptions) createTargetObject(ctx context.Context, nodeToCreate *grap
 	}
 
 	if err := fromProxy.Get(ctx, objKey, obj); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
 		return errors.Wrapf(err, "error reading %q %s/%s",
 			obj.GroupVersionKind(), obj.GetNamespace(), obj.GetName())
 	}
