@@ -61,7 +61,10 @@ func init() {
 
 	// Create the test environment.
 	env = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join(root, "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{
+			filepath.Join(root, "config", "crd", "bases"),
+			filepath.Join(root, "charts", "cluster-api", "crds"),
+		},
 	}
 }
 
@@ -94,9 +97,9 @@ func NewEnvironment() *Environment {
 	if err = (&configv1alpha1.Provider{}).SetupWebhookWithManager(mgr); err != nil {
 		klog.Fatalln(err, "unable to create webhook", "webhook", "Provider")
 	}
-	if err = (&appv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {
-		klog.Fatalln(err, "unable to create webhook", "webhook", "Cluster")
-	}
+	// if err = (&appv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {
+	// 	klog.Fatalln(err, "unable to create webhook", "webhook", "Cluster")
+	// }
 	if err = (&appv1alpha1.HelmRelease{}).SetupWebhookWithManager(mgr); err != nil {
 		klog.Fatalln(err, "unable to create webhook", "webhook", "HelmRelease")
 	}

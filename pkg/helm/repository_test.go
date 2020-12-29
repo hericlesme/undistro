@@ -242,7 +242,7 @@ func TestChartRepository_DownloadIndex(t *testing.T) {
 	if err := r.DownloadIndex(); err != nil {
 		t.Fatal(err)
 	}
-	if expected := r.URL + "/index.yaml"; mg.requestedURL != expected {
+	if expected := r.URL + "./index.yaml"; mg.requestedURL != expected {
 		t.Errorf("DownloadIndex() requested URL = %s, wantURL %s", mg.requestedURL, expected)
 	}
 	verifyLocalIndex(t, r.Index)

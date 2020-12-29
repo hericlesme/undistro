@@ -181,7 +181,7 @@ func (r *ChartRepository) DownloadChart(chart *repo.ChartVersion) (*bytes.Buffer
 // https://github.com/helm/helm/blob/v3.3.4/pkg/repo/index.go#L301
 func (r *ChartRepository) LoadIndex(b []byte) error {
 	i := &repo.IndexFile{}
-	if err := yaml.Unmarshal(b, i); err != nil {
+	if err := yaml.UnmarshalStrict(b, i); err != nil {
 		return err
 	}
 	if i.APIVersion == "" {

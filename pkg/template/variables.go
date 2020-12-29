@@ -36,12 +36,12 @@ type VariablesInput struct {
 	NamespacedName types.NamespacedName
 	EnvVars        []corev1.EnvVar
 	Variables      map[string]interface{}
-	mtx            *sync.Mutex
+	mtx            *sync.RWMutex
 }
 
 func SetVariablesFromEnvVar(ctx context.Context, input VariablesInput) error {
 	if input.mtx == nil {
-		input.mtx = &sync.Mutex{}
+		input.mtx = &sync.RWMutex{}
 	}
 	for _, envVar := range input.EnvVars {
 		if envVar.Value != "" {
