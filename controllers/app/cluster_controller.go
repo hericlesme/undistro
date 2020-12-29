@@ -224,6 +224,12 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
 	}
 	for _, o := range objs {
+		if o.GetAPIVersion() == capi.GroupVersion.String() && o.GetKind() == "Cluster" {
+			err = ctrl.SetControllerReference(&cl, &o, scheme.Scheme)
+			if err != nil {
+				return cl, ctrl.Result{Requeue: true}, err
+			}
+		}
 		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
 			_, err = util.CreateOrUpdate(ctx, r.Client, &o)
 			if err != nil {
