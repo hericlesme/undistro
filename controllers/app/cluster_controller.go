@@ -240,7 +240,12 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	cl.Status.Workers = cl.Spec.Workers
 	cl.Status.BastionConfig = cl.Spec.Bastion
 	if capiCluster.Status.InfrastructureReady && capiCluster.Status.ControlPlaneReady && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned {
-		return appv1alpha1.ClusterReady(cl), ctrl.Result{}, nil
+		cl = appv1alpha1.ClusterReady(cl)
+		if _, updateStatusErr := util.CreateOrUpdate(ctx, r.Client, &cl); updateStatusErr != nil {
+			log.Error(updateStatusErr, "unable to update status")
+			return cl, ctrl.Result{Requeue: true}, updateStatusErr
+		}
+		return cl, ctrl.Result{}, nil
 	}
 	return cl, ctrl.Result{Requeue: true}, nil
 }

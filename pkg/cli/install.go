@@ -213,11 +213,15 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 			return err
 		}
 		wait := true
+		reset := false
+		history := 0
 		hr := appv1alpha1.HelmRelease{
 			Spec: appv1alpha1.HelmReleaseSpec{
 				ReleaseName:     chartName,
 				TargetNamespace: ns,
 				Wait:            &wait,
+				MaxHistory:      &history,
+				ResetValues:     &reset,
 				Timeout: &metav1.Duration{
 					Duration: 5 * time.Minute,
 				},
@@ -230,7 +234,10 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 				return err
 			}
 		} else {
-			<-time.After(15 * time.Second)
+			_, err = runner.Upgrade(hr, chart, chart.Values)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})

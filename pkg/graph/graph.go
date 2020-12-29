@@ -33,7 +33,6 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	addonsv1 "sigs.k8s.io/cluster-api/exp/addons/api/v1alpha3"
-	secretutil "sigs.k8s.io/cluster-api/util/secret"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -352,7 +351,7 @@ func getObjList(c client.Client, typeMeta metav1.TypeMeta, selectors []client.Li
 func (o *ObjectGraph) GetClusters() []*Node {
 	clusters := []*Node{}
 	for _, node := range o.uidToNode {
-		if node.Identity.GroupVersionKind().GroupKind() == appv1alpha1.GroupVersion.WithKind("Cluster").GroupKind() {
+		if node.Identity.GroupVersionKind().GroupKind() == appv1alpha1.GroupVersion.WithKind("Cluster").GroupKind() && node.Identity.Name != "undistro-test" {
 			clusters = append(clusters, node)
 		}
 	}
@@ -403,7 +402,7 @@ func (o *ObjectGraph) GetMoveNodes() []*Node {
 }
 
 // getMachines returns the list of Machine existing in the object graph.
-func (o *ObjectGraph) getMachines() []*Node {
+func (o *ObjectGraph) GetMachines() []*Node {
 	machines := []*Node{}
 	for _, node := range o.uidToNode {
 		if node.Identity.GroupVersionKind().GroupKind() == clusterv1.GroupVersion.WithKind("Machine").GroupKind() {
@@ -415,7 +414,6 @@ func (o *ObjectGraph) getMachines() []*Node {
 
 // setSoftOwnership searches for soft ownership relations such as secrets linked to the cluster by a naming convention (without any explicit OwnerReference).
 func (o *ObjectGraph) setSoftOwnership() {
-	log := log.Log
 	clusters := o.GetClusters()
 	for _, secret := range o.getSecrets() {
 		// If the secret has at least one OwnerReference ignore it.
@@ -424,18 +422,9 @@ func (o *ObjectGraph) setSoftOwnership() {
 			continue
 		}
 
-		// If the secret name is not a valid cluster secret name, ignore it.
-		secretClusterName, _, err := secretutil.ParseSecretName(secret.Identity.Name)
-		if err != nil {
-			log.V(5).Info("Excluding secret from move (not linked with any Cluster)", "name", secret.Identity.Name)
-			continue
-		}
-
 		// If the secret is linked to a cluster, then add the cluster to the list of the secrets's softOwners.
 		for _, cluster := range clusters {
-			if secretClusterName == cluster.Identity.Name && secret.Identity.Namespace == cluster.Identity.Namespace {
-				secret.addSoftOwner(cluster)
-			}
+			secret.addSoftOwner(cluster)
 		}
 	}
 }

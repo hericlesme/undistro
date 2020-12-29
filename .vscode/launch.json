@@ -18,6 +18,22 @@
                 "${workspaceFolder}/undistro-config.yaml",
                 "install"
             ]
+        },
+        {
+            "name": "CMD Move",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/undistro/main.go",
+            "env": {},
+            "args": [
+                "--v",
+                "10",
+                "--config",
+                "${workspaceFolder}/undistro-config.yaml",
+                "move",
+                "undistro-quickstart"
+            ]
         }
     ]
 }
