@@ -33,7 +33,6 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/template"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
-	"github.com/google/go-cmp/cmp"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -253,18 +252,18 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 }
 
 func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *appv1alpha1.Cluster) bool {
-	diffCP := cmp.Diff(*cl.Spec.ControlPlane, cl.Status.ControlPlane)
-	diffW := cmp.Diff(cl.Spec.Workers, cl.Status.Workers)
-	diffBastion := cmp.Diff(cl.Spec.Bastion, cl.Status.BastionConfig)
-	switch {
-	case cl.Spec.KubernetesVersion != cl.Status.KubernetesVersion,
-		diffCP != "",
-		diffW != "",
-		diffBastion != "":
+	if cl.Spec.KubernetesVersion != cl.Status.KubernetesVersion {
 		return true
-	default:
-		return false
 	}
+	if !cl.Spec.InfrastructureProvider.Managed && cl.Spec.ControlPlane != nil {
+		if *cl.Spec.ControlPlane.Replicas != *cl.Status.ControlPlane.Replicas {
+			return true
+		}
+		if cl.Spec.ControlPlane.MachineType != cl.Status.ControlPlane.MachineType {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *ClusterReconciler) installCNI(ctx context.Context, cl appv1alpha1.Cluster) error {
