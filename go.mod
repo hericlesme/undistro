@@ -8,7 +8,6 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.0
 	github.com/aws/aws-sdk-go v1.36.12
 	github.com/go-logr/logr v0.3.0
-	github.com/google/go-cmp v0.5.2
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.4
 	github.com/pkg/errors v0.9.1
