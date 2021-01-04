@@ -127,7 +127,7 @@ func (r *ProviderReconciler) reconcile(ctx context.Context, log logr.Logger, p c
 	if err != nil {
 		p = configv1alpha1.ProviderNotReady(p, meta.WaitChartReason, err.Error())
 		if err == errNotReady {
-			err = nil
+			return p, ctrl.Result{Requeue: true}, nil
 		}
 		return p, ctrl.Result{}, err
 	}
