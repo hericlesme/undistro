@@ -23,6 +23,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capicp "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha3"
 )
 
 var (
@@ -34,6 +35,7 @@ func init() {
 	utilruntime.Must(configv1alpha1.AddToScheme(Scheme))
 	utilruntime.Must(appv1alpha1.AddToScheme(Scheme))
 	utilruntime.Must(capi.AddToScheme(Scheme))
+	utilruntime.Must(capicp.AddToScheme(Scheme))
 	utilruntime.Must(apiextensionsv1.AddToScheme(Scheme))
 	// +kubebuilder:scaffold:scheme
 }

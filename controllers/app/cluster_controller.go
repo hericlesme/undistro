@@ -22,6 +22,7 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	"strings"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
@@ -33,12 +34,14 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capicp "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/util/kubeconfig"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -116,7 +119,22 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, capiCluster *
 	}
 	vars["Cluster"] = cl
 	vars["ENV"] = v
-	if r.hasDiff(ctx, cl) {
+	validDiff := true
+	labels := cl.GetLabels()
+	_, moved := labels[meta.LabelUndistroMoved]
+	if moved && !cl.Spec.InfrastructureProvider.Managed && cl.Status.LastUsedUID == "" {
+		validDiff = false
+		cp := capicp.KubeadmControlPlane{}
+		err := r.Get(ctx, client.ObjectKeyFromObject(cl), &cp)
+		if client.IgnoreNotFound(err) != nil {
+			return nil, err
+		}
+		if !apierrors.IsNotFound(err) {
+			split := strings.Split(cp.Spec.InfrastructureTemplate.Name, "-")
+			cl.Status.LastUsedUID = split[len(split)-1]
+		}
+	}
+	if r.hasDiff(ctx, cl) && validDiff {
 		cl.Status.LastUsedUID = string(uuid.NewUUID())
 	}
 	return vars, nil
@@ -184,7 +202,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	}
 	vars, err := r.templateVariables(ctx, &capiCluster, &cl)
 	if err != nil {
-		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
+		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
 	}
 	tpl := template.New(template.Options{
 		Directory: "clustertemplates",
@@ -192,11 +210,11 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	buff := &bytes.Buffer{}
 	err = tpl.YAML(buff, cl.Spec.InfrastructureProvider.Name, vars)
 	if err != nil {
-		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
+		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
 	}
 	objs, err := util.ToUnstructured(buff.Bytes())
 	if err != nil {
-		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{Requeue: true}, err
+		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
 	}
 	for _, o := range objs {
 		if o.GetAPIVersion() == capi.GroupVersion.String() && o.GetKind() == "Cluster" {
