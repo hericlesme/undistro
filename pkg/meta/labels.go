@@ -21,4 +21,5 @@ const (
 	LabelProviderType        = "undistro.io/provider-type"
 	LabelUndistro            = "undistro.io"
 	LabelUndistroMove        = "undistro.io/move"
+	LabelUndistroMoved       = "undistro.io/moved"
 )

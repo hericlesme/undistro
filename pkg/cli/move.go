@@ -23,6 +23,7 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/graph"
 	"github.com/getupio-undistro/undistro/pkg/kube"
+	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/pkg/errors"
@@ -384,7 +385,12 @@ func (o *MoveOptions) createTargetObject(ctx context.Context, nodeToCreate *grap
 		obj.SetOwnerReferences(ownerRefs)
 
 	}
-
+	labels := obj.GetLabels()
+	if labels == nil {
+		labels = make(map[string]string)
+	}
+	labels[meta.LabelUndistroMoved] = "true"
+	obj.SetLabels(labels)
 	if err := toProxy.Create(ctx, obj); err != nil {
 		if !apierrors.IsAlreadyExists(err) {
 			return errors.Wrapf(err, "error creating %q %s/%s",
@@ -406,6 +412,12 @@ func (o *MoveOptions) createTargetObject(ctx context.Context, nodeToCreate *grap
 
 		obj.SetUID(existingTargetObj.GetUID())
 		obj.SetResourceVersion(existingTargetObj.GetResourceVersion())
+		labels := obj.GetLabels()
+		if labels == nil {
+			labels = make(map[string]string)
+		}
+		labels[meta.LabelUndistroMoved] = "true"
+		obj.SetLabels(labels)
 		if err := toProxy.Update(ctx, obj); err != nil {
 			return errors.Wrapf(err, "error updating %q %s/%s",
 				obj.GroupVersionKind(), obj.GetNamespace(), obj.GetName())
