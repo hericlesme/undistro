@@ -339,7 +339,6 @@ func (o *MoveOptions) createGroup(ctx context.Context, group graph.MoveGroup, to
 func (o *MoveOptions) createTargetObject(ctx context.Context, nodeToCreate *graph.Node, toProxy client.Client, fromProxy client.Client) error {
 	log := log.Log
 	log.V(1).Info("Creating", nodeToCreate.Identity.Kind, nodeToCreate.Identity.Name, "Namespace", nodeToCreate.Identity.Namespace)
-
 	// Get the source object
 	obj := &unstructured.Unstructured{}
 	obj.SetAPIVersion(nodeToCreate.Identity.APIVersion)
@@ -351,7 +350,7 @@ func (o *MoveOptions) createTargetObject(ctx context.Context, nodeToCreate *grap
 
 	if err := fromProxy.Get(ctx, objKey, obj); err != nil {
 		if apierrors.IsNotFound(err) {
-			return nil
+			return err
 		}
 		return errors.Wrapf(err, "error reading %q %s/%s",
 			obj.GroupVersionKind(), obj.GetNamespace(), obj.GetName())
