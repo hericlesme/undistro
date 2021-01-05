@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"strings"
 
-	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/pkg/errors"
@@ -307,7 +306,14 @@ func (o *ObjectGraph) Discovery(namespace string) error {
 		}); err != nil {
 			return err
 		}
-
+		for i := range objList.Items {
+			labels := objList.Items[i].GetLabels()
+			if labels == nil {
+				labels = make(map[string]string)
+			}
+			labels[meta.LabelUndistroMove] = "true"
+			objList.Items[i].SetLabels(labels)
+		}
 		if len(objList.Items) == 0 {
 			continue
 		}
@@ -351,7 +357,7 @@ func getObjList(c client.Client, typeMeta metav1.TypeMeta, selectors []client.Li
 func (o *ObjectGraph) GetClusters() []*Node {
 	clusters := []*Node{}
 	for _, node := range o.uidToNode {
-		if node.Identity.GroupVersionKind().GroupKind() == appv1alpha1.GroupVersion.WithKind("Cluster").GroupKind() && node.Identity.Name != "undistro-test" {
+		if node.Identity.GroupVersionKind().GroupKind() == clusterv1.GroupVersion.WithKind("Cluster").GroupKind() && node.Identity.Name != "capi-test" {
 			clusters = append(clusters, node)
 		}
 	}
