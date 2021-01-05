@@ -56,7 +56,7 @@ func NewCmdCompletion(streams genericclioptions.IOStreams) *cobra.Command {
 	$ undistro completion fish > ~/.config/fish/completions/undistro.fish
 	`,
 		DisableFlagsInUseLine: true,
-		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
+		ValidArgs:             []string{"bash", "zsh", "fish"},
 		Args:                  cobra.ExactValidArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			switch args[0] {
