@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/getupio-undistro/undistro/pkg/version"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,7 +52,8 @@ func (r *HelmRelease) Default() {
 		r.Labels = make(map[string]string)
 	}
 	r.Labels[meta.LabelUndistro] = ""
-	r.Labels[meta.LabelUndistroClusterName] = r.Spec.ClusterName
+	key := util.ObjectKeyFromString(r.Spec.ClusterName)
+	r.Labels[meta.LabelUndistroClusterName] = key.Name
 	if r.Spec.ClusterName == "" {
 		r.Labels[meta.LabelUndistroClusterType] = "management"
 	} else {
