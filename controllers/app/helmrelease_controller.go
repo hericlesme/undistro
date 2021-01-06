@@ -35,7 +35,6 @@ import (
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/getter"
-	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/strvals"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -190,7 +189,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 			// Exponential backoff would cause execution to be prolonged too much,
 			// instead we requeue on a fixed interval.
 			return appv1alpha1.HelmReleaseNotReady(hr,
-				meta.DependencyNotReadyReason, err.Error()), ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+				meta.DependencyNotReadyReason, err.Error()), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
 		log.Info("all dependencies are ready, proceeding with release")
 	}
@@ -225,7 +224,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		return hr, ctrl.Result{}, err
 	}
 	meta.SetResourceCondition(&hr, meta.ObjectsAppliedCondition, metav1.ConditionTrue, meta.ObjectsAppliedSuccessReason, "objects successfully applied before install")
-	hr, err = r.reconcileRelease(ctx, getter, log, *hr.DeepCopy(), hc, values)
+	hr, err = r.reconcileRelease(ctx, getter, log, hr, hc, values)
 	if err != nil {
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ReconciliationFailedReason, err.Error())
 		return hr, ctrl.Result{}, err
@@ -288,12 +287,7 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, getter gen
 			return appv1alpha1.HelmReleaseReady(hr), nil
 		}
 	}
-	srel, _ := runner.Status(hr)
-	if srel != nil {
-		if srel.Info.Status != release.StatusDeployed && srel.Info.Status != release.StatusFailed {
-			return hr, nil
-		}
-	}
+
 	if rel == nil {
 		rel, err = runner.Install(hr, chart, values)
 		err = r.handleHelmActionResult(&hr, revision, err, "install", meta.ReleasedCondition, meta.InstallSucceededReason, meta.InstallFailedReason)
@@ -475,14 +469,14 @@ func (r *HelmReleaseReconciler) composeValues(ctx context.Context, hr appv1alpha
 
 func (r *HelmReleaseReconciler) getRESTClientGetter(ctx context.Context, hr appv1alpha1.HelmRelease) (genericclioptions.RESTClientGetter, error) {
 	if hr.Spec.ClusterName == "" {
-		return kube.NewInClusterRESTClientGetter(r.config, ""), nil
+		return kube.NewInClusterRESTClientGetter(r.config, hr.Spec.TargetNamespace), nil
 	}
 	key := util.ObjectKeyFromString(hr.Spec.ClusterName)
 	kubeConfig, err := kubeconfig.FromSecret(ctx, r.Client, key)
 	if err != nil {
 		return nil, err
 	}
-	return kube.NewMemoryRESTClientGetter(kubeConfig, ""), nil
+	return kube.NewMemoryRESTClientGetter(kubeConfig, hr.Spec.TargetNamespace), nil
 }
 
 func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, logger logr.Logger, hr appv1alpha1.HelmRelease) (ctrl.Result, error) {
