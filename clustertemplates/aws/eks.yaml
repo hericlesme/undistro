@@ -91,7 +91,7 @@ spec:
       {{if  .Cluster.Spec.Network.MultiZone}}
       availabilityZoneUsageLimit: 3
       {{else}}
-      availabilityZoneUsageLimit: 1
+      availabilityZoneUsageLimit: 2
       {{end}}
       {{if  .Cluster.Spec.Network.VPC.CIDRBlock}}
       cidrBlock: {{ .Cluster.Spec.Network.VPC.CIDRBlock}}
