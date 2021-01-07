@@ -99,7 +99,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	if !cl.DeletionTimestamp.IsZero() {
 		log.Info("Deleting")
-		return r.reconcileDelete(ctx, log, cl, capiCluster)
+		return r.reconcileDelete(ctx, log, cl)
 	}
 	cl, result, err := r.reconcile(ctx, log, cl, capiCluster)
 	return result, err
@@ -310,7 +310,8 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl appv1alpha1.Clust
 	return nil
 }
 
-func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (ctrl.Result, error) {
+func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Logger, cl appv1alpha1.Cluster) (ctrl.Result, error) {
+	capiCluster := capi.Cluster{}
 	err := r.Get(ctx, client.ObjectKeyFromObject(&cl), &capiCluster)
 	if apierrors.IsNotFound(err) {
 		controllerutil.RemoveFinalizer(&cl, meta.Finalizer)
@@ -320,7 +321,7 @@ func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Log
 		}
 		return ctrl.Result{}, nil
 	}
-	return ctrl.Result{}, r.Delete(ctx, &capiCluster)
+	return ctrl.Result{Requeue: true}, r.Delete(ctx, &capiCluster)
 }
 
 func (r *ClusterReconciler) capiToUndistro(o client.Object) []ctrl.Request {
