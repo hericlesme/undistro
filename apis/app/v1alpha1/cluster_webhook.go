@@ -66,17 +66,6 @@ func (r *Cluster) Default() {
 	if r.Spec.Bastion.Enabled == nil {
 		r.Spec.Bastion.Enabled = &bastionEnabled
 	}
-	for i := range r.Spec.Workers {
-		if r.Spec.Workers[i].Autoscale.Enabled == nil {
-			if r.Spec.Workers[i].Autoscale.MaxSize > 0 || r.Spec.Workers[i].Autoscale.MinSize > 0 {
-				enabled := true
-				r.Spec.Workers[i].Autoscale.Enabled = &enabled
-			} else {
-				enabled := false
-				r.Spec.Workers[i].Autoscale.Enabled = &enabled
-			}
-		}
-	}
 }
 
 // +kubebuilder:webhook:verbs=create;update,path=/validate-app-undistro-io-v1alpha1-cluster,mutating=false,failurePolicy=fail,groups=app.undistro.io,resources=clusters,versions=v1alpha1,name=vcluster.undistro.io,sideEffects=None,admissionReviewVersions=v1beta1

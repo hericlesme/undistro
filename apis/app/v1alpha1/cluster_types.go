@@ -73,7 +73,7 @@ type WorkerNode struct {
 }
 
 type Autoscaling struct {
-	Enabled *bool `json:"enabled,omitempty"`
+	Enabled bool `json:"enabled,omitempty"`
 	// The minimum size of the group.
 	MinSize int32 `json:"minSize,omitempty"`
 	// The maximum size of the group.
