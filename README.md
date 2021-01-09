@@ -14,6 +14,10 @@ By providing managed Kubernetes clusters for your infrastructure, UnDistro makes
 
 UnDistro provides live updates of your Kubernetes cluster without disrupting your daily business
 
+### Architecture
+
+The overarching architecture of UnDistro centers around a "management plane". This plane is expected to serve as a single interface upon which administrators can create, scale, upgrade, and delete Kubernetes clusters. At a high level view, the management plane + created clusters should look something like:
+![Image of Architecture](./docs/assets/arch.png)
 
 ### Requirements
 
@@ -227,6 +231,17 @@ spec:
 UnDistro will check new versions every 15 minutes.
 
 **NOTE:** UnDistro doesn't upgrade major versions.
+
+
+### Guides
+
+#### Install
+
+![Image of Install](./docs/assets/install.png)
+
+#### Usage
+
+![Image of Install](./docs/assets/usage.png)
 
 [Docker]: https://www.docker.com/
 [kind]: https://kind.sigs.k8s.io/
