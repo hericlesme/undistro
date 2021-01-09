@@ -119,6 +119,7 @@ spec:
 {{$namespace := .Cluster.Namespace}}
 {{$k8s := .Cluster.Spec.KubernetesVersion}}
 {{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
+{{$uid := .Cluster.Status.LastUsedUID}}
 {{range $index, $element := .Cluster.Spec.Workers}}
 ---
 apiVersion: exp.cluster.x-k8s.io/v1alpha3
@@ -134,8 +135,8 @@ spec:
       bootstrap:
         configRef:
           apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-          kind: EKSConfig
-          name: "{{$name}}-mp-{{$index}}"
+          kind: EKSConfigTemplate
+          name: "{{$name}}-mp-{{$uid}}-{{$index}}"
           namespace: "{{$namespace}}"
       clusterName: {{$name}}
       infrastructureRef:
@@ -176,18 +177,20 @@ spec:
   {{end}}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-kind: EKSConfig
+kind: EKSConfigTemplate
 metadata:
-  name: "{{$name}}-mp-{{$index}}"
+  name: "{{$name}}-mp-{{$uid}}-{{$index}}"
   namespace: "{{$namespace}}"
 spec:
-  KubeletExtraArgs:
-    {{$taints := $element.TaintTmpl}}
-    {{if $taints}}
-    register-with-taints: "{{$taints}}"
-    {{end}}
-    {{$labels := $element.LabelsTmpl}}
-    {{if $labels}}
-    node-labels: "{{$labels}}"
-    {{end}}
+  template:
+    spec:
+      KubeletExtraArgs:
+      {{$taints := $element.TaintTmpl}}
+      {{if $taints}}
+      register-with-taints: "{{$taints}}"
+      {{end}}
+      {{$labels := $element.LabelsTmpl}}
+      {{if $labels}}
+      node-labels: "{{$labels}}"
+      {{end}}
 {{end}}
