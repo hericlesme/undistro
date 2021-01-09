@@ -186,6 +186,7 @@ spec:
 {{$k8s := .Cluster.Spec.KubernetesVersion}}
 {{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
 {{$region := .Cluster.Spec.InfrastructureProvider.Region}}
+{{$uid := .Cluster.Status.LastUsedUID}}
 {{range $index, $element := .Cluster.Spec.Workers}}
 ---
 apiVersion: exp.cluster.x-k8s.io/v1alpha3
@@ -201,8 +202,8 @@ spec:
       bootstrap:
         configRef:
           apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-          kind: KubeadmConfig
-          name: "{{$name}}-mp-{{$index}}"
+          kind: KubeadmConfigTemplate
+          name: "{{$name}}-mp-{{$uid}}-{{$index}}"
           namespace: "{{$namespace}}"
       clusterName: {{$name}}
       infrastructureRef:
@@ -243,22 +244,24 @@ spec:
   {{end}}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-kind: KubeadmConfig
+kind: KubeadmConfigTemplate
 metadata:
-  name: "{{$name}}-mp-{{$index}}"
+  name: "{{$name}}-mp-{{$uid}}-{{$index}}"
   namespace: "{{$namespace}}"
 spec:
-  joinConfiguration:
-    nodeRegistration:
-      name: {{"'{{ ds.meta_data.local_hostname }}'"}}
-      kubeletExtraArgs:
-        cloud-provider: aws
-        {{$taints := $element.TaintTmpl}}
-        {{if $taints}}
-        register-with-taints: "{{$taints}}"
-        {{end}}
-        {{$labels := $element.LabelsTmpl}}
-        {{if $labels}}
-        node-labels: "{{$labels}}"
-        {{end}}
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          name: {{"'{{ ds.meta_data.local_hostname }}'"}}
+          kubeletExtraArgs:
+            cloud-provider: aws
+            {{$taints := $element.TaintTmpl}}
+            {{if $taints}}
+            register-with-taints: "{{$taints}}"
+            {{end}}
+            {{$labels := $element.LabelsTmpl}}
+            {{if $labels}}
+            node-labels: "{{$labels}}"
+            {{end}}
 {{end}}
