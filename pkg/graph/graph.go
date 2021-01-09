@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strings"
 
+	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/pkg/errors"
@@ -357,7 +358,7 @@ func getObjList(c client.Client, typeMeta metav1.TypeMeta, selectors []client.Li
 func (o *ObjectGraph) GetClusters() []*Node {
 	clusters := []*Node{}
 	for _, node := range o.uidToNode {
-		if node.Identity.GroupVersionKind().GroupKind() == clusterv1.GroupVersion.WithKind("Cluster").GroupKind() && node.Identity.Name != "capi-test" {
+		if node.Identity.GroupVersionKind().GroupKind() == appv1alpha1.GroupVersion.WithKind("Cluster").GroupKind() && node.Identity.Name != "undistro-test" {
 			clusters = append(clusters, node)
 		}
 	}
