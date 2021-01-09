@@ -241,7 +241,7 @@ UnDistro will check new versions every 15 minutes.
 
 #### Usage
 
-![Image of Install](./docs/assets/usage.png)
+![Image of Usage](./docs/assets/usage.png)
 
 [Docker]: https://www.docker.com/
 [kind]: https://kind.sigs.k8s.io/
