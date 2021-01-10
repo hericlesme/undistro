@@ -291,7 +291,7 @@ func getCRDList(ctx context.Context, c client.Client, crdList *apiextensionsv1.C
 // everything to the objects graph.
 func (o *ObjectGraph) Discovery(namespace string) error {
 	log := log.Log
-	fmt.Fprintln(o.Out, "discovering objects")
+	fmt.Fprintln(o.Out, "Discovering objects")
 
 	selectors := []client.ListOption{}
 	if namespace != "" {
