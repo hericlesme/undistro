@@ -29,6 +29,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
@@ -296,6 +297,10 @@ func (o *ObjectGraph) Discovery(namespace string) error {
 	selectors := []client.ListOption{}
 	if namespace != "" {
 		selectors = append(selectors, client.InNamespace(namespace))
+	} else {
+		selectors = append(selectors, &client.ListOptions{
+			FieldSelector: fields.OneTermNotEqualSelector("metadata.namespace", "undistro-system"),
+		})
 	}
 
 	for _, discoveryType := range o.types {
