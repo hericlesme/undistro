@@ -27,8 +27,7 @@
             "program": "${workspaceFolder}/cmd/undistro/main.go",
             "env": {},
             "args": [
-                "--v",
-                "10",
+                "--v=10",
                 "--config",
                 "${workspaceFolder}/undistro-config.yaml",
                 "move",

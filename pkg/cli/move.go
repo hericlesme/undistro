@@ -138,7 +138,7 @@ func (o *MoveOptions) RunMove(f cmdutil.Factory, cmd *cobra.Command) error {
 	if err != nil {
 		return err
 	}
-	if err := objectGraph.Discovery(""); err != nil {
+	if err := objectGraph.Discovery(o.Namespace); err != nil {
 		return err
 	}
 	// Check whether nodes are not included in GVK considered for move
@@ -446,6 +446,7 @@ func (o *MoveOptions) deleteSourceObject(ctx context.Context, nodeToDelete *grap
 func (o *MoveOptions) createTargetObject(ctx context.Context, nodeToCreate *graph.Node, toProxy client.Client, fromProxy client.Client) error {
 	log := log.Log
 	log.V(1).Info("Creating", nodeToCreate.Identity.Kind, nodeToCreate.Identity.Name, "Namespace", nodeToCreate.Identity.Namespace)
+
 	// Get the source object
 	obj := &unstructured.Unstructured{}
 	obj.SetAPIVersion(nodeToCreate.Identity.APIVersion)
