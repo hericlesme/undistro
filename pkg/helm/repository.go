@@ -168,8 +168,9 @@ func (r *ChartRepository) DownloadChart(chart *repo.ChartVersion) (*bytes.Buffer
 		repoURL.Path = strings.TrimSuffix(repoURL.Path, "/") + "/"
 		u = repoURL.ResolveReference(u)
 		u.RawQuery = q.Encode()
+	} else if u.Host != "" {
+		u.Host = fmt.Sprintf("%s.", u.Host)
 	}
-
 	return r.Client.Get(u.String(), r.Options...)
 }
 
