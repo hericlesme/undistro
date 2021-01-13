@@ -23,28 +23,25 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/util/homedir"
+	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type ConfigFlags struct {
 	ConfigFile *string
-	Verbosity  *int
 	*genericclioptions.ConfigFlags
 }
 
 // NewConfigFlags returns ConfigFlags with default values set
 func NewConfigFlags() *ConfigFlags {
 	return &ConfigFlags{
-		Verbosity:   intptr(0),
 		ConfigFile:  stringptr(""),
 		ConfigFlags: genericclioptions.NewConfigFlags(true),
 	}
 }
 
 func (f *ConfigFlags) AddFlags(flags *pflag.FlagSet, goflags *flag.FlagSet) {
-	if f.Verbosity != nil {
-		goflags.IntVar(f.Verbosity, "v", *f.Verbosity, "Set the log level verbosity.")
-	}
+	klog.InitFlags(goflags)
 	flags.AddGoFlagSet(goflags)
 	if f.ConfigFile != nil {
 		flags.StringVar(f.ConfigFile, "config", *f.ConfigFile, "Path to undistro configuration (default is `$HOME/.undistro/undistro.yaml`)")
@@ -54,7 +51,6 @@ func (f *ConfigFlags) AddFlags(flags *pflag.FlagSet, goflags *flag.FlagSet) {
 
 func (f *ConfigFlags) Init() func() {
 	return func() {
-		log.SetLogger(log.Log.V(*f.Verbosity))
 		home := homedir.HomeDir()
 		cfgPath := filepath.Join(home, ".undistro", "undistro.yaml")
 		if *f.ConfigFile != "" {
@@ -71,10 +67,6 @@ func (f *ConfigFlags) Init() func() {
 
 func stringptr(s string) *string {
 	return &s
-}
-
-func intptr(i int) *int {
-	return &i
 }
 
 type Credentials struct {
