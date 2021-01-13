@@ -127,3 +127,11 @@ bundle: manifests kustomize
 .PHONY: bundle-build
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+.PHONY: kind-load-image
+kind-load-image:
+    kind load docker-image $(IMG)
+	
+.PHONY: docker-build-no-test
+docker-build-no-test:
+    docker build . -t $(IMG)
