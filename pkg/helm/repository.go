@@ -171,6 +171,7 @@ func (r *ChartRepository) DownloadChart(chart *repo.ChartVersion) (*bytes.Buffer
 	} else if u.Host != "" {
 		u.Host = fmt.Sprintf("%s.", u.Host)
 	}
+	r.Options = append(r.Options, getter.WithURL(u.String()))
 	return r.Client.Get(u.String(), r.Options...)
 }
 

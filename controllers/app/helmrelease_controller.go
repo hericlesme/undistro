@@ -512,6 +512,6 @@ func (r *HelmReleaseReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	r.config = mgr.GetConfig()
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appv1alpha1.HelmRelease{}).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 1}).
 		Complete(r)
 }
