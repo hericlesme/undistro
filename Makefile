@@ -130,8 +130,8 @@ bundle-build:
 
 .PHONY: kind-load-image
 kind-load-image:
-    kind load docker-image $(IMG)
-	
+	kind load docker-image $(IMG)
+
 .PHONY: docker-build-no-test
 docker-build-no-test:
-    docker build . -t $(IMG)
+	docker build . -t $(IMG)
