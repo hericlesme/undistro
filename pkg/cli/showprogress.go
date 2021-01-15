@@ -68,8 +68,11 @@ func (o *ShowProgressOptions) RunShowProgress(f cmdutil.Factory, cmd *cobra.Comm
 		return errors.Errorf("unable to create client: %v", err)
 	}
 	w, err := c.CoreV1().Events("").Watch(cmd.Context(), metav1.ListOptions{
-		Watch:         true,
-		FieldSelector: fields.OneTermEqualSelector("involvedObject.name", o.ClusterName).String(),
+		Watch: true,
+		FieldSelector: fields.AndSelectors(
+			fields.OneTermEqualSelector("involvedObject.name", o.ClusterName),
+			fields.OneTermEqualSelector("involvedObject.namespace", o.Namespace),
+		).String(),
 	})
 	if err != nil {
 		return err
