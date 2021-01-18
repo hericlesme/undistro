@@ -193,17 +193,6 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		}
 		log.Info("all dependencies are ready, proceeding with release")
 	}
-	// Compose values
-	values, err := r.composeValues(ctx, hr)
-	if err != nil {
-		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.InitFailedReason, err.Error())
-		return hr, ctrl.Result{Requeue: true}, nil
-	}
-	hc, err := loader.LoadArchive(res)
-	if err != nil {
-		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.StorageOperationFailedReason, err.Error())
-		return hr, ctrl.Result{}, err
-	}
 	getter, err := r.getRESTClientGetter(ctx, hr)
 	if err != nil {
 		return hr, ctrl.Result{}, err
@@ -224,6 +213,17 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		return hr, ctrl.Result{}, err
 	}
 	meta.SetResourceCondition(&hr, meta.ObjectsAppliedCondition, metav1.ConditionTrue, meta.ObjectsAppliedSuccessReason, "objects successfully applied before install")
+	// Compose values
+	values, err := r.composeValues(ctx, hr)
+	if err != nil {
+		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.InitFailedReason, err.Error())
+		return hr, ctrl.Result{Requeue: true}, nil
+	}
+	hc, err := loader.LoadArchive(res)
+	if err != nil {
+		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.StorageOperationFailedReason, err.Error())
+		return hr, ctrl.Result{}, err
+	}
 	hr, err = r.reconcileRelease(ctx, getter, log, hr, hc, values)
 	if err != nil {
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.ReconciliationFailedReason, err.Error())
