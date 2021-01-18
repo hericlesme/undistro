@@ -146,6 +146,13 @@ When the cluster is ready you will see the output **Cluster reconciliation succe
 undistro get clusters
 ```
 
+### See the creation progress
+
+
+```
+undistro show-progress undistro-quickstart -n default
+```
+
 ### Getting cluster kubeconfig
 
 ```
