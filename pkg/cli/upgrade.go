@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"helm.sh/helm/v3/pkg/getter"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -80,6 +81,10 @@ func (o *UpgradeOptions) RunUpgrade(f cmdutil.Factory, cmd *cobra.Command) error
 		chartRepo, err := helm.NewChartRepository(undistroRepo, getters, clientOpts)
 		if err != nil {
 			return err
+		}
+		p.TypeMeta = metav1.TypeMeta{
+			Kind:       "Provider",
+			APIVersion: configv1alpha1.GroupVersion.String(),
 		}
 		fmt.Fprintf(o.IOStreams.Out, "Downloading repository index\n")
 		err = chartRepo.DownloadIndex()
