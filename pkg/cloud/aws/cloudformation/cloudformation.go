@@ -208,9 +208,35 @@ Resources:
           - elasticloadbalancing:RegisterInstancesWithLoadBalancer
           - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
           - elasticloadbalancing:RemoveTags
+          - autoscaling:DescribeAutoScalingGroups
+          - autoscaling:DescribeInstanceRefreshes
+          - ec2:CreateLaunchTemplate
+          - ec2:CreateLaunchTemplateVersion
+          - ec2:DescribeLaunchTemplates
+          - ec2:DescribeLaunchTemplateVersions
+          - ec2:DeleteLaunchTemplate
+          - ec2:DeleteLaunchTemplateVersions
           Effect: Allow
           Resource:
           - '*'
+        - Action:
+          - autoscaling:CreateAutoScalingGroup
+          - autoscaling:UpdateAutoScalingGroup
+          - autoscaling:CreateOrUpdateTags
+          - autoscaling:StartInstanceRefresh
+          - autoscaling:DeleteAutoScalingGroup
+          - autoscaling:DeleteTags
+          Effect: Allow
+          Resource:
+          - arn:aws:autoscaling:*:*:autoScalingGroup:*:autoScalingGroupName/*
+        - Action:
+          - iam:CreateServiceLinkedRole
+          Condition:
+            StringLike:
+              iam:AWSServiceName: autoscaling.amazonaws.com
+          Effect: Allow
+          Resource:
+          - arn:*:iam::*:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling
         - Action:
           - iam:CreateServiceLinkedRole
           Condition:
@@ -245,6 +271,31 @@ Resources:
           Resource:
           - arn:aws:ssm:*:*:parameter/aws/service/eks/optimized-ami/*
         - Action:
+          - iam:CreateServiceLinkedRole
+          Condition:
+            StringLike:
+              iam:AWSServiceName: eks.amazonaws.com
+          Effect: Allow
+          Resource:
+          - arn:aws:iam::*:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS
+        - Action:
+          - iam:CreateServiceLinkedRole
+          Condition:
+            StringLike:
+              iam:AWSServiceName: eks-nodegroup.amazonaws.com
+          Effect: Allow
+          Resource:
+          - arn:aws:iam::*:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup
+        - Action:
+          - iam:ListOpenIDConnectProviders
+          - iam:CreateOpenIDConnectProvider
+          - iam:AddClientIDToOpenIDConnectProvider
+          - iam:UpdateOpenIDConnectProviderThumbprint
+          - iam:DeleteOpenIDConnectProvider
+          Effect: Allow
+          Resource:
+          - '*'
+        - Action:
           - iam:GetRole
           - iam:ListAttachedRolePolicies
           - iam:DetachRolePolicy
@@ -278,6 +329,17 @@ Resources:
           Resource:
           - arn:aws:eks:*:*:cluster/*
           - arn:aws:eks:*:*:nodegroup/*/*/*
+        - Action:
+          - eks:ListAddons
+          - eks:CreateAddon
+          - eks:DescribeAddonVersions
+          - eks:DescribeAddon
+          - eks:DeleteAddon
+          - eks:UpdateAddon
+          - eks:TagResource
+          Effect: Allow
+          Resource:
+          - '*'
         - Action:
           - iam:PassRole
           Condition:
