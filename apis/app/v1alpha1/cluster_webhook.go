@@ -98,6 +98,16 @@ var _ webhook.Validator = &Cluster{}
 
 func (r *Cluster) validate(old *Cluster) error {
 	var allErrs field.ErrorList
+	if r.Spec.Bastion != nil {
+		if r.Spec.Bastion.Enabled != nil {
+			if *r.Spec.Bastion.Enabled && r.Spec.InfrastructureProvider.SSHKey == "" {
+				allErrs = append(allErrs, field.Required(
+					field.NewPath("spec", "infrastructureProvider", "sshKey"),
+					"sshKey is required when bastion is enabled",
+				))
+			}
+		}
+	}
 	if r.Spec.InfrastructureProvider.Flavor == "" {
 		allErrs = append(allErrs, field.Required(
 			field.NewPath("spec", "infrastructureProvider", "flavor"),
