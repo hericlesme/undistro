@@ -252,8 +252,8 @@ spec:
                       - name
                       type: object
                     type: array
-                  managed:
-                    type: boolean
+                  flavor:
+                    type: string
                   name:
                     type: string
                   region:
@@ -338,6 +338,8 @@ spec:
                           format: int32
                           type: integer
                       type: object
+                    infraNode:
+                      type: boolean
                     labels:
                       additionalProperties:
                         type: string
@@ -567,6 +569,8 @@ spec:
                           format: int32
                           type: integer
                       type: object
+                    infraNode:
+                      type: boolean
                     labels:
                       additionalProperties:
                         type: string
