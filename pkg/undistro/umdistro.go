@@ -38,4 +38,5 @@ spec:
   infrastructureProvider:
     name: aws
     sshKey: undistro
-    region: us-east1`
+    region: us-east1
+    flavor: ec2`
