@@ -139,7 +139,7 @@ spec:
       bootstrap:
         configRef:
           apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-          kind: EKSConfigTemplate
+          kind: EKSConfig
           name: "{{$name}}-mp-{{$uid}}-{{$index}}"
           namespace: "{{$namespace}}"
       clusterName: {{$name}}
@@ -187,20 +187,18 @@ kind: EKSConfigTemplate
 metadata:
   name: "{{$name}}-mp-{{$uid}}-{{$index}}"
   namespace: "{{$namespace}}"
+{{if $element.HasKubeletArgs}}
 spec:
-  template:
-    {{if $element.HasKubeletArgs}}
-    spec:
-      kubeletExtraArgs:
-        {{$taints := $element.TaintTmpl}}
-        {{if $taints}}
-        register-with-taints: "{{$taints}}"
-        {{end}}
-        {{$labels := $element.LabelsTmpl}}
-        {{if $labels}}
-        node-labels: "{{$labels}}"
-        {{end}}
-    {{else}}
-    spec: {}
+  kubeletExtraArgs:
+    {{$taints := $element.TaintTmpl}}
+    {{if $taints}}
+    register-with-taints: "{{$taints}}"
     {{end}}
+    {{$labels := $element.LabelsTmpl}}
+    {{if $labels}}
+    node-labels: "{{$labels}}"
+    {{end}}
+{{else}}
+spec: {}
+{{end}}
 {{end}}
