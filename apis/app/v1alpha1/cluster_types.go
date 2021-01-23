@@ -61,6 +61,10 @@ func (n Node) LabelsTmpl() string {
 	return strings.Join(lstr, ",")
 }
 
+func (n Node) HasKubeletArgs() bool {
+	return n.LabelsTmpl() != "" || n.TaintTmpl() != ""
+}
+
 type ControlPlaneNode struct {
 	Node       `json:",inline,omitempty"`
 	Endpoint   capi.APIEndpoint `json:"endpoint,omitempty"`
