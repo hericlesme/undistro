@@ -208,7 +208,7 @@ spec:
       bootstrap:
         configRef:
           apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-          kind: KubeadmConfigTemplate
+          kind: KubeadmConfig
           name: "{{$name}}-mp-{{$uid}}-{{$index}}"
           namespace: "{{$namespace}}"
       clusterName: {{$name}}
@@ -252,24 +252,22 @@ spec:
   {{end}}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-kind: KubeadmConfigTemplate
+kind: KubeadmConfig
 metadata:
   name: "{{$name}}-mp-{{$uid}}-{{$index}}"
   namespace: "{{$namespace}}"
 spec:
-  template:
-    spec:
-      joinConfiguration:
-        nodeRegistration:
-          name: {{"'{{ ds.meta_data.local_hostname }}'"}}
-          kubeletExtraArgs:
-            cloud-provider: aws
-            {{$taints := $element.TaintTmpl}}
-            {{if $taints}}
-            register-with-taints: "{{$taints}}"
-            {{end}}
-            {{$labels := $element.LabelsTmpl}}
-            {{if $labels}}
-            node-labels: "{{$labels}}"
-            {{end}}
+  joinConfiguration:
+    nodeRegistration:
+      name: {{"'{{ ds.meta_data.local_hostname }}'"}}
+      kubeletExtraArgs:
+        cloud-provider: aws
+        {{$taints := $element.TaintTmpl}}
+        {{if $taints}}
+        register-with-taints: "{{$taints}}"
+        {{end}}
+        {{$labels := $element.LabelsTmpl}}
+        {{if $labels}}
+        node-labels: "{{$labels}}"
+        {{end}}
 {{end}}
