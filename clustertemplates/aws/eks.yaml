@@ -190,7 +190,7 @@ metadata:
 spec:
   template:
     spec:
-      KubeletExtraArgs:
+      kubeletExtraArgs:
       {{$taints := $element.TaintTmpl}}
       {{if $taints}}
       register-with-taints: "{{$taints}}"
