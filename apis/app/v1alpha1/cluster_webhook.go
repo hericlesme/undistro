@@ -83,11 +83,11 @@ func (r *Cluster) Default() {
 			}
 			r.Spec.Workers[i].Labels[meta.LabelUndistroInfra] = "true"
 			r.Spec.Workers[i].ProviderTags["infra-node"] = "true"
-			r.Spec.Workers[i].Taints = append(r.Spec.Workers[i].Taints, corev1.Taint{
+			r.Spec.Workers[i].Taints = []corev1.Taint{{
 				Key:    "dedicated",
 				Value:  "infra",
 				Effect: corev1.TaintEffectNoSchedule,
-			})
+			}}
 		}
 	}
 }
