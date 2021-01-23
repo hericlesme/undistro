@@ -189,8 +189,8 @@ metadata:
   namespace: "{{$namespace}}"
 spec:
   template:
+    {{if $element.HasKubeletArgs}}
     spec:
-      {{if $element.HasKubeletArgs}}
       kubeletExtraArgs:
         {{$taints := $element.TaintTmpl}}
         {{if $taints}}
@@ -200,5 +200,7 @@ spec:
         {{if $labels}}
         node-labels: "{{$labels}}"
         {{end}}
-      {{end}}
+    {{else}}
+    spec: {}
+    {{end}}
 {{end}}
