@@ -131,6 +131,29 @@ spec:
     region: us-east-1
     flavor: eks
 ```
+
+**configuring Infra Nodes in your cluster**
+
+```yaml
+apiVersion: app.undistro.io/v1alpha1
+kind: Cluster
+metadata:
+  name: undistro-quickstart
+  namespace: default
+spec:
+  kubernetesVersion: v1.19.5
+  workers:
+    - replicas: 3
+      machineType: t3.medium
+      infraNode: true
+  infrastructureProvider:
+    name: aws
+    region: us-east-1
+    flavor: eks
+```
+
+Adding `infraNode: true` in a worker (node pool) will add the label `node-role.undistro.io/infra: "true"` and the taint `dedicated=infra:NoSchedule` in each node off the node pool.
+
 **create a file with the content above.**
 
 ```
