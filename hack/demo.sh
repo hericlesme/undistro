@@ -61,7 +61,7 @@ spec:
     name: aws
     sshKey: ${AWS_SSH_KEY_NAME}
     region: ${AWS_REGION}
-    managed: true
+    flavor: eks
 EOF
 
 undistro create -f cluster-eks.yaml
