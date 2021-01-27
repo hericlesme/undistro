@@ -462,7 +462,7 @@ spec:
         env:
         - name: AWS_SHARED_CREDENTIALS_FILE
           value: /home/.aws/credentials
-        image: us.gcr.io/k8s-artifacts-prod/cluster-api-aws/cluster-api-aws-controller:v0.6.4
+        image: getupioundistro/cluster-api-aws-controller-amd64:v0.6.4-undistro
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -524,7 +524,7 @@ spec:
         - --metrics-addr=127.0.0.1:8080
         - --webhook-port=9443
         - --feature-gates=EKS=true,MachinePool=true
-        image: us.gcr.io/k8s-artifacts-prod/cluster-api-aws/cluster-api-aws-controller:v0.6.4
+        image: getupioundistro/cluster-api-aws-controller-amd64:v0.6.4-undistro
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
