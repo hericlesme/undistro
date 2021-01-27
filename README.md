@@ -187,6 +187,18 @@ undistro get kubeconfig undistro-quickstart -n default
 undistro --config undistro-config.yaml move undistro-quickstart -n default
 ```
 
+### Accessing cluster instances
+
+To accessing cluster instances is required to have a SSH key configured
+
+**Obtain public IP address of the bastion node**
+
+```
+undistro get cl 
+```
+
+
+
 ### Install Helm releases into a cluster
 
 ```yaml
