@@ -23,6 +23,7 @@ import (
 	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud"
 	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/undistro/pkg/predicate"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
@@ -51,9 +52,6 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	p := configv1alpha1.Provider{}
 	if err := r.Get(ctx, req.NamespacedName, &p); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
-	if p.Generation < p.Status.ObservedGeneration {
-		return ctrl.Result{}, nil
 	}
 	log := r.Log.WithValues("provider", req.NamespacedName)
 	patchHelper, err := patch.NewHelper(&p, r.Client)
@@ -210,5 +208,6 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&configv1alpha1.Provider{}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
+		WithEventFilter(predicate.ReconcileProviderChanges{}).
 		Complete(r)
 }

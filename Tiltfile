@@ -31,6 +31,8 @@ k8s_yaml(yaml())
 
 local_resource('recompile', generate() + binary(), deps=['controllers', 'main.go', 'pkg'])
 
+local('kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml')
+
 docker_build_with_restart(IMG, '.', 
  dockerfile='tilt.docker',
  entrypoint='/manager',

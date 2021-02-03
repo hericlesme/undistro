@@ -29,6 +29,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/cloud"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/undistro/pkg/predicate"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/template"
@@ -67,9 +68,6 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	cl := appv1alpha1.Cluster{}
 	if err := r.Get(ctx, req.NamespacedName, &cl); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
-	if cl.Generation < cl.Status.ObservedGeneration {
-		return ctrl.Result{}, nil
 	}
 	log := r.Log.WithValues("cluster", req.NamespacedName)
 	// Initialize the patch helper.
@@ -195,7 +193,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 			var err error
 			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, log, cl, capiCluster)
 			if err != nil {
-				return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{}, nil
+				return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{Requeue: true}, nil
 			}
 		}
 	}
@@ -249,7 +247,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	cl.Status.ControlPlane = *cl.Spec.ControlPlane
 	cl.Status.Workers = cl.Spec.Workers
 	cl.Status.BastionConfig = cl.Spec.Bastion
-	if capiCluster.Status.InfrastructureReady && capiCluster.Status.ControlPlaneReady && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned {
+	if capiCluster.Status.ControlPlaneReady && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned {
 		err = r.reconcileNodes(ctx, cl, capiCluster)
 		if err != nil {
 			return appv1alpha1.ClusterNotReady(cl, meta.ReconcileNodesFailed, err.Error()), ctrl.Result{}, err
@@ -257,7 +255,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		cl = appv1alpha1.ClusterReady(cl)
 		return cl, ctrl.Result{}, nil
 	}
-	return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{}, nil
+	return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
 }
 
 func (r *ClusterReconciler) reconcileNodes(ctx context.Context, cl appv1alpha1.Cluster, capiCluster capi.Cluster) error {
@@ -468,5 +466,6 @@ func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			},
 			handler.EnqueueRequestsFromMapFunc(r.capiToUndistro),
 		).
+		WithEventFilter(predicate.ReconcileClusterChanges{}).
 		Complete(r)
 }
