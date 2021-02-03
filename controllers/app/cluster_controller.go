@@ -19,13 +19,14 @@ package controllers
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/cloud"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
@@ -66,6 +67,9 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	cl := appv1alpha1.Cluster{}
 	if err := r.Get(ctx, req.NamespacedName, &cl); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	if cl.Generation < cl.Status.ObservedGeneration {
+		return ctrl.Result{}, nil
 	}
 	log := r.Log.WithValues("cluster", req.NamespacedName)
 	// Initialize the patch helper.
@@ -175,31 +179,29 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	for _, cond := range cl.Status.Conditions {
 		meta.SetResourceCondition(&cl, cond.Type, cond.Status, cond.Reason, cond.Message)
 	}
-	if capiCluster.Status.ControlPlaneInitialized && !capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureProvider.IsManaged() {
-		log.Info("installing calico")
-		err := r.installCNI(ctx, cl)
-		if err != nil {
-			meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionFalse, meta.CNIInstalledFailedReason, err.Error())
-			return cl, ctrl.Result{}, err
+	if !meta.InCNIInstalledCondition(cl.Status.Conditions) {
+		if capiCluster.Status.ControlPlaneInitialized && !capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureProvider.IsManaged() {
+			log.Info("installing calico")
+			err := r.installCNI(ctx, cl)
+			if err != nil {
+				meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionFalse, meta.CNIInstalledFailedReason, err.Error())
+				return cl, ctrl.Result{}, err
+			}
+			meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
 		}
-		meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
 	}
 	if cl.Spec.Bastion != nil {
 		if *cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
 			var err error
 			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, log, cl, capiCluster)
 			if err != nil {
-				return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{Requeue: true}, nil
+				return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{}, nil
 			}
 		}
 	}
-	if capiCluster.Spec.ClusterNetwork != nil {
-		if !reflect.DeepEqual(*capiCluster.Spec.ClusterNetwork, capi.ClusterNetwork{}) && reflect.DeepEqual(cl.Spec.Network.ClusterNetwork, capi.ClusterNetwork{}) {
-			cl.Spec.Network.ClusterNetwork = *capiCluster.Spec.ClusterNetwork
-		}
-	}
-	if !reflect.DeepEqual(capiCluster.Spec.ControlPlaneEndpoint, capi.APIEndpoint{}) && reflect.DeepEqual(cl.Spec.ControlPlane.Endpoint, capi.APIEndpoint{}) {
-		cl.Spec.ControlPlane.Endpoint = capiCluster.Spec.ControlPlaneEndpoint
+	err := cloud.ReconcileNetwork(ctx, r.Client, &cl, &capiCluster)
+	if err != nil {
+		return appv1alpha1.ClusterNotReady(cl, meta.ReconcileNetworkFailed, err.Error()), ctrl.Result{}, err
 	}
 	vars, err := r.templateVariables(ctx, &capiCluster, &cl)
 	if err != nil {
@@ -225,6 +227,14 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 			}
 		}
 		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+			labels := o.GetLabels()
+			if labels == nil {
+				labels = make(map[string]string)
+			}
+			labels[meta.LabelUndistro] = ""
+			labels[meta.LabelUndistroClusterName] = cl.Name
+			labels[capi.ClusterLabelName] = cl.Name
+			o.SetLabels(labels)
 			_, err = util.CreateOrUpdate(ctx, r.Client, &o)
 			if err != nil {
 				return err
@@ -247,7 +257,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		cl = appv1alpha1.ClusterReady(cl)
 		return cl, ctrl.Result{}, nil
 	}
-	return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
+	return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{}, nil
 }
 
 func (r *ClusterReconciler) reconcileNodes(ctx context.Context, cl appv1alpha1.Cluster, capiCluster capi.Cluster) error {
@@ -296,8 +306,18 @@ func (r *ClusterReconciler) reconcileNodes(ctx context.Context, cl appv1alpha1.C
 		return err
 	}
 	for _, mp := range mpList.Items {
+		if mp.Labels[capi.ClusterLabelName] != cl.Name {
+			continue
+		}
 		w, err := cl.GetWorkerRefByMachinePool(mp.Name)
 		if err != nil {
+			if err == appv1alpha1.InvalidMP {
+				err = r.Delete(ctx, &mp)
+				if err != nil {
+					return err
+				}
+				continue
+			}
 			return err
 		}
 		if len(w.Labels) == 0 && len(w.Taints) == 0 {
@@ -310,7 +330,10 @@ func (r *ClusterReconciler) reconcileNodes(ctx context.Context, cl appv1alpha1.C
 			node := corev1.Node{}
 			err = wc.Get(ctx, key, &node)
 			if err != nil {
-				return err
+				if client.IgnoreNotFound(err) != nil {
+					return err
+				}
+				continue
 			}
 			if node.Labels == nil {
 				node.Labels = make(map[string]string)
@@ -398,7 +421,29 @@ func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Log
 		}
 		return ctrl.Result{}, nil
 	}
-	return ctrl.Result{Requeue: true}, r.Delete(ctx, &capiCluster)
+	err = r.Delete(ctx, &capiCluster)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	for i := range cl.Spec.Workers {
+		key := client.ObjectKey{
+			Name:      fmt.Sprintf("%s-mp-%d", cl.Name, i),
+			Namespace: cl.GetNamespace(),
+		}
+		mp := capiexp.MachinePool{}
+		err = r.Get(ctx, key, &mp)
+		if err != nil {
+			if client.IgnoreNotFound(err) != nil {
+				return ctrl.Result{}, err
+			}
+			continue
+		}
+		err = r.Delete(ctx, &mp)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+	return ctrl.Result{Requeue: true}, nil
 }
 
 func (r *ClusterReconciler) capiToUndistro(o client.Object) []ctrl.Request {
@@ -413,28 +458,6 @@ func (r *ClusterReconciler) capiToUndistro(o client.Object) []ctrl.Request {
 	}
 }
 
-func (r *ClusterReconciler) mpToUndistro(o client.Object) []ctrl.Request {
-	capiMP, ok := o.(*capiexp.MachinePool)
-	if !ok {
-		return nil
-	}
-	if capiMP.Labels == nil {
-		return nil
-	}
-	name, ok := capiMP.Labels[capi.ClusterLabelName]
-	if !ok {
-		return nil
-	}
-	return []ctrl.Request{
-		{
-			NamespacedName: client.ObjectKey{
-				Name:      name,
-				Namespace: capiMP.GetNamespace(),
-			},
-		},
-	}
-}
-
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appv1alpha1.Cluster{}).
@@ -444,12 +467,6 @@ func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				Type: &capi.Cluster{},
 			},
 			handler.EnqueueRequestsFromMapFunc(r.capiToUndistro),
-		).
-		Watches(
-			&source.Kind{
-				Type: &capiexp.MachinePool{},
-			},
-			handler.EnqueueRequestsFromMapFunc(r.mpToUndistro),
 		).
 		Complete(r)
 }
