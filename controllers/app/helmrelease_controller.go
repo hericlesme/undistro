@@ -27,6 +27,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/helm"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/undistro/pkg/predicate"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/getupio-undistro/undistro/pkg/version"
@@ -75,9 +76,6 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	hr := appv1alpha1.HelmRelease{}
 	if err := r.Get(ctx, req.NamespacedName, &hr); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
-	if hr.Generation < hr.Status.ObservedGeneration {
-		return ctrl.Result{}, nil
 	}
 	log := r.Log.WithValues("helmrelease", req.NamespacedName)
 	// Initialize the patch helper.
@@ -516,5 +514,6 @@ func (r *HelmReleaseReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appv1alpha1.HelmRelease{}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 1}).
+		WithEventFilter(predicate.ReconcileHelmReleaseChanges{}).
 		Complete(r)
 }
