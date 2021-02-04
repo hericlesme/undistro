@@ -52,9 +52,7 @@ func (ReconcileClusterChanges) Update(e event.UpdateEvent) bool {
 	if !n.DeletionTimestamp.IsZero() {
 		return true
 	}
-	if old.Generation < n.Generation {
-		return true
-	}
+
 	if !meta.InReadyCondition(n.Status.Conditions) {
 		return true
 	}
@@ -89,9 +87,7 @@ func (ReconcileHelmReleaseChanges) Update(e event.UpdateEvent) bool {
 	if !n.DeletionTimestamp.IsZero() {
 		return true
 	}
-	if old.Generation < n.Generation {
-		return true
-	}
+
 	if !meta.InReadyCondition(n.Status.Conditions) {
 		return true
 	}
@@ -126,9 +122,7 @@ func (ReconcileProviderChanges) Update(e event.UpdateEvent) bool {
 	if !n.DeletionTimestamp.IsZero() {
 		return true
 	}
-	if old.Generation < n.Generation {
-		return true
-	}
+
 	if !meta.InReadyCondition(n.Status.Conditions) {
 		return true
 	}
