@@ -17,114 +17,50 @@ package predicate
 
 import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
-	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/google/go-cmp/cmp"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-type ReconcileClusterChanges struct {
+type ClusterChanges struct {
 	predicate.Funcs
 }
 
-func (ReconcileClusterChanges) Update(e event.UpdateEvent) bool {
+func (ClusterChanges) Update(e event.UpdateEvent) bool {
 	if e.ObjectOld == nil || e.ObjectNew == nil {
 		return false
 	}
-	old, ok := e.ObjectOld.(*appv1alpha1.Cluster)
+	cOld, ok := e.ObjectOld.(*appv1alpha1.Cluster)
 	if !ok {
 		return false
 	}
-	n, ok := e.ObjectNew.(*appv1alpha1.Cluster)
+	cn, ok := e.ObjectNew.(*appv1alpha1.Cluster)
 	if !ok {
 		return false
 	}
-	if !cmp.Equal(old.Spec, n.Spec) {
-		return true
+	old := cOld.DeepCopy()
+	n := cn.DeepCopy()
+	if meta.InReadyCondition(old.Status.Conditions) && meta.InReadyCondition(n.Status.Conditions) &&
+		cmp.Equal(old.Spec, n.Spec) && cmp.Equal(old.Status, n.Status) && n.DeletionTimestamp.IsZero() {
+		return false
 	}
-	if !cmp.Equal(old.Labels, n.Labels) {
-		return true
-	}
-	if !cmp.Equal(old.Annotations, n.Annotations) {
-		return true
-	}
-	if !n.DeletionTimestamp.IsZero() {
-		return true
-	}
-
-	if !meta.InReadyCondition(n.Status.Conditions) {
-		return true
-	}
-	return false
+	return true
 }
 
-type ReconcileHelmReleaseChanges struct {
+type ReconcileChanges struct {
 	predicate.Funcs
 }
 
-func (ReconcileHelmReleaseChanges) Update(e event.UpdateEvent) bool {
+func (ReconcileChanges) Update(e event.UpdateEvent) bool {
 	if e.ObjectOld == nil || e.ObjectNew == nil {
 		return false
 	}
-	old, ok := e.ObjectOld.(*appv1alpha1.HelmRelease)
-	if !ok {
+	if e.ObjectOld.GetGeneration() == e.ObjectNew.GetGeneration() {
 		return false
 	}
-	n, ok := e.ObjectNew.(*appv1alpha1.HelmRelease)
-	if !ok {
+	if e.ObjectOld.GetResourceVersion() == e.ObjectNew.GetResourceVersion() {
 		return false
 	}
-	if !cmp.Equal(old.Spec, n.Spec) {
-		return true
-	}
-	if !cmp.Equal(old.Labels, n.Labels) {
-		return true
-	}
-	if !cmp.Equal(old.Annotations, n.Annotations) {
-		return true
-	}
-	if !n.DeletionTimestamp.IsZero() {
-		return true
-	}
-
-	if !meta.InReadyCondition(n.Status.Conditions) {
-		return true
-	}
-	return false
-}
-
-type ReconcileProviderChanges struct {
-	predicate.Funcs
-}
-
-func (ReconcileProviderChanges) Update(e event.UpdateEvent) bool {
-	if e.ObjectOld == nil || e.ObjectNew == nil {
-		return false
-	}
-	old, ok := e.ObjectOld.(*configv1alpha1.Provider)
-	if !ok {
-		return false
-	}
-	n, ok := e.ObjectNew.(*configv1alpha1.Provider)
-	if !ok {
-		return false
-	}
-	if !cmp.Equal(old.Spec, n.Spec) {
-		return true
-	}
-	if !cmp.Equal(old.Labels, n.Labels) {
-		return true
-	}
-	if !cmp.Equal(old.Annotations, n.Annotations) {
-		return true
-	}
-	if !n.DeletionTimestamp.IsZero() {
-		return true
-	}
-
-	if !meta.InReadyCondition(n.Status.Conditions) {
-		return true
-	}
-	return false
+	return true
 }

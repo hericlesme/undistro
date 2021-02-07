@@ -157,7 +157,7 @@ func (r *ClusterReconciler) getBastionIP(ctx context.Context, log logr.Logger, c
 		o.SetGroupVersionKind(ref.GroupVersionKind())
 		err := r.Get(ctx, key, &o)
 		if err != nil {
-			return "", err
+			return "", client.IgnoreNotFound(err)
 		}
 		ip, _, err := unstructured.NestedString(o.Object, "status", "bastion", "publicIp")
 		if err != nil {
@@ -174,9 +174,6 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	for _, w := range cl.Spec.Workers {
 		cl.Status.TotalWorkerReplicas += *w.Replicas
 	}
-	for _, cond := range cl.Status.Conditions {
-		meta.SetResourceCondition(&cl, cond.Type, cond.Status, cond.Reason, cond.Message)
-	}
 	if !meta.InCNIInstalledCondition(cl.Status.Conditions) {
 		if capiCluster.Status.ControlPlaneInitialized && !capiCluster.Status.ControlPlaneReady && !cl.Spec.InfrastructureProvider.IsManaged() {
 			log.Info("installing calico")
@@ -186,6 +183,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 				return cl, ctrl.Result{}, err
 			}
 			meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
+			return cl, ctrl.Result{}, nil
 		}
 	}
 	if cl.Spec.Bastion != nil {
@@ -247,7 +245,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	cl.Status.ControlPlane = *cl.Spec.ControlPlane
 	cl.Status.Workers = cl.Spec.Workers
 	cl.Status.BastionConfig = cl.Spec.Bastion
-	if capiCluster.Status.ControlPlaneReady && capiCluster.Status.GetTypedPhase() == capi.ClusterPhaseProvisioned {
+	if capiCluster.Status.ControlPlaneReady && capiCluster.Status.InfrastructureReady {
 		err = r.reconcileNodes(ctx, cl, capiCluster)
 		if err != nil {
 			return appv1alpha1.ClusterNotReady(cl, meta.ReconcileNodesFailed, err.Error()), ctrl.Result{}, err
@@ -255,7 +253,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		cl = appv1alpha1.ClusterReady(cl)
 		return cl, ctrl.Result{}, nil
 	}
-	return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{Requeue: true}, nil
+	return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 }
 
 func (r *ClusterReconciler) reconcileNodes(ctx context.Context, cl appv1alpha1.Cluster, capiCluster capi.Cluster) error {
@@ -445,8 +443,8 @@ func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Log
 }
 
 func (r *ClusterReconciler) capiToUndistro(o client.Object) []ctrl.Request {
-	capiCluster, ok := o.(*capi.Cluster)
-	if !ok {
+	capiCluster := o.(*capi.Cluster).DeepCopy()
+	if capiCluster.Status.Phase == "" {
 		return nil
 	}
 	return []ctrl.Request{
@@ -466,6 +464,6 @@ func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			},
 			handler.EnqueueRequestsFromMapFunc(r.capiToUndistro),
 		).
-		WithEventFilter(predicate.ReconcileClusterChanges{}).
+		WithEventFilter(predicate.ClusterChanges{}).
 		Complete(r)
 }
