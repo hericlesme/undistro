@@ -514,6 +514,6 @@ func (r *HelmReleaseReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appv1alpha1.HelmRelease{}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 1}).
-		WithEventFilter(predicate.ReconcileHelmReleaseChanges{}).
+		WithEventFilter(predicate.ReconcileChanges{}).
 		Complete(r)
 }

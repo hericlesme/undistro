@@ -65,7 +65,7 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 	}
 	err := r.Get(ctx, key, &u)
 	if err != nil {
-		return err
+		return client.IgnoreNotFound(err)
 	}
 	return clusterNetwork(ctx, cl, u)
 }

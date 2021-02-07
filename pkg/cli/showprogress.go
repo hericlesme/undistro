@@ -22,6 +22,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -30,6 +32,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type ShowProgressOptions struct {
@@ -65,7 +68,22 @@ func (o *ShowProgressOptions) RunShowProgress(f cmdutil.Factory, cmd *cobra.Comm
 	cfg.Timeout = 0
 	c, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
+		return errors.Errorf("unable to create event client: %v", err)
+	}
+	k8sClient, err := client.New(cfg, client.Options{
+		Scheme: scheme.Scheme,
+	})
+	if err != nil {
 		return errors.Errorf("unable to create client: %v", err)
+	}
+	key := client.ObjectKey{
+		Name:      o.ClusterName,
+		Namespace: o.Namespace,
+	}
+	obj := appv1alpha1.Cluster{}
+	err = k8sClient.Get(cmd.Context(), key, &obj)
+	if err != nil {
+		return err
 	}
 	w, err := c.CoreV1().Events("").Watch(cmd.Context(), metav1.ListOptions{
 		Watch: true,
@@ -82,7 +100,9 @@ func (o *ShowProgressOptions) RunShowProgress(f cmdutil.Factory, cmd *cobra.Comm
 	go func(ctx context.Context) {
 		for e := range w.ResultChan() {
 			ev := e.Object.(*corev1.Event)
-			fmt.Fprintln(o.IOStreams.Out, ev.Message)
+			if ev.CreationTimestamp.After(obj.GetCreationTimestamp().Time) && (ev.Reason != "" || ev.Message != "") {
+				fmt.Fprintf(o.IOStreams.Out, "Reason: %s Message: %s\n", ev.Reason, ev.Message)
+			}
 		}
 	}(cmd.Context())
 	<-sig

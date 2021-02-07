@@ -208,6 +208,6 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&configv1alpha1.Provider{}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
-		WithEventFilter(predicate.ReconcileProviderChanges{}).
+		WithEventFilter(predicate.ReconcileChanges{}).
 		Complete(r)
 }
