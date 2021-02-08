@@ -16,6 +16,7 @@ limitations under the License.
 package template
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"os"
@@ -24,6 +25,8 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/getupio-undistro/undistro/pkg/util"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 // Options is a struct for specifying configuration options for the render.Render object.
@@ -192,4 +195,20 @@ func (r *Render) YAML(w io.Writer, name string, binding interface{}) error {
 		Templates: r.templates,
 	}
 	return r.Render(w, h, binding)
+}
+
+func GetObjs(dir, tplName string, vars map[string]interface{}) ([]unstructured.Unstructured, error) {
+	tpl := New(Options{
+		Directory: dir,
+	})
+	buff := &bytes.Buffer{}
+	err := tpl.YAML(buff, tplName, vars)
+	if err != nil {
+		return nil, err
+	}
+	objs, err := util.ToUnstructured(buff.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	return objs, nil
 }
