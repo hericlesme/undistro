@@ -17,6 +17,7 @@ package predicate
 
 import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/google/go-cmp/cmp"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -48,18 +49,51 @@ func (ClusterChanges) Update(e event.UpdateEvent) bool {
 	return true
 }
 
-type ReconcileChanges struct {
+type HelmReleaseChanges struct {
 	predicate.Funcs
 }
 
-func (ReconcileChanges) Update(e event.UpdateEvent) bool {
+func (HelmReleaseChanges) Update(e event.UpdateEvent) bool {
 	if e.ObjectOld == nil || e.ObjectNew == nil {
 		return false
 	}
-	if e.ObjectOld.GetGeneration() == e.ObjectNew.GetGeneration() {
+	cOld, ok := e.ObjectOld.(*appv1alpha1.HelmRelease)
+	if !ok {
 		return false
 	}
-	if e.ObjectOld.GetResourceVersion() == e.ObjectNew.GetResourceVersion() {
+	cn, ok := e.ObjectNew.(*appv1alpha1.HelmRelease)
+	if !ok {
+		return false
+	}
+	old := cOld.DeepCopy()
+	n := cn.DeepCopy()
+	if meta.InReadyCondition(old.Status.Conditions) && meta.InReadyCondition(n.Status.Conditions) &&
+		cmp.Equal(old.Spec, n.Spec) && cmp.Equal(old.Status, n.Status) && n.DeletionTimestamp.IsZero() {
+		return false
+	}
+	return true
+}
+
+type ProviderChanges struct {
+	predicate.Funcs
+}
+
+func (ProviderChanges) Update(e event.UpdateEvent) bool {
+	if e.ObjectOld == nil || e.ObjectNew == nil {
+		return false
+	}
+	cOld, ok := e.ObjectOld.(*configv1alpha1.Provider)
+	if !ok {
+		return false
+	}
+	cn, ok := e.ObjectNew.(*configv1alpha1.Provider)
+	if !ok {
+		return false
+	}
+	old := cOld.DeepCopy()
+	n := cn.DeepCopy()
+	if meta.InReadyCondition(old.Status.Conditions) && meta.InReadyCondition(n.Status.Conditions) &&
+		cmp.Equal(old.Spec, n.Spec) && cmp.Equal(old.Status, n.Status) && n.DeletionTimestamp.IsZero() {
 		return false
 	}
 	return true
