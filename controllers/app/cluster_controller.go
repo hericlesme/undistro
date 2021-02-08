@@ -183,7 +183,6 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 				return cl, ctrl.Result{}, err
 			}
 			meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
-			return cl, ctrl.Result{}, nil
 		}
 	}
 	if cl.Spec.Bastion != nil {
