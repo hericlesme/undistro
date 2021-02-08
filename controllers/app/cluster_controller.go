@@ -198,46 +198,41 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.ReconcileNetworkFailed, err.Error()), ctrl.Result{}, err
 	}
-	vars, err := r.templateVariables(ctx, &capiCluster, &cl)
-	if err != nil {
-		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
-	}
-	tpl := template.New(template.Options{
-		Directory: "clustertemplates",
-	})
-	buff := &bytes.Buffer{}
-	err = tpl.YAML(buff, cl.GetTemplate(), vars)
-	if err != nil {
-		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
-	}
-	objs, err := util.ToUnstructured(buff.Bytes())
-	if err != nil {
-		return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
-	}
-	for _, o := range objs {
-		if o.GetAPIVersion() == capi.GroupVersion.String() && o.GetKind() == "Cluster" {
-			err = ctrl.SetControllerReference(&cl, &o, scheme.Scheme)
+	if r.hasDiff(ctx, &cl) {
+		vars, err := r.templateVariables(ctx, &capiCluster, &cl)
+		if err != nil {
+			return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
+		}
+
+		objs, err := template.GetObjs("clustertemplates", cl.GetTemplate(), vars)
+		if err != nil {
+			return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
+		}
+		for _, o := range objs {
+			if o.GetAPIVersion() == capi.GroupVersion.String() && o.GetKind() == "Cluster" {
+				err = ctrl.SetControllerReference(&cl, &o, scheme.Scheme)
+				if err != nil {
+					return cl, ctrl.Result{}, err
+				}
+			}
+			err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+				labels := o.GetLabels()
+				if labels == nil {
+					labels = make(map[string]string)
+				}
+				labels[meta.LabelUndistro] = ""
+				labels[meta.LabelUndistroClusterName] = cl.Name
+				labels[capi.ClusterLabelName] = cl.Name
+				o.SetLabels(labels)
+				_, err = util.CreateOrUpdate(ctx, r.Client, &o)
+				if err != nil {
+					return err
+				}
+				return nil
+			})
 			if err != nil {
 				return cl, ctrl.Result{}, err
 			}
-		}
-		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-			labels := o.GetLabels()
-			if labels == nil {
-				labels = make(map[string]string)
-			}
-			labels[meta.LabelUndistro] = ""
-			labels[meta.LabelUndistroClusterName] = cl.Name
-			labels[capi.ClusterLabelName] = cl.Name
-			o.SetLabels(labels)
-			_, err = util.CreateOrUpdate(ctx, r.Client, &o)
-			if err != nil {
-				return err
-			}
-			return nil
-		})
-		if err != nil {
-			return cl, ctrl.Result{}, err
 		}
 	}
 	cl.Status.KubernetesVersion = cl.Spec.KubernetesVersion

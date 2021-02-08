@@ -24,6 +24,7 @@ import (
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
+	"github.com/getupio-undistro/undistro/pkg/template"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -85,12 +86,17 @@ func (o *ShowProgressOptions) RunShowProgress(f cmdutil.Factory, cmd *cobra.Comm
 	if err != nil {
 		return err
 	}
+	vars := map[string]interface{}{
+		"ENV":     make(map[string]interface{}),
+		"Cluster": &obj,
+	}
+	objs, err := template.GetObjs("clustertemplates", obj.GetTemplate(), vars)
+	if err != nil {
+		return err
+	}
 	w, err := c.CoreV1().Events("").Watch(cmd.Context(), metav1.ListOptions{
-		Watch: true,
-		FieldSelector: fields.AndSelectors(
-			fields.OneTermEqualSelector("involvedObject.name", o.ClusterName),
-			fields.OneTermEqualSelector("involvedObject.namespace", o.Namespace),
-		).String(),
+		Watch:         true,
+		FieldSelector: fields.OneTermEqualSelector("involvedObject.namespace", o.Namespace).String(),
 	})
 	if err != nil {
 		return err
@@ -100,8 +106,12 @@ func (o *ShowProgressOptions) RunShowProgress(f cmdutil.Factory, cmd *cobra.Comm
 	go func(ctx context.Context) {
 		for e := range w.ResultChan() {
 			ev := e.Object.(*corev1.Event)
-			if ev.CreationTimestamp.After(obj.GetCreationTimestamp().Time) && (ev.Reason != "" || ev.Message != "") {
-				fmt.Fprintf(o.IOStreams.Out, "Reason: %s Message: %s\n", ev.Reason, ev.Message)
+			if ev.CreationTimestamp.After(obj.GetCreationTimestamp().Time) && (ev.Reason != "" || ev.Message != "") && ev.Count == 1 {
+				for _, item := range objs {
+					if item.GetName() == ev.InvolvedObject.Name {
+						fmt.Fprintf(o.IOStreams.Out, "Reason: %s Message: %s\n", ev.Reason, ev.Message)
+					}
+				}
 			}
 		}
 	}(cmd.Context())
