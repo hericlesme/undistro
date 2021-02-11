@@ -94,7 +94,7 @@ func (o *ShowProgressOptions) RunShowProgress(f cmdutil.Factory, cmd *cobra.Comm
 	if err != nil {
 		return err
 	}
-	w, err := c.CoreV1().Events("").Watch(cmd.Context(), metav1.ListOptions{
+	w, err := c.CoreV1().Events(o.Namespace).Watch(cmd.Context(), metav1.ListOptions{
 		Watch:         true,
 		FieldSelector: fields.OneTermEqualSelector("involvedObject.namespace", o.Namespace).String(),
 	})
@@ -110,6 +110,7 @@ func (o *ShowProgressOptions) RunShowProgress(f cmdutil.Factory, cmd *cobra.Comm
 				for _, item := range objs {
 					if item.GetName() == ev.InvolvedObject.Name {
 						fmt.Fprintf(o.IOStreams.Out, "Reason: %s Message: %s\n", ev.Reason, ev.Message)
+						break
 					}
 				}
 			}
