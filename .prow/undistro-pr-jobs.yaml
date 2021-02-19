@@ -7,7 +7,7 @@ presubmits:
     path_alias: "github.com/getupio-undistro/undistro"
     spec:
       containers:
-      - image: golang:1.15.8
+      - image: golang:1.16
         command:
         - "make"
         - "manager"
@@ -21,7 +21,7 @@ presubmits:
     path_alias: "github.com/getupio-undistro/undistro"
     spec:
       containers:
-      - image: golang:1.15.8
+      - image: golang:1.16
         command:
         - "make"
         - "cli"
@@ -35,7 +35,7 @@ presubmits:
     path_alias: "github.com/getupio-undistro/undistro"
     spec:
       containers:
-      - image: golang:1.15.8
+      - image: golang:1.16
         command:
         - "make"
         - "test"
