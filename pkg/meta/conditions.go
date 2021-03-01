@@ -161,12 +161,13 @@ const (
 	WaitChartReason     string = "WaitChart"
 	WaitProvisionReason string = "WaitClusterProvision"
 
-	CNIInstalledCondition     string = "CNIInstalled"
-	CNIInstalledSuccessReason string = "CNIInstalledSuccess"
-	CNIInstalledFailedReason  string = "CNIInstalledFailed"
-	TemplateAppliedFailed     string = "TemplateAppliedFailed"
-	ReconcileNodesFailed      string = "ReconcileNodesFailed"
-	ReconcileNetworkFailed    string = "ReconcileNetworkFailed"
+	CNIInstalledCondition         string = "CNIInstalled"
+	CNIInstalledSuccessReason     string = "CNIInstalledSuccess"
+	CNIInstalledFailedReason      string = "CNIInstalledFailed"
+	TemplateAppliedFailed         string = "TemplateAppliedFailed"
+	ReconcileNodesFailed          string = "ReconcileNodesFailed"
+	ReconcileNetworkFailed        string = "ReconcileNetworkFailed"
+	ReconcileLaunchTemplateFailed string = "ReconcileLaunchTemplateFailed"
 )
 
 // InReadyCondition returns if the given Condition slice has a ReadyCondition

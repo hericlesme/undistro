@@ -242,6 +242,12 @@ spec:
     - "{{$region}}"
   awsLaunchTemplate:
     instanceType: "{{$element.MachineType}}"
+    {{if $element.LaunchTemplateReference.ID}}
+    id: {{$element.LaunchTemplateReference.ID}}
+    {{end}}
+    {{if $element.LaunchTemplateReference.Version}}
+    versionNumber: {{$element.LaunchTemplateReference.Version}}
+    {{end}}
     {{if $sshKey}}
     sshKeyName: "{{$sshKey}}"
     {{end}}

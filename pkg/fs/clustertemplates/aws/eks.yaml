@@ -137,11 +137,7 @@ spec:
   template:
     spec:
       bootstrap:
-        configRef:
-          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-          kind: EKSConfig
-          name: "{{$name}}-mp-{{$uid}}-{{$index}}"
-          namespace: "{{$namespace}}"
+        dataSecretName: ""
       clusterName: {{$name}}
       infrastructureRef:
         apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
@@ -157,6 +153,11 @@ metadata:
   namespace: "{{$namespace}}"
 spec:
   eksNodegroupName: "{{$name}}-mp-{{$index}}"
+  {{if $element.LaunchTemplateReference.ID}}
+  launchTemplate:
+    id: {{$element.LaunchTemplateReference.ID}}
+    version: {{$element.LaunchTemplateReference.Version}}
+  {{end}}
   {{if $element.Labels}}
   labels:
     {{range $key, $value := $element.Labels}}
@@ -178,7 +179,6 @@ spec:
     maxSize: {{$element.Replicas}}
   {{end}}
   instanceType: "{{$element.MachineType}}"
-  roleName: "nodes.cluster-api-provider-aws.sigs.k8s.io"
   {{if $sshKey}}
   remoteAccess:
     sshKeyName: "{{$sshKey}}"
@@ -187,24 +187,4 @@ spec:
   subnetIDs:
     - {{$element.Subnet}}
   {{end}}
----
-apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-kind: EKSConfig
-metadata:
-  name: "{{$name}}-mp-{{$uid}}-{{$index}}"
-  namespace: "{{$namespace}}"
-{{if $element.HasKubeletArgs}}
-spec:
-  kubeletExtraArgs:
-    {{$taints := $element.TaintTmpl}}
-    {{if $taints}}
-    register-with-taints: "{{$taints}}"
-    {{end}}
-    {{$labels := $element.LabelsTmpl}}
-    {{if $labels}}
-    node-labels: "{{$labels}}"
-    {{end}}
-{{else}}
-spec: {}
-{{end}}
 {{end}}

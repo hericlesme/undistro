@@ -344,6 +344,16 @@ spec:
                       additionalProperties:
                         type: string
                       type: object
+                    launchTemplateReference:
+                      properties:
+                        id:
+                          description: The ID of the launch template for this nodegroup
+                          type: string
+                        version:
+                          description: The version of the launch template for this
+                            nodegroup
+                          type: string
+                      type: object
                     machineType:
                       type: string
                     providerTags:
@@ -574,6 +584,16 @@ spec:
                     labels:
                       additionalProperties:
                         type: string
+                      type: object
+                    launchTemplateReference:
+                      properties:
+                        id:
+                          description: The ID of the launch template for this nodegroup
+                          type: string
+                        version:
+                          description: The version of the launch template for this
+                            nodegroup
+                          type: string
                       type: object
                     machineType:
                       type: string

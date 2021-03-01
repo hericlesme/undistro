@@ -73,10 +73,19 @@ type ControlPlaneNode struct {
 	InternalLB bool             `json:"internalLB,omitempty"`
 }
 
+type LaunchTemplateReference struct {
+	// The ID of the launch template for this nodegroup
+	ID string `json:"id,omitempty"`
+
+	// The version of the launch template for this nodegroup
+	Version string `json:"version,omitempty"`
+}
+
 type WorkerNode struct {
-	Node      `json:",inline,omitempty"`
-	Autoscale Autoscaling `json:"autoscaling,omitempty"`
-	InfraNode bool        `json:"infraNode,omitempty"`
+	Node                    `json:",inline,omitempty"`
+	Autoscale               Autoscaling             `json:"autoscaling,omitempty"`
+	InfraNode               bool                    `json:"infraNode,omitempty"`
+	LaunchTemplateReference LaunchTemplateReference `json:"launchTemplateReference,omitempty"`
 }
 
 type Autoscaling struct {
