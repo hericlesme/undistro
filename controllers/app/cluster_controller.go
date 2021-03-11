@@ -77,7 +77,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 	defer func() {
-		patchOpts := []patch.Option{}
+		var patchOpts []patch.Option
 		if err == nil {
 			patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
 		}
@@ -103,13 +103,13 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	if !cl.DeletionTimestamp.IsZero() {
 		log.Info("Deleting")
-		return r.reconcileDelete(ctx, log, cl)
+		return r.reconcileDelete(ctx, cl)
 	}
 	cl, result, err := r.reconcile(ctx, log, cl, capiCluster)
 	return result, err
 }
 
-func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Client, capiCluster *capi.Cluster, cl *appv1alpha1.Cluster) (map[string]interface{}, error) {
+func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	v := make(map[string]interface{})
 	err := template.SetVariablesFromEnvVar(ctx, template.VariablesInput{
@@ -143,13 +143,13 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 			cl.Status.LastUsedUID = split[len(split)-1]
 		}
 	}
-	if r.hasDiff(ctx, cl) && validDiff {
+	if r.hasDiff(cl) && validDiff {
 		cl.Status.LastUsedUID = string(uuid.NewUUID())
 	}
 	return vars, nil
 }
 
-func (r *ClusterReconciler) getBastionIP(ctx context.Context, log logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (string, error) {
+func (r *ClusterReconciler) getBastionIP(ctx context.Context, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (string, error) {
 	ref := capiCluster.Spec.InfrastructureRef
 	if cl.Spec.InfrastructureProvider.IsManaged() {
 		ref = capiCluster.Spec.ControlPlaneRef
@@ -194,7 +194,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	if cl.Spec.Bastion != nil {
 		if *cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
 			var err error
-			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, log, cl, capiCluster)
+			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, cl, capiCluster)
 			if err != nil {
 				return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{Requeue: true}, nil
 			}
@@ -208,8 +208,8 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.ReconcileNetworkFailed, err.Error()), ctrl.Result{}, err
 	}
-	if r.hasDiff(ctx, &cl) {
-		vars, err := r.templateVariables(ctx, r.Client, &capiCluster, &cl)
+	if r.hasDiff(&cl) {
+		vars, err := r.templateVariables(ctx, r.Client, &cl)
 		if err != nil {
 			return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
 		}
@@ -356,7 +356,7 @@ func (r *ClusterReconciler) reconcileNodes(ctx context.Context, cl appv1alpha1.C
 	return nil
 }
 
-func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *appv1alpha1.Cluster) bool {
+func (r *ClusterReconciler) hasDiff(cl *appv1alpha1.Cluster) bool {
 	if cl.Spec.KubernetesVersion != cl.Status.KubernetesVersion {
 		return true
 	}
@@ -384,7 +384,7 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl appv1alpha1.Clust
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint
 	buff := bytes.Buffer{}
 	_, err = io.Copy(&buff, resp.Body)
 	if err != nil {
@@ -410,7 +410,7 @@ func (r *ClusterReconciler) installCNI(ctx context.Context, cl appv1alpha1.Clust
 	return nil
 }
 
-func (r *ClusterReconciler) reconcileDelete(ctx context.Context, logger logr.Logger, cl appv1alpha1.Cluster) (ctrl.Result, error) {
+func (r *ClusterReconciler) reconcileDelete(ctx context.Context, cl appv1alpha1.Cluster) (ctrl.Result, error) {
 	capiCluster := capi.Cluster{}
 	err := r.Get(ctx, client.ObjectKeyFromObject(&cl), &capiCluster)
 	if apierrors.IsNotFound(err) {
