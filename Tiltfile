@@ -1,7 +1,8 @@
 load('ext://restart_process', 'docker_build_with_restart')
 load('ext://cert_manager', 'deploy_cert_manager')
+allow_k8s_contexts('gke_local-dev-237121_us-east1-b_dev')
 
-IMG = 'controller:latest'
+IMG = 'getupioundistro/undistro:latest'
 #docker_build(IMG, '.')
 
 def yaml():
