@@ -1,6 +1,6 @@
 # Cluster
 
-Cluster is responsible for create and manage a Kubernetes cluster.
+The cluster object is responsible for create and manage a Kubernetes cluster.
 
 ## Specification
 

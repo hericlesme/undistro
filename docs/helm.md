@@ -1,6 +1,6 @@
 # Helm Release
 
-Helm Release is responsible to manager [Helm Charts](https://helm.sh/) in a declarative way
+The HelmRelease object is responsible to manage [Helm Charts](https://helm.sh/) in a declarative way
 
 ## Specification
 

@@ -27,7 +27,7 @@ undistro --config undistro-config.yaml install
 
 ## Flavors supported
 
-- ec2 (vanilla Kubernetes using AWS EC2 VNs)
+- ec2 (vanilla Kubernetes using AWS EC2 VMs)
 - eks (AWS Kubernetes offer)
 
 ## Connecting to the nodes via SSH
