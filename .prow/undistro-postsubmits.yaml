@@ -1,5 +1,68 @@
 postsubmits:
   getupio-undistro/undistro:
+    - name: undistro-build-manager
+      branches:
+        - master
+      always_run: true
+      optional: false
+      decorate: true
+      decoration_config:
+        ssh_key_secrets:
+          - prow-ssh-secret
+        timeout: 5h0m0s
+      clone_uri: "git@github.com:getupio-undistro/undistro.git"
+      path_alias: "github.com/getupio-undistro/undistro"
+      spec:
+        containers:
+          - image: golang:1.16
+            command:
+              - "make"
+              - "manager"
+      annotations:
+        testgrid-dashboards: undistro
+        testgrid-tab-name: undistro
+    - name: undistro-build-CLI
+      branches:
+        - master
+      always_run: true
+      optional: false
+      decorate: true
+      decoration_config:
+        ssh_key_secrets:
+          - prow-ssh-secret
+        timeout: 5h0m0s
+      clone_uri: "git@github.com:getupio-undistro/undistro.git"
+      path_alias: "github.com/getupio-undistro/undistro"
+      spec:
+        containers:
+          - image: golang:1.16
+            command:
+              - "make"
+              - "cli"
+      annotations:
+        testgrid-dashboards: undistro
+        testgrid-tab-name: undistro
+    - name: undistro-test
+      branches:
+        - master
+      always_run: true
+      optional: false
+      decorate: true
+      decoration_config:
+        ssh_key_secrets:
+          - prow-ssh-secret
+        timeout: 5h0m0s
+      clone_uri: "git@github.com:getupio-undistro/undistro.git"
+      path_alias: "github.com/getupio-undistro/undistro"
+      spec:
+        containers:
+          - image: golang:1.16
+            command:
+              - "make"
+              - "test"
+      annotations:
+        testgrid-dashboards: undistro
+        testgrid-tab-name: undistro
     - name: undistro-release
       branches:
         - ^v\d+\.\d+\.\d+$
@@ -14,6 +77,7 @@ postsubmits:
       path_alias: "github.com/getupio-undistro/undistro"
       labels:
         preset-dind-enabled: "true"
+        preset-gh-token: "true"
       spec:
         containers:
           - image: getupioundistro/undistro-e2e
