@@ -128,10 +128,21 @@ bundle: manifests kustomize
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
+# Load controller image inside kind
 .PHONY: kind-load-image
 kind-load-image:
 	kind load docker-image $(IMG)
 
+# Docker build without running tests
 .PHONY: docker-build-no-test
 docker-build-no-test:
 	docker build . -t $(IMG)
+
+# UnDistro release
+.PHONY: release
+release: all test
+	$(shell ./hack/version.sh)
+	$(shell echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_LOGIN} --password-stdin)
+	docker build -t getupioundistro/undistro:${GIT_VERSION} .
+	docker push getupioundistro/undistro:${GIT_VERSION}
+	$(shell curl -sL https://git.io/goreleaser | bash)

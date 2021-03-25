@@ -1,0 +1,27 @@
+postsubmits:
+  getupio-undistro/undistro:
+    - name: undistro-release
+      branches:
+        - ^v\d+\.\d+\.\d+$
+      always_run: true
+      optional: false
+      decorate: true
+      decoration_config:
+        ssh_key_secrets:
+          - prow-ssh-secret
+        timeout: 5h0m0s
+      clone_uri: "git@github.com:getupio-undistro/undistro.git"
+      path_alias: "github.com/getupio-undistro/undistro"
+      labels:
+        preset-dind-enabled: "true"
+      spec:
+        containers:
+          - image: getupioundistro/undistro-e2e
+            command:
+              - "make"
+              - "release"
+            securityContext:
+              privileged: true
+      annotations:
+        testgrid-dashboards: undistro
+        testgrid-tab-name: release
