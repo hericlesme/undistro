@@ -1,59 +1,59 @@
 presubmits:
   getupio-undistro/undistro:
-  - name: pull-undistro-build-manager
-    always_run: true
-    optional: false
-    decorate: true
-    decoration_config:
-      ssh_key_secrets:
-      - prow-ssh-secret
-      timeout: 5h0m0s
-    clone_uri: "git@github.com:getupio-undistro/undistro.git"
-    path_alias: "github.com/getupio-undistro/undistro"
-    spec:
-      containers:
-      - image: golang:1.16
-        command:
-        - "make"
-        - "manager"
-    annotations:
-      testgrid-dashboards: undistro
-      testgrid-tab-name: pr-test
-  - name: pull-undistro-build-CLI
-    always_run: true
-    optional: false
-    decorate: true
-    decoration_config:
-      ssh_key_secrets:
-      - prow-ssh-secret
-      timeout: 5h0m0s
-    clone_uri: "git@github.com:getupio-undistro/undistro.git"
-    path_alias: "github.com/getupio-undistro/undistro"
-    spec:
-      containers:
-      - image: golang:1.16
-        command:
-        - "make"
-        - "cli"
-    annotations:
-      testgrid-dashboards: undistro
-      testgrid-tab-name: pr-test
-  - name: pull-undistro-test
-    always_run: true
-    optional: false
-    decorate: true
-    decoration_config:
-      ssh_key_secrets:
-      - prow-ssh-secret
-      timeout: 5h0m0s
-    clone_uri: "git@github.com:getupio-undistro/undistro.git"
-    path_alias: "github.com/getupio-undistro/undistro"
-    spec:
-      containers:
-      - image: golang:1.16
-        command:
-        - "make"
-        - "test"
-    annotations:
-      testgrid-dashboards: undistro
-      testgrid-tab-name: pr-test
+    - name: pull-undistro-build-manager
+      always_run: true
+      optional: false
+      decorate: true
+      decoration_config:
+        ssh_key_secrets:
+          - prow-ssh-secret
+        timeout: 5h0m0s
+      clone_uri: "git@github.com:getupio-undistro/undistro.git"
+      path_alias: "github.com/getupio-undistro/undistro"
+      spec:
+        containers:
+          - image: golang:1.16
+            command:
+              - "make"
+              - "manager"
+      annotations:
+        testgrid-dashboards: undistro
+        testgrid-tab-name: pr-test
+    - name: pull-undistro-build-CLI
+      always_run: true
+      optional: false
+      decorate: true
+      decoration_config:
+        ssh_key_secrets:
+          - prow-ssh-secret
+        timeout: 5h0m0s
+      clone_uri: "git@github.com:getupio-undistro/undistro.git"
+      path_alias: "github.com/getupio-undistro/undistro"
+      spec:
+        containers:
+          - image: golang:1.16
+            command:
+              - "make"
+              - "cli"
+      annotations:
+        testgrid-dashboards: undistro
+        testgrid-tab-name: pr-test
+    - name: pull-undistro-test
+      always_run: true
+      optional: false
+      decorate: true
+      decoration_config:
+        ssh_key_secrets:
+          - prow-ssh-secret
+        timeout: 5h0m0s
+      clone_uri: "git@github.com:getupio-undistro/undistro.git"
+      path_alias: "github.com/getupio-undistro/undistro"
+      spec:
+        containers:
+          - image: golang:1.16
+            command:
+              - "make"
+              - "test"
+      annotations:
+        testgrid-dashboards: undistro
+        testgrid-tab-name: pr-test
