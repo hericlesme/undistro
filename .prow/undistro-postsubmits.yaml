@@ -2,7 +2,7 @@ postsubmits:
   getupio-undistro/undistro:
     - name: undistro-build-manager
       branches:
-        - master
+        - main
       always_run: true
       optional: false
       decorate: true
@@ -23,7 +23,7 @@ postsubmits:
         testgrid-tab-name: undistro
     - name: undistro-build-CLI
       branches:
-        - master
+        - main
       always_run: true
       optional: false
       decorate: true
@@ -44,7 +44,7 @@ postsubmits:
         testgrid-tab-name: undistro
     - name: undistro-test
       branches:
-        - master
+        - main
       always_run: true
       optional: false
       decorate: true
