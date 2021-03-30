@@ -142,6 +142,6 @@ docker-build-no-test:
 .PHONY: release
 release: all test
 	./hack/version.sh
-	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_LOGIN} --password-stdin)
+	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_LOGIN} --password-stdin
 	docker build -t getupioundistro/undistro:${GIT_VERSION} .
 	./hack/version.sh && docker push getupioundistro/undistro:${GIT_VERSION}
