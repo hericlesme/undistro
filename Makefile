@@ -141,8 +141,7 @@ docker-build-no-test:
 # UnDistro release
 .PHONY: release
 release: all test
-	$(shell ./hack/version.sh)
-	$(shell echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_LOGIN} --password-stdin)
-	$(shell ./hack/version.sh && docker build -t getupioundistro/undistro:${GIT_VERSION} .)
-	$(shell ./hack/version.sh && docker push getupioundistro/undistro:${GIT_VERSION})
-	$(shell curl -sL https://git.io/goreleaser | bash)
+	./hack/version.sh
+	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_LOGIN} --password-stdin)
+	docker build -t getupioundistro/undistro:${GIT_VERSION} .
+	./hack/version.sh && docker push getupioundistro/undistro:${GIT_VERSION}
