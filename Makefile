@@ -141,7 +141,6 @@ docker-build-no-test:
 # UnDistro release
 .PHONY: release
 release: all test
-	./hack/version.sh
 	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_LOGIN} --password-stdin
-	docker build -t getupioundistro/undistro:${GIT_VERSION} .
-	./hack/version.sh && docker push getupioundistro/undistro:${GIT_VERSION}
+	docker build -t getupioundistro/undistro:${PULL_BASE_REF} .
+	docker push getupioundistro/undistro:${PULL_BASE_REF}
