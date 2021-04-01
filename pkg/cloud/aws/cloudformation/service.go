@@ -25,7 +25,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws/awserrors"
 	"github.com/pkg/errors"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 // Service holds a collection of interfaces.
