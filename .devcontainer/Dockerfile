@@ -1,6 +1,5 @@
 # [Choice] Go version: 1, 1.16, 1.15
-ARG VARIANT=1
-FROM golang:${VARIANT}
+FROM debian
 
 ARG INSTALL_ZSH="true"
 ARG UPGRADE_PACKAGES="true"
