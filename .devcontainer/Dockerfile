@@ -12,6 +12,7 @@ ARG SOURCE_SOCKET=/var/run/docker-host.sock
 ARG TARGET_SOCKET=/var/run/docker.sock
 ENV GO111MODULE=on
 ARG NODE_VERSION="none"
+ENV GOPATH=/home/vscode/go
 ENV NVM_DIR=/usr/local/share/nvm
 ENV NVM_SYMLINK_CURRENT=true \
     PATH=${NVM_DIR}/current/bin:${PATH}
