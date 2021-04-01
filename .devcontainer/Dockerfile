@@ -1,14 +1,12 @@
 # [Choice] Go version: 1, 1.16, 1.15
-FROM debian
+FROM golang
 
 ARG INSTALL_ZSH="true"
 ARG UPGRADE_PACKAGES="true"
-ARG USERNAME=vscode
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
 ARG ENABLE_NONROOT_DOCKER="true"
 ARG SOURCE_SOCKET=/var/run/docker-host.sock
 ARG TARGET_SOCKET=/var/run/docker.sock
+ARG USERNAME=vscode
 ENV GO111MODULE=on
 ARG NODE_VERSION="none"
 ENV GOPATH=/home/vscode/go
@@ -24,7 +22,7 @@ RUN apt-get update \
     # Use Docker script from script library to set things up
     && /bin/bash /tmp/library-scripts/docker-debian.sh "${ENABLE_NONROOT_DOCKER}" "${SOURCE_SOCKET}" "${TARGET_SOCKET}" "${USERNAME}" \
     # go
-    && /bin/bash /tmp/library-scripts/go-debian.sh "none" "/usr/local/go" "${GOPATH}" "${USERNAME}" "false" \
+    && /bin/bash /tmp/library-scripts/go-debian.sh "latest" "/usr/local/go" "${GOPATH}" "${USERNAME}" "false" \
     # node
     && /bin/bash /tmp/library-scripts/node-debian.sh "${NVM_DIR}" "${NODE_VERSION}" "${USERNAME}" \
     # Clean up
