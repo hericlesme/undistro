@@ -1,0 +1,38 @@
+# [Choice] Go version: 1, 1.16, 1.15
+ARG VARIANT=1
+FROM golang:${VARIANT}
+
+ARG INSTALL_ZSH="true"
+ARG UPGRADE_PACKAGES="true"
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+ARG ENABLE_NONROOT_DOCKER="true"
+ARG SOURCE_SOCKET=/var/run/docker-host.sock
+ARG TARGET_SOCKET=/var/run/docker.sock
+ENV GO111MODULE=on
+ARG INSTALL_NODE="true"
+ARG NODE_VERSION="none"
+ENV NVM_DIR=/usr/local/share/nvm
+ENV NVM_SYMLINK_CURRENT=true \
+    PATH=${NVM_DIR}/current/bin:${PATH}
+
+
+# Install needed packages and setup non-root user. Use a separate RUN statement to add your own dependencies.
+COPY library-scripts/*.sh /tmp/library-scripts/
+RUN apt-get update \
+    && /bin/bash /tmp/library-scripts/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "true" \
+    # Use Docker script from script library to set things up
+    && /bin/bash /tmp/library-scripts/docker-debian.sh "${ENABLE_NONROOT_DOCKER}" "${SOURCE_SOCKET}" "${TARGET_SOCKET}" "${USERNAME}" \
+    # go
+    && /bin/bash /tmp/library-scripts/go-debian.sh "none" "/usr/local/go" "${GOPATH}" "${USERNAME}" "false" \
+    # node
+    && /bin/bash if [ "$INSTALL_NODE" = "true" ]; then bash /tmp/library-scripts/node-debian.sh "${NVM_DIR}" "${NODE_VERSION}" "${USERNAME}"; fi \
+    # Clean up
+    && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/library-scripts/ \
+    # k8s
+    && curl -sSL -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl \
+    && chmod +x /usr/local/bin/kubectl \
+    && curl -s https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash - \
+    && go get sigs.k8s.io/kind@v0.10.0 \
+    && curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
