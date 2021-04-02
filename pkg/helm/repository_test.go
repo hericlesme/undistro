@@ -125,8 +125,8 @@ func TestChartRepository_Get(t *testing.T) {
 		{
 			name:         "exact matth",
 			chartName:    "chart",
-			chartVersion: "exact",
-			wantVersion:  "exact",
+			chartVersion: "1.0.0",
+			wantVersion:  "1.0.0",
 		},
 		{
 			name:         "stable version",
