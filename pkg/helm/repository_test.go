@@ -101,17 +101,17 @@ func TestNewChartRepository(t *testing.T) {
 
 func TestChartRepository_Get(t *testing.T) {
 	i := repo.NewIndexFile()
-	i.Add(&chart.Metadata{Name: "chart", Version: "exact"}, "chart-exact.tgz", "http://example.com/charts", "sha256:1234567890")
-	i.Add(&chart.Metadata{Name: "chart", Version: "0.1.0"}, "chart-0.1.0.tgz", "http://example.com/charts", "sha256:1234567890abc")
-	i.Add(&chart.Metadata{Name: "chart", Version: "0.1.1"}, "chart-0.1.1.tgz", "http://example.com/charts", "sha256:1234567890abc")
-	i.Add(&chart.Metadata{Name: "chart", Version: "0.1.5+b.min.minute"}, "chart-0.1.5+b.min.minute.tgz", "http://example.com/charts", "sha256:1234567890abc")
+	i.MustAdd(&chart.Metadata{Name: "chart", Version: "1.0.0"}, "chart-1.0.0.tgz", "http://example.com/charts", "sha256:1234567890")
+	i.MustAdd(&chart.Metadata{Name: "chart", Version: "0.1.0"}, "chart-0.1.0.tgz", "http://example.com/charts", "sha256:1234567890abc")
+	i.MustAdd(&chart.Metadata{Name: "chart", Version: "0.1.1"}, "chart-0.1.1.tgz", "http://example.com/charts", "sha256:1234567890abc")
+	i.MustAdd(&chart.Metadata{Name: "chart", Version: "0.1.5+b.min.minute"}, "chart-0.1.5+b.min.minute.tgz", "http://example.com/charts", "sha256:1234567890abc")
 	i.Entries["chart"][len(i.Entries["chart"])-1].Created = time.Now().Add(-time.Minute)
-	i.Add(&chart.Metadata{Name: "chart", Version: "0.1.5+a.min.hour"}, "chart-0.1.5+a.min.hour.tgz", "http://example.com/charts", "sha256:1234567890abc")
+	i.MustAdd(&chart.Metadata{Name: "chart", Version: "0.1.5+a.min.hour"}, "chart-0.1.5+a.min.hour.tgz", "http://example.com/charts", "sha256:1234567890abc")
 	i.Entries["chart"][len(i.Entries["chart"])-1].Created = time.Now().Add(-time.Hour)
-	i.Add(&chart.Metadata{Name: "chart", Version: "0.1.5+c.now"}, "chart-0.1.5+c.now.tgz", "http://example.com/charts", "sha256:1234567890abc")
-	i.Add(&chart.Metadata{Name: "chart", Version: "0.2.0"}, "chart-0.2.0.tgz", "http://example.com/charts", "sha256:1234567890abc")
-	i.Add(&chart.Metadata{Name: "chart", Version: "1.0.0"}, "chart-1.0.0.tgz", "http://example.com/charts", "sha256:1234567890abc")
-	i.Add(&chart.Metadata{Name: "chart", Version: "1.1.0-rc.1"}, "chart-1.1.0-rc.1.tgz", "http://example.com/charts", "sha256:1234567890abc")
+	i.MustAdd(&chart.Metadata{Name: "chart", Version: "0.1.5+c.now"}, "chart-0.1.5+c.now.tgz", "http://example.com/charts", "sha256:1234567890abc")
+	i.MustAdd(&chart.Metadata{Name: "chart", Version: "0.2.0"}, "chart-0.2.0.tgz", "http://example.com/charts", "sha256:1234567890abc")
+	i.MustAdd(&chart.Metadata{Name: "chart", Version: "1.0.0"}, "chart-1.0.0.tgz", "http://example.com/charts", "sha256:1234567890abc")
+	i.MustAdd(&chart.Metadata{Name: "chart", Version: "1.1.0-rc.1"}, "chart-1.1.0-rc.1.tgz", "http://example.com/charts", "sha256:1234567890abc")
 	i.SortEntries()
 	r := &ChartRepository{Index: i}
 
@@ -125,8 +125,8 @@ func TestChartRepository_Get(t *testing.T) {
 		{
 			name:         "exact matth",
 			chartName:    "chart",
-			chartVersion: "exact",
-			wantVersion:  "exact",
+			chartVersion: "1.0.0",
+			wantVersion:  "1.0.0",
 		},
 		{
 			name:         "stable version",
