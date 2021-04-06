@@ -79,7 +79,7 @@ func (s *Server) routes(router *mux.Router) {
 	}
 	router.Handle("/healthz/readiness", &s.HealthHandler)
 	router.HandleFunc("/healthz/liveness", health.HandleLive)
-	router.PathPrefix("/v1/namespaces/{namespece}/clusters/{cluster}/proxy/").Handler(proxy.NewHandler(cfg))
+	router.PathPrefix("/uapi/v1/namespaces/{namespace}/clusters/{cluster}/proxy/").Handler(proxy.NewHandler(cfg))
 	router.Handle("/", http.FileServer(http.FS(frontFS)))
 }
 

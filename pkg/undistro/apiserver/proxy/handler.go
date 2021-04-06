@@ -30,7 +30,7 @@ import (
 
 var (
 	defaultNamespace = "undistro-system"
-	defaultCluster   = "namagement"
+	defaultCluster   = "management"
 )
 
 type Handler struct {
