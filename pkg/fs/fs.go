@@ -17,7 +17,15 @@ package fs
 
 import (
 	"embed"
+	"io/fs"
 )
 
 //go:embed clustertemplates/*
 var FS embed.FS
+
+//go:embed frontend/*
+var frontFS embed.FS
+
+func GetFrontendFS() (fs.FS, error) {
+	return fs.Sub(frontFS, "frontend")
+}

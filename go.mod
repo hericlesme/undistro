@@ -8,13 +8,15 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aws/aws-sdk-go v1.36.12
 	github.com/go-logr/logr v0.3.0
-	github.com/google/go-cmp v0.5.2
+	github.com/google/go-cmp v0.5.4
+	github.com/gorilla/mux v1.8.0
 	github.com/onsi/ginkgo v1.14.2
 	github.com/onsi/gomega v1.10.4
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
+	gocloud.dev v0.22.0
 	helm.sh/helm/v3 v3.5.3
 	k8s.io/api v0.20.2
 	k8s.io/apiextensions-apiserver v0.20.2
