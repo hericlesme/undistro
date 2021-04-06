@@ -17,18 +17,17 @@ package apiserver
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/getupio-undistro/undistro/pkg/fs"
+	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver/health"
 	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver/proxy"
 	"github.com/gorilla/mux"
-	"gocloud.dev/server"
-	"gocloud.dev/server/requestlog"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
@@ -37,30 +36,33 @@ import (
 
 type Server struct {
 	genericclioptions.IOStreams
-	*server.Server
-	K8sFactory cmdutil.Factory
+	*http.Server
+	K8sFactory    cmdutil.Factory
+	HealthHandler health.Handler
 }
 
-func NewServer(f cmdutil.Factory, in io.Reader, out, errOut io.Writer) *Server {
+func NewServer(f cmdutil.Factory, in io.Reader, out, errOut io.Writer, healthChecks ...health.Checker) *Server {
 	streams := genericclioptions.IOStreams{
 		In:     in,
 		Out:    out,
 		ErrOut: errOut,
 	}
-	opts := &server.Options{
-		RequestLogger: requestlog.NewNCSALogger(streams.Out, func(err error) {
-			fmt.Fprintln(streams.ErrOut, err.Error())
-		}),
-	}
 	router := mux.NewRouter()
-	s := server.New(router, opts)
-	deamonServer := &Server{
-		IOStreams:  streams,
-		Server:     s,
+	apiServer := &Server{
+		IOStreams: streams,
+		Server: &http.Server{
+			ReadTimeout:  30 * time.Second,
+			WriteTimeout: 30 * time.Second,
+			IdleTimeout:  120 * time.Second,
+		},
 		K8sFactory: f,
 	}
-	deamonServer.routes(router)
-	return deamonServer
+	for _, c := range healthChecks {
+		apiServer.HealthHandler.Add(c)
+	}
+	apiServer.routes(router)
+	apiServer.Handler = router
+	return apiServer
 }
 
 func (s *Server) routes(router *mux.Router) {
@@ -75,17 +77,20 @@ func (s *Server) routes(router *mux.Router) {
 	if err != nil {
 		klog.Fatal(err)
 	}
-	router.PathPrefix("/v1/namespaces/{namespece}/clusters/{cluster}/proxy").Handler(proxy.NewHandler(cfg))
+	router.Handle("/healthz/readiness", &s.HealthHandler)
+	router.HandleFunc("/healthz/liveness", health.HandleLive)
+	router.PathPrefix("/v1/namespaces/{namespece}/clusters/{cluster}/proxy/").Handler(proxy.NewHandler(cfg))
 	router.Handle("/", http.FileServer(http.FS(frontFS)))
 }
 
 func (s *Server) GracefullyStart(ctx context.Context, addr string) error {
+	s.Addr = addr
 	cerr := make(chan error, 1)
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 	go func(ctx context.Context) {
 		klog.Infof("listen on %s", addr)
-		cerr <- s.ListenAndServe(addr)
+		cerr <- s.ListenAndServe()
 	}(ctx)
 	select {
 	case <-sigCh:
