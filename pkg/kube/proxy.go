@@ -19,7 +19,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"time"
 
@@ -29,117 +28,6 @@ import (
 	"k8s.io/client-go/transport"
 	"k8s.io/klog/v2"
 )
-
-const (
-	// DefaultHostAcceptRE is the default value for which hosts to accept.
-	DefaultHostAcceptRE = "^localhost$,^127\\.0\\.0\\.1$,^\\[::1\\]$"
-	// DefaultPathAcceptRE is the default path to accept.
-	DefaultPathAcceptRE = "^.*"
-	// DefaultPathRejectRE is the default set of paths to reject.
-	DefaultPathRejectRE = "^/api/.*/pods/.*/exec,^/api/.*/pods/.*/attach"
-	// DefaultMethodRejectRE is the set of HTTP methods to reject by default.
-	DefaultMethodRejectRE = "^$"
-)
-
-var (
-	filter = &FilterServer{
-		AcceptPaths:   MakeRegexpArrayOrDie(DefaultPathAcceptRE),
-		RejectPaths:   MakeRegexpArrayOrDie(DefaultPathRejectRE),
-		AcceptHosts:   MakeRegexpArrayOrDie(DefaultHostAcceptRE),
-		RejectMethods: MakeRegexpArrayOrDie(DefaultMethodRejectRE),
-	}
-)
-
-// FilterServer rejects requests which don't match one of the specified regular expressions
-type FilterServer struct {
-	// Only paths that match this regexp will be accepted
-	AcceptPaths []*regexp.Regexp
-	// Paths that match this regexp will be rejected, even if they match the above
-	RejectPaths []*regexp.Regexp
-	// Hosts are required to match this list of regexp
-	AcceptHosts []*regexp.Regexp
-	// Methods that match this regexp are rejected
-	RejectMethods []*regexp.Regexp
-	// The delegate to call to handle accepted requests.
-	delegate http.Handler
-}
-
-// MakeRegexpArray splits a comma separated list of regexps into an array of Regexp objects.
-func MakeRegexpArray(str string) ([]*regexp.Regexp, error) {
-	if str == "" {
-		return []*regexp.Regexp{}, nil
-	}
-	parts := strings.Split(str, ",")
-	result := make([]*regexp.Regexp, len(parts))
-	for ix := range parts {
-		re, err := regexp.Compile(parts[ix])
-		if err != nil {
-			return nil, err
-		}
-		result[ix] = re
-	}
-	return result, nil
-}
-
-// MakeRegexpArrayOrDie creates an array of regular expression objects from a string or exits.
-func MakeRegexpArrayOrDie(str string) []*regexp.Regexp {
-	result, err := MakeRegexpArray(str)
-	if err != nil {
-		klog.Fatalf("Error compiling re: %v", err)
-	}
-	return result
-}
-
-func matchesRegexp(str string, regexps []*regexp.Regexp) bool {
-	for _, re := range regexps {
-		if re.MatchString(str) {
-			klog.V(6).Infof("%v matched %s", str, re)
-			return true
-		}
-	}
-	return false
-}
-
-func (f *FilterServer) accept(method, path, host string) bool {
-	if matchesRegexp(path, f.RejectPaths) {
-		return false
-	}
-	if matchesRegexp(method, f.RejectMethods) {
-		return false
-	}
-	if matchesRegexp(path, f.AcceptPaths) && matchesRegexp(host, f.AcceptHosts) {
-		return true
-	}
-	return false
-}
-
-// HandlerFor makes a shallow copy of f which passes its requests along to the
-// new delegate.
-func (f *FilterServer) HandlerFor(delegate http.Handler) *FilterServer {
-	f2 := *f
-	f2.delegate = delegate
-	return &f2
-}
-
-// Get host from a host header value like "localhost" or "localhost:8080"
-func extractHost(header string) (host string) {
-	host, _, err := net.SplitHostPort(header)
-	if err != nil {
-		host = header
-	}
-	return host
-}
-
-func (f *FilterServer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	host := extractHost(req.Host)
-	if f.accept(req.Method, req.URL.Path, host) {
-		klog.V(3).Infof("Filter accepting %v %v %v", req.Method, req.URL.Path, host)
-		f.delegate.ServeHTTP(rw, req)
-		return
-	}
-	klog.V(3).Infof("Filter rejecting %v %v %v", req.Method, req.URL.Path, host)
-	http.Error(rw, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-}
 
 type responder struct{}
 
@@ -199,7 +87,6 @@ func NewProxyHandler(apiProxyPrefix string, cfg *rest.Config, keepalive time.Dur
 	proxy.UseRequestLocation = true
 
 	proxyServer := http.Handler(proxy)
-	proxyServer = filter.HandlerFor(proxyServer)
 
 	if !strings.HasPrefix(apiProxyPrefix, "/api") {
 		proxyServer = stripLeaveSlash(apiProxyPrefix, proxyServer)
