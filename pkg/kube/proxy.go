@@ -87,10 +87,7 @@ func NewProxyHandler(apiProxyPrefix string, cfg *rest.Config, keepalive time.Dur
 	proxy.UseRequestLocation = true
 
 	proxyServer := http.Handler(proxy)
-
-	if !strings.HasPrefix(apiProxyPrefix, "/api") {
-		proxyServer = stripLeaveSlash(apiProxyPrefix, proxyServer)
-	}
+	proxyServer = stripLeaveSlash(apiProxyPrefix, proxyServer)
 	return proxyServer, nil
 }
 
