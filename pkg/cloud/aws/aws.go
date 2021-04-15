@@ -31,9 +31,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws/cloudformation"
+	"github.com/getupio-undistro/undistro/pkg/cloud/aws/eks"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -51,6 +53,29 @@ region = {{ .Region }}
 aws_session_token = {{ .SessionToken }}
 {{end}}`
 )
+
+func GenerateEksToken(ctx context.Context, c client.Client, cluster, namespace string) (string, error) {
+	s, err := SessionFromClient(ctx, c)
+	if err != nil {
+		return "", err
+	}
+	gen, err := token.NewGenerator(false, false)
+	if err != nil {
+		return "", err
+	}
+	clusterID, err := eks.GenerateName(cluster, namespace)
+	if err != nil {
+		return "", err
+	}
+	token, err := gen.GetWithOptions(&token.GetTokenOptions{
+		Session:   s,
+		ClusterID: clusterID,
+	})
+	if err != nil {
+		return "", err
+	}
+	return gen.FormatJSON(token), nil
+}
 
 func kindByFlavor(flavor string) string {
 	switch flavor {
@@ -266,6 +291,25 @@ func Upgrade(ctx context.Context, c client.Client, cfg []appv1alpha1.ValuesRefer
 	return cfg, nil
 }
 
+func SessionFromClient(ctx context.Context, c client.Client) (*session.Session, error) {
+	cred, _, err := getCreds(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(cred.Region),
+		Credentials: credentials.NewStaticCredentials(
+			cred.AccessKeyID,
+			cred.SecretAccessKey,
+			cred.SessionToken,
+		),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return sess, nil
+}
+
 func reconcileCloudformation(cred awsCredentials) error {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(cred.Region),
@@ -326,18 +370,7 @@ type Account struct {
 }
 
 func NewAccount(ctx context.Context, c client.Client) (*Account, error) {
-	cred, _, err := getCreds(ctx, c)
-	if err != nil {
-		return nil, err
-	}
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(cred.Region),
-		Credentials: credentials.NewStaticCredentials(
-			cred.AccessKeyID,
-			cred.SecretAccessKey,
-			cred.SessionToken,
-		),
-	})
+	sess, err := SessionFromClient(ctx, c)
 	if err != nil {
 		return nil, err
 	}
