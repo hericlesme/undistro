@@ -19,8 +19,6 @@ package eks
 import (
 	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -42,7 +40,7 @@ func GenerateName(clusterName, namespace string) (string, error) {
 	hashLength := 32 - len(clusterPrefix)
 	hashedName, err := base36TruncatedHash(eksName, hashLength)
 	if err != nil {
-		return "", errors.Errorf("creating hash from cluster name: %w", err)
+		return "", fmt.Errorf("creating hash from cluster name: %w", err)
 	}
 
 	return fmt.Sprintf("%s%s", clusterPrefix, hashedName), nil
