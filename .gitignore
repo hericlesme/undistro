@@ -27,8 +27,8 @@ demos/
 undistro-config.yaml
 
 # Website ignore
-/node_modules/
+node_modules/
 .DS_Store
-/dist/
+dist/
 .env
 
