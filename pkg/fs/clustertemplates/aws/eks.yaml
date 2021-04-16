@@ -61,7 +61,6 @@ metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
 spec:
-  tokenMethod: undistro
   {{if .Account}}
   {{if not .Account.IsRoot}}
   iamAuthenticatorConfig:
