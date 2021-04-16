@@ -19,6 +19,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
@@ -34,6 +39,7 @@ import (
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -43,6 +49,7 @@ const (
 	name                   = "undistro-aws-config"
 	namespace              = "undistro-system"
 	key                    = "credentials"
+	eksTool                = "aws-iam-authenticator"
 	awsCredentialsTemplate = `[default]
 aws_access_key_id = {{ .AccessKeyID }}
 aws_secret_access_key = {{ .SecretAccessKey }}
@@ -362,4 +369,43 @@ func (a *Account) GetUsername() string {
 
 func (a *Account) IsRoot() bool {
 	return strings.HasSuffix(a.GetUsername(), "root")
+}
+
+func InstallTools(ctx context.Context, streams genericclioptions.IOStreams) error {
+	_, err := exec.LookPath(eksTool)
+	if err == nil {
+		fmt.Fprintf(streams.Out, "%s already installed\n", eksTool)
+		return nil
+	}
+	addr := fmt.Sprintf("https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/%s/%s/aws-iam-authenticator", runtime.GOOS, runtime.GOARCH)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, addr, nil)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Create(eksTool)
+	if err != nil {
+		return err
+	}
+	f.Chmod(0755)
+	defer f.Close()
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	_, err = io.Copy(f, resp.Body)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		f.Close()
+		os.RemoveAll(eksTool)
+		return errors.Errorf("unable to download %s: %v", eksTool, http.StatusText(resp.StatusCode))
+	}
+	_, err = exec.LookPath(eksTool)
+	if err != nil {
+		fmt.Fprintf(streams.Out, "PLEASE ADD %s IN YOUR $PATH\n", eksTool)
+	}
+	return nil
 }

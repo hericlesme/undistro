@@ -21,6 +21,7 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -79,6 +80,19 @@ func Upgrade(ctx context.Context, c client.Client, p configv1alpha1.Provider) (c
 		}
 	}
 	return p, nil
+}
+
+// InstallTools install required tools for provider
+func InstallTools(ctx context.Context, streams genericclioptions.IOStreams, providerName string) error {
+	var err error
+	switch providerName {
+	case "aws":
+		err = aws.InstallTools(ctx, streams)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func GetAccount(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (Account, error) {

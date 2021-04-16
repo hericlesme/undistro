@@ -19,7 +19,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io"
 	"os"
 	"time"
 
@@ -100,7 +99,7 @@ func (o *InstallOptions) Validate() error {
 	return nil
 }
 
-func (o *InstallOptions) installProviders(ctx context.Context, w io.Writer, c client.Client, providers []Provider, indexFile *repo.IndexFile, secretRef *corev1.LocalObjectReference) error {
+func (o *InstallOptions) installProviders(ctx context.Context, streams genericclioptions.IOStreams, c client.Client, providers []Provider, indexFile *repo.IndexFile, secretRef *corev1.LocalObjectReference) error {
 	for _, p := range providers {
 		chart := fmt.Sprintf("undistro-%s", p.Name)
 		versions := indexFile.Entries[chart]
@@ -109,7 +108,12 @@ func (o *InstallOptions) installProviders(ctx context.Context, w io.Writer, c cl
 		}
 		version := versions[0]
 		secretName := fmt.Sprintf("%s-config", chart)
-		fmt.Fprintf(w, "Installing provider %s version %s\n", p.Name, version.AppVersion)
+		fmt.Fprintf(streams.Out, "Installing provider %s version %s\n", p.Name, version.AppVersion)
+		fmt.Fprintf(streams.Out, "Installing provider %s required tools\n", p.Name)
+		err := cloud.InstallTools(ctx, streams, p.Name)
+		if err != nil {
+			return errors.Errorf("unable to install required tools for provider %s: %v", p.Name, err)
+		}
 		secretData := make(map[string][]byte)
 		valuesRef := make([]appv1alpha1.ValuesReference, 0)
 		for k, v := range p.Configuration {
@@ -452,7 +456,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		return err
 	}
 	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-		return o.installProviders(cmd.Context(), o.IOStreams.Out, c, cfg.Providers, chartRepo.Index, secretRef)
+		return o.installProviders(cmd.Context(), o.IOStreams, c, cfg.Providers, chartRepo.Index, secretRef)
 	})
 	if err != nil {
 		return err
