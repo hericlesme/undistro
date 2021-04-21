@@ -10,12 +10,6 @@ spec:
   clusterName: "{{.Cluster.Namespace}}/{{.Cluster.Name}}"
   {{end}}
   {{end}}
-  beforeApplyObjects:
-    -
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: kyverno
   targetNamespace: kyverno
   chart:
     repository: https://kyverno.github.io/kyverno/

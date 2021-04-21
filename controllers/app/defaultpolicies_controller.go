@@ -137,7 +137,7 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 		if !meta.InReadyCondition(cl.Status.Conditions) {
 			return appv1alpha1.DefaultPoliciesNotReady(p, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
-		clusterClient, err = kube.NewClusterClient(ctx, r.Client, p.Spec.ClusterName, p.Namespace)
+		clusterClient, err = kube.NewClusterClient(ctx, r.Client, p.Spec.ClusterName, cl.GetNamespace())
 		if err != nil {
 			return appv1alpha1.DefaultPoliciesNotReady(p, meta.GetClusterFailed, err.Error()), ctrl.Result{}, err
 		}
@@ -152,7 +152,7 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 		if client.IgnoreNotFound(err) != nil {
 			return p, ctrl.Result{}, err
 		}
-		p, err = r.installKyverno(ctx, clusterClient, p, cl)
+		p, err = r.installKyverno(ctx, p, cl)
 		if err != nil {
 			return appv1alpha1.DefaultPoliciesNotReady(p, meta.ObjectsApliedFailedReason, err.Error()), ctrl.Result{}, err
 		}
@@ -214,7 +214,7 @@ func (r *DefaultPoliciesReconciler) applyPolicies(ctx context.Context, log logr.
 	return p, nil
 }
 
-func (r *DefaultPoliciesReconciler) installKyverno(ctx context.Context, clusterClient client.Client, p appv1alpha1.DefaultPolicies, cl *appv1alpha1.Cluster) (appv1alpha1.DefaultPolicies, error) {
+func (r *DefaultPoliciesReconciler) installKyverno(ctx context.Context, p appv1alpha1.DefaultPolicies, cl *appv1alpha1.Cluster) (appv1alpha1.DefaultPolicies, error) {
 	vars := map[string]interface{}{
 		"Cluster": cl,
 	}
@@ -223,7 +223,7 @@ func (r *DefaultPoliciesReconciler) installKyverno(ctx context.Context, clusterC
 		return p, err
 	}
 	for _, o := range objs {
-		_, err = util.CreateOrUpdate(ctx, clusterClient, &o)
+		_, err = util.CreateOrUpdate(ctx, r.Client, &o)
 		if err != nil {
 			return p, err
 		}
