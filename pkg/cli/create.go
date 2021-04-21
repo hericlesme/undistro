@@ -152,27 +152,29 @@ func (o *ClusterOptions) RunCreateCluster(f cmdutil.Factory, cmd *cobra.Command)
 	if err != nil {
 		return err
 	}
-	for _, o := range objs {
-		_, err = util.CreateOrUpdate(cmd.Context(), c, &o)
-		if err != nil {
-			return err
-		}
-	}
+	var file *os.File
 	if o.GenerateFile {
-		f, err := os.Create(fmt.Sprintf("%s.yaml", o.ClusterName))
+		file, err = os.Create(fmt.Sprintf("%s.yaml", o.ClusterName))
 		if err != nil {
 			return err
 		}
-		defer f.Close()
-		for _, o := range objs {
-			f.WriteString("---\n")
-			o.SetResourceVersion("") // fields if exists
-			o.SetUID(types.UID(""))
-			byt, err := yaml.Marshal(o.Object)
+		defer file.Close()
+	}
+	for _, obj := range objs {
+		if o.GenerateFile {
+			file.WriteString("---\n")
+			obj.SetResourceVersion("") // fields if exists
+			obj.SetUID(types.UID(""))
+			byt, err := yaml.Marshal(obj.Object)
 			if err != nil {
 				return err
 			}
-			f.Write(byt)
+			file.Write(byt)
+			continue
+		}
+		_, err = util.CreateOrUpdate(cmd.Context(), c, &obj)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
