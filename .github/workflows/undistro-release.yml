@@ -34,6 +34,16 @@ jobs:
           docker build -t getupioundistro/undistro:$GIT_VERSION .
           docker push getupioundistro/undistro:$GIT_VERSION
 
+      - name: push helm chart
+        uses: goodsmileduck/helm-push-action@v3
+        env:
+          SOURCE_DIR: "charts"
+          CHART_FOLDER: "undistro"
+          FORCE: "True"
+          CHARTMUSEUM_URL: "https://charts.undistro.io"
+          CHARTMUSEUM_USER: "${{ secrets.HELM_LOGIN }}"
+          CHARTMUSEUM_PASSWORD: ${{ secrets.HELM_PASSWORD }}
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
