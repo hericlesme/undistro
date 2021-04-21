@@ -137,12 +137,3 @@ kind-load-image:
 .PHONY: docker-build-no-test
 docker-build-no-test:
 	docker build . -t $(IMG)
-
-# UnDistro release
-.PHONY: release
-release:
-	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_LOGIN} --password-stdin
-	docker build -t getupioundistro/undistro:${PULL_BASE_REF} .
-	docker push getupioundistro/undistro:${PULL_BASE_REF}
-	git remote add origin https://github.com/getupio-undistro/undistro.git
-	goreleaser release
