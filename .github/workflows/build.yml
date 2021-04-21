@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - "*"
-    tags:
-      - "*"
 
 jobs:
   build:
@@ -34,27 +32,3 @@ jobs:
 
       - name: Test
         run: make test
-
-      - name: vars from bash
-        if: startsWith(github.ref, 'refs/tags/')
-        run: ./hack/version.sh
-
-      - name: docker build and push
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          echo $DOCKER_PASSWORD | docker login -u $DOCKER_LOGIN --password-stdin
-          docker build -t getupioundistro/undistro:$GIT_VERSION .
-          docker push getupioundistro/undistro:$GIT_VERSION
-
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          version: latest
-          args: release --rm-dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
