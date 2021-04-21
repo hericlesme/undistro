@@ -16,6 +16,8 @@ spec:
     name: kyverno
     version: 1.3.5
   values:
+    fullnameOverride: kyverno
+    namespace: kyverno
     resources:                 
       limits:                  
         memory: 2Gi            
