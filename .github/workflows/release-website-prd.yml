@@ -2,8 +2,6 @@ name: HLG Website
 
 on:
   push:
-    paths:
-      - "./website/**"
     tags:
       - "*"
 

@@ -2,10 +2,8 @@ name: HLG Website
 
 on:
   push:
-    paths:
-      - "./website/**"
     branches:
-      - "main"
+      - main
 
 jobs:
   build:
