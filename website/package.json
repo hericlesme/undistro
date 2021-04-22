@@ -9,8 +9,8 @@
     "lint": "eslint src/**/*.js src/**/*.js",
     "lint-css": "stylelint src/**/*.scss",
     "build:icons": "icon-font-generator src/assets/icons/*.svg -o  src/assets/font-icon --htmlpath src/assets/font-icon/index.html",
-    "deploy:prod": "npm run build && aws s3 rm s3://prd.undistro.io --recursive && aws s3 sync dist/ s3://prd.undistro.io --acl public-read && aws cloudfront create-invalidation --distribution-id EQQ9L8R9J1550 --paths '/*' ",
-    "deploy:dev": "npm run build && aws s3 rm s3://hlg.undistro.io --recursive && aws s3 sync dist/ s3://hlg.undistro.io --acl public-read"
+    "deploy:prod": "npm install && npm run build && aws s3 rm s3://prd.undistro.io --recursive && aws s3 sync dist/ s3://prd.undistro.io --acl public-read && aws cloudfront create-invalidation --distribution-id EQQ9L8R9J1550 --paths '/*' ",
+    "deploy:dev": "npm install && npm run build && aws s3 rm s3://hlg.undistro.io --recursive && aws s3 sync dist/ s3://hlg.undistro.io --acl public-read"
   },
   "author": "",
   "license": "Apache 2.0",
