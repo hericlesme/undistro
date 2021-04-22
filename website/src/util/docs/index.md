@@ -145,7 +145,7 @@ type Provider struct {
 
 ## Configure
 
-To configure AWS just add credentials in UnDistro configuration file and run install command
+To configure AWS just add AWS credentials with administrator permissions in UnDistro configuration file and run install command
 
 **Configuration file**
 
