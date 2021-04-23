@@ -484,45 +484,16 @@ The purpose of policies in UnDistro is simple: They define settings that should 
 
 By default, UnDistro applies the following governance policies:
 
-~~~yaml
-name: disallow-add-capabilities
-discription: Capabilities permit privileged actions without giving full root access. Adding capabilities beyond the default set must not be allowed.
-~~~
-
-~~~yaml  
-name: disallow-default-namespace
-description: Kubernetes namespaces are an optional feature that provide a way to segment and isolate cluster resources across multiple applications and users. As a best practice, workloads should be isolated with namespaces. Namespaces should be required and the default (empty) namespace should not be used.
-~~~
-
-~~~yaml
-name: deny-delete-kyverno
-description:  Deny delete the kyverno resources
-~~~
-
-~~~yaml
-name: disallow-host-namespace
-description: Host namespaces (Process ID namespace, Inter-Process Communication namespace, and network namespace) allow access to shared information and can be used to elevate privileges. Pods should not be allowed access to host namespaces.
-~~~
-
-~~~yaml
-name: disallow-host-path
-description: HostPath volumes let pods use host directories and volumes in containers Using host resources can be used to access shared data or escalate privileges and should not be allowed.
-~~~    
-
-~~~yaml
-name: disallow-host-port
-description: Access to host ports allows potential snooping of network traffic and should not be allowed, or at minimum restricted to a known list.
-~~~
-
-~~~yaml
-name: disallow-latest-tag
-description: Prevents the use of the latest image
-~~~
-
-~~~yaml
-name: require-requests-limits
-description: As application workloads share cluster resources, it is important to limit resources requested and consumed by each pod. It is recommended to require 'resources.requests' and 'resources.limits.memory' per pod. If a namespace level request or limit is specified, defaults will automatically be applied to each pod based on the 'LimitRange' configuration.
-~~~
+|Name       |Description|
+|-----------|-----------|
+|disallow-add-capabilities|Capabilities permit privileged actions without giving full root access. Adding capabilities beyond the default set must not be allowed|
+|disallow-default-namespace|Kubernetes namespaces are an optional feature that provide a way to segment and isolate cluster resources across multiple applications and users. As a best practice, workloads should be isolated with namespaces. Namespaces should be required and the default (empty) namespace should not be used.|
+|deny-delete-kyverno|Prevent kyverno resources removal|
+|disallow-host-namespace|Host namespaces (Process ID namespace, Inter-Process Communication namespace, and network namespace) allow access to shared information and can be used to elevate privileges. Pods should not be allowed access to host namespaces.|
+|disallow-host-path|HostPath volumes let pods use host directories and volumes in containers Using host resources can be used to access shared data or escalate privileges and should not be allowed.|
+|disallow-host-port|Access to host ports allows potential snooping of network traffic and should not be allowed, or at minimum restricted to a known list.|
+|disallow-latest-tag|Prevents the use of the latest image.|
+|require-requests-limits|As application workloads share cluster resources, it is important to limit resources requested and consumed by each pod. It is recommended to require 'resources.requests' and 'resources.limits.memory' per pod. If a namespace level request or limit is specified, defaults will automatically be applied to each pod based on the 'LimitRange' configuration.|
 
 ## Default policies management
 
