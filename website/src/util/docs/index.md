@@ -8,7 +8,7 @@ Before you start, make sure the following prerequisites are installed:
 - Install and setup [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) and [Docker](https://www.docker.com/get-started). **(required just for kind installation method)**
 - Install and setup [aws-iam-authenticator](https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html) in your local environment. **(required just for AWS provider)**
 
-Great tips!
+**Great tips!**
 - The cluster name cannot be changed after it is created, choose it right, choose it well!
 - The namespace cannot be changed after the cluster is created, choose it right, choose it well!
 - Get in advance the keys from the provider you will need to use, be prepared!
@@ -40,16 +40,16 @@ providers:
 
 We will now install UnDistro on the Kind cluster we just created:
 
-~~~
+~~~console
 undistro --config <your configuration file path created in step 2> install
 ~~~
 ## Step 4
 
 Let's generate the UnDistro recommended cluster configuration for the AWS provider. Here we have two possible scenarios:
 
-- First scenario - using EC2 ** `*` you will need an AWS pre configured ssh-key
+- First scenario - using EC2 * you will need an AWS pre configured ssh-key
 
-`*` https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#having-ec2-create-your-key-pair
+* https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#having-ec2-create-your-key-pair
 
 ~~~bash
 undistro create cluster yourclustername --namespace yourclusternamespace --infra aws --flavor ec2 --ssh-key-name yoursshkeyname --generate-file
