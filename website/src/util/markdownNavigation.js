@@ -214,7 +214,7 @@ const titleNavigation = [
 			},
 			{
 				title: 'Create Helm release',
-				number: '8.2',
+				number: '9.2',
 				id: '#create-helm-release'
 			},
 			{
