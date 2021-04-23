@@ -234,7 +234,7 @@ const titleNavigation = [
 		title: 'Architecture',
 		number: '10',
 		subtitle: [],
-		id: '#architecture'
+		id: '#10---architecture'
 	},
 	{
 		title: 'Diagrams',
