@@ -39,7 +39,7 @@ UnDistro provides live updates of your Kubernetes cluster without disrupting you
 
 The overarching architecture of UnDistro is centered around a "management plane". This plane is expected to serve as a single interface upon which administrators can create, scale, upgrade, and delete Kubernetes clusters. At a high level view, the management plane + created clusters should look something like this:
 
-![Image of Architecture](/assets/images/arch.png)
+![Image of Architecture](https://raw.githubusercontent.com/getupio-undistro/undistro/main/website/src/assets/images/arch.png)
 &nbsp;
 
 &nbsp;
