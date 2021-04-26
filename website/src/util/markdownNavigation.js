@@ -1,42 +1,53 @@
 const titleNavigation = [
 	{
-		title: 'Quick Start',
-		number: '1',
-		subtitle: [],
-		id: '#1---quick-start'
-	},
-	{
 		title: 'Glossary',
-		number: '2',
+		number: '1',
 		subtitle: [
 			{
 				title: 'Management Cluster',
-				number: '2.1',
+				number: '1.1',
 				id: '#management-cluster'
 			},
 			{
 				title: 'Provider Components',
-				number: '2.2',
+				number: '1.2',
 				id: '#provider-components'
 			},
 			{
 				title: 'Infrastructure Provider',
-				number: '2.3',
+				number: '1.3',
 				id: '#infrastructure-provider'
 			},
 			{
 				title: 'Core Provider',
-				number: '2.4',
+				number: '1.4',
 				id: '#core-provider'
 			}
 		],
-		id: '#2---glossary'
+		id: '#1---glossary'
 	},
 	{
 		title: 'Introduction',
+		number: '2',
+		subtitle: [
+			{
+				title: 'What is UnDistro?',
+				number: '2.1',
+				id: '#what-is-UnDistro'
+			},
+			{
+				title: 'Architecture',
+				number: '2.2',
+				id: '#architecture'
+			}
+		],
+		id: '#2---introduction'
+	},
+	{
+		title: 'Quick Start',
 		number: '3',
 		subtitle: [],
-		id: '#3---introduction'
+		id: '#3---quick-start'
 	},
 	{
 		title: 'Installing UnDistro',
@@ -231,33 +242,10 @@ const titleNavigation = [
 		id: '#9---helm-release'
 	},
 	{
-		title: 'Architecture',
+		title: 'Community',
 		number: '10',
 		subtitle: [],
-		id: '#10---architecture'
-	},
-	{
-		title: 'Diagrams',
-		number: '11',
-		subtitle: [
-			{
-				title: 'Install',
-				number: '11.1',
-				id: '#install'
-			},
-			{
-				title: 'Usage',
-				number: '11.2',
-				id: '#usage'
-			}
-		],
-		id: '#11---diagrams'
-	},
-	{
-		title: 'Community',
-		number: '12',
-		subtitle: [],
-		id: '#12---community'
+		id: '#10---community'
 	}
 ]
 

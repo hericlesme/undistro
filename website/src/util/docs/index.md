@@ -1,4 +1,50 @@
-# 1 - Quick Start
+# 1 - Glossary
+
+Find below a glossary to help to clarify the doc content
+
+## Management Cluster
+
+The cluster where UnDistro and provider components are installed
+
+## Provider Components
+
+UnDistro and its dependencies
+
+## Infrastructure Provider
+
+UnDistro part that is responsible to communicate with any infrastructure that UnDistro supports
+
+## Core Provider
+
+UnDistro and all required dependencies
+&nbsp;
+
+&nbsp;
+
+# 2 - Introduction
+
+## What is UnDistro (will be in version 1.0.0)?
+
+UnDistro is an enterprise software that automates multicloud, on-prem, and edge operations with a single management UI.
+
+UnDistro automates thousands of Kubernetes clusters across multi-cloud, on-prem and edge with unparalleled resilience. Deploy, manage and run multiple Kubernetes clusters with our platform. On your preferred infrastructure.
+
+UnDistro Kubernetes Platform is directly integrated with leading cloud providers, and runs even in your own datacenter.
+
+By providing managed Kubernetes clusters for your infrastructure, UnDistro makes Kubernetes as easy as it can be. UnDistro empowers you to take advantage of all the advanced features that Kubernetes has to offer and increases the speed, flexibility and scalability of your deployment workflow.
+
+UnDistro provides live updates of your Kubernetes cluster without disrupting your daily business.
+
+## Architecture
+
+The overarching architecture of UnDistro is centered around a "management plane". This plane is expected to serve as a single interface upon which administrators can create, scale, upgrade, and delete Kubernetes clusters. At a high level view, the management plane + created clusters should look something like this:
+
+![Image of Architecture](/assets/images/arch.png)
+&nbsp;
+
+&nbsp;
+
+# 3 - Quick Start
 
 Follow these steps to easily create your first cluster with UnDistro.
 
@@ -88,47 +134,6 @@ Once you have finished the installation retrieve the kubeconfig to access the cr
 undistro get kubeconfig yourclustername -n yourclusternamespace
 ~~~
 - *For more information about UnDistro, please refer to the next topics of this document.*
-&nbsp; 
-
-&nbsp; 
-
-
-# 2 - Glossary
-
-Find below a glossary to help to clarify the doc content
-
-## Management Cluster
-
-The cluster where UnDistro and provider components are installed
-
-## Provider Components
-
-UnDistro and its dependencies
-
-## Infrastructure Provider
-
-UnDistro part that is responsible to communicate with any infrastructure that UnDistro supports
-
-## Core Provider
-
-UnDistro and all required dependencies
-&nbsp; 
-
-&nbsp; 
-
-# 3 - Introduction
-
-## What is UnDistro (will be in version 1.0.0)?
-
-UnDistro is an enterprise software that automates multicloud, on-prem, and edge operations with a single management UI.
-
-UnDistro automates thousands of Kubernetes clusters across multi-cloud, on-prem and edge with unparalleled resilience. Deploy, manage and run multiple Kubernetes clusters with our platform. On your preferred infrastructure.
-
-UnDistro Kubernetes Platform is directly integrated with leading cloud providers, and runs even in your own datacenter.
-
-By providing managed Kubernetes clusters for your infrastructure, UnDistro makes Kubernetes as easy as it can be. UnDistro empowers you to take advantage of all the advanced features that Kubernetes has to offer and increases the speed, flexibility and scalability of your deployment workflow.
-
-UnDistro provides live updates of your Kubernetes cluster without disrupting your daily business.
 &nbsp; 
 
 &nbsp; 
@@ -615,32 +620,7 @@ undistro get hr
 
 &nbsp; 
 
-
-# 10 - Architecture
-
-The overarching architecture of UnDistro is centered around a "management plane". This plane is expected to serve as a single interface upon which administrators can create, scale, upgrade, and delete Kubernetes clusters. At a high level view, the management plane + created clusters should look something like this:
-
-![Image of Architecture](https://github.com/getupio-undistro/undistro/blob/b02153cceba365ed7dbc02ca12ed5a484bb50d12/website/src/assets/images/arch.png?raw=true)
-&nbsp; 
-
-&nbsp; 
-
-
-# 11 - Diagrams
-
-## Install
-
-![Image of Install](https://github.com/getupio-undistro/undistro/blob/b02153cceba365ed7dbc02ca12ed5a484bb50d12/website/src/assets/images/install.png?raw=true)
-
-## Usage
-
-![Image of Usage](https://github.com/getupio-undistro/undistro/blob/b02153cceba365ed7dbc02ca12ed5a484bb50d12/website/src/assets/images/usage.png?raw=true)
-&nbsp; 
-
-&nbsp; 
-
-
-# 12 - Community
+# 10 - Community
 
 - [Issue tracker](https://github.com/getupio-undistro/undistro/issues)
 - [Forum](https://github.com/getupio-undistro/undistro/discussions)
