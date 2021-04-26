@@ -1,6 +1,7 @@
 name: PRD Website
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - "*"
