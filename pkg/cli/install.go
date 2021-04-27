@@ -222,6 +222,7 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 			return err
 		}
 		wait := true
+		forceUpgrade := true
 		reset := false
 		history := 0
 		hr := appv1alpha1.HelmRelease{
@@ -231,6 +232,7 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 				Wait:            &wait,
 				MaxHistory:      &history,
 				ResetValues:     &reset,
+				ForceUpgrade:    &forceUpgrade,
 				Timeout: &metav1.Duration{
 					Duration: 5 * time.Minute,
 				},
