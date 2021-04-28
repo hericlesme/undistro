@@ -35,6 +35,7 @@ jobs:
           docker push getupioundistro/undistro:$GIT_VERSION
 
       - name: Helm Push
+        working-directory: ./charts
         env:
           HELM_LOGIN: ${{ secrets.HELM_LOGIN }}
           HELM_PASSWORD: ${{ secrets.HELM_PASSWORD }}
