@@ -38,6 +38,9 @@ Before you start, make sure the following prerequisites are installed:
 - The namespace cannot be changed after the cluster is created, choose it right, choose it well!
 - Get in advance the keys from the provider you will need to use, be prepared!
 
+![Image of quick start steps](https://raw.githubusercontent.com/getupio-undistro/undistro/main/website/src/assets/images/quick-start.png)
+
+
 ## Step 1
 
 To get started we will create a Kind cluster, open your terminal and type:
