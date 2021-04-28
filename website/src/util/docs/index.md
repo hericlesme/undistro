@@ -1,3 +1,5 @@
+import './docs.scss'
+
 # 1 - Introduction
 
 ## What is UnDistro (will be in version 1.0.0)?
@@ -21,8 +23,7 @@ The overarching architecture of UnDistro is centered around a "management plane"
 single interface upon which administrators can create, scale, upgrade, and delete Kubernetes clusters. At a high level
 view, the management plane + created clusters should look something like this:
 
-<img src="https://raw.githubusercontent.com/getupio-undistro/undistro/main/website/src/assets/images/arch.jpg"
-  style="width: 100%; height: auto !important;" />
+<img class="md-image" src="https://raw.githubusercontent.com/getupio-undistro/undistro/main/website/src/assets/images/arch.jpg" />
 &nbsp;
 
 &nbsp;
@@ -46,8 +47,7 @@ local environment. **(required just for AWS provider)**
 - The namespace cannot be changed after the cluster is created, choose it right, choose it well!
 - Get in advance the keys from the provider you will need to use, be prepared!
 
-<img src="https://raw.githubusercontent.com/getupio-undistro/undistro/main/website/src/assets/images/quick-start.jpg"
-  style="width: 100%; height: auto !important;" />
+<img class="md-image" src="https://raw.githubusercontent.com/getupio-undistro/undistro/main/website/src/assets/images/quick-start.jpg"/>
 
 
 ## Step 1

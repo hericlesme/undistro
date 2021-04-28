@@ -129,12 +129,9 @@
       }
 
       img {
-        height: 840px;
+        width: 100%;
+        height: auto;
         margin-top: 16px;
-
-        @media (max-width: $max-width-mobile) {
-          height: 500px !important;
-        }
       }
 
       pre {
