@@ -13,15 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package meta
 
-const (
-	LabelUndistroClusterName = "undistro.io/cluster-name"
-	LabelUndistroClusterType = "undistro.io/cluster-type"
-	LabelProviderType        = "undistro.io/provider-type"
-	LabelUndistro            = "undistro.io"
-	LabelUndistroMove        = "undistro.io/move"
-	LabelUndistroMoved       = "undistro.io/moved"
-	LabelUndistroInfra       = "node-role.undistro.io/infra"
-	LabelK8sInfra            = "node-role.kubernetes.io/infra"
+package v1alpha1
+
+import (
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+var (
+	// k8sClient as variable to use in webhooks https://github.com/kubernetes-sigs/kubebuilder/issues/1216#issuecomment-559570858
+	k8sClient client.Client
 )

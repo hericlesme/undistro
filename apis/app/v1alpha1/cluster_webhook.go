@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -39,6 +40,9 @@ import (
 var clusterlog = logf.Log.WithName("cluster-resource")
 
 func (r *Cluster) SetupWebhookWithManager(mgr ctrl.Manager) error {
+	if k8sClient == nil {
+		k8sClient = mgr.GetClient()
+	}
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(r).
 		Complete()
@@ -83,6 +87,7 @@ func (r *Cluster) Default() {
 				r.Spec.Workers[i].ProviderTags = make(map[string]string)
 			}
 			r.Spec.Workers[i].Labels[meta.LabelUndistroInfra] = "true"
+			r.Spec.Workers[i].Labels[meta.LabelK8sInfra] = "true"
 			r.Spec.Workers[i].ProviderTags["infra-node"] = "true"
 			r.Spec.Workers[i].Taints = []corev1.Taint{{
 				Key:    "dedicated",
@@ -164,6 +169,29 @@ func (r *Cluster) validate(old *Cluster) error {
 	switch r.Spec.InfrastructureProvider.Name {
 	case "aws":
 		allErrs = r.validateAWS(old, allErrs)
+	}
+	if old == nil {
+		// check network just on creation
+		clList := ClusterList{}
+		err = k8sClient.List(context.TODO(), &clList)
+		if err != nil {
+			return err
+		}
+		for _, item := range clList.Items {
+			if r.Spec.InfrastructureProvider.Name == item.Spec.InfrastructureProvider.Name &&
+				r.Name != item.Name &&
+				!item.Spec.Paused &&
+				!r.Spec.Paused &&
+				r.Spec.Network.VPC.ID == "" &&
+				r.Spec.Network.VPC.CIDRBlock == "" {
+				allErrs = append(allErrs, field.Invalid(
+					field.NewPath("spec", "network", "vpc"),
+					r.Spec.Network.VPC,
+					"ID or CIDRBlock must be set to avoid network conflicts with others clusters",
+				))
+				break
+			}
+		}
 	}
 	if len(allErrs) == 0 {
 		return nil
