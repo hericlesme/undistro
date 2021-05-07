@@ -1,0 +1,58 @@
+---
+apiVersion: app.undistro.io/v1alpha1
+kind: HelmRelease
+metadata:
+  name: nginx
+  namespace: ec2
+spec:
+  targetNamespace: ingress-nginx
+  clusterName: <cluster-name>
+  chart:
+    repository: https://kubernetes.github.io/ingress-nginx
+    name: ingress-nginx
+    version: 3.30.0
+  autoUpgrade: true
+  values:
+    podLabels:
+      network.undistro.io/ingress: allow
+      network.undistro.io/egress: allow
+
+---
+apiVersion: app.undistro.io/v1alpha1
+kind: HelmRelease
+metadata:
+  name: kubernetes-dashboard
+  namespace: ec2
+spec:
+  clusterName: <cluster-name>
+  dependencies:
+    - apiVersion: app.undistro.io/v1alpha1
+      kind: HelmRelease
+      name: nginx
+      namespace: ec2
+  chart:
+    repository: https://kubernetes.github.io/dashboard
+    name: kubernetes-dashboard
+    version: 4.0.0
+  autoUpgrade: true
+  afterApplyObjects:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: dashboard-access
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+        - kind: ServiceAccount
+          name: undistro-quickstart-dash
+          namespace: default
+  values:
+    podLabels:
+      network.undistro.io/ingress: allow
+      network.undistro.io/egress: allow
+    ingress:
+      enabled: true
+    serviceAccount:
+      name: undistro-quickstart-dash
