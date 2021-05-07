@@ -18,6 +18,7 @@ package aws
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"fmt"
 	"io"
 	"net/http"
@@ -36,6 +37,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws/cloudformation"
+	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -58,6 +60,9 @@ region = {{ .Region }}
 aws_session_token = {{ .SessionToken }}
 {{end}}`
 )
+
+//go:embed undistro-aws.yaml
+var identity []byte
 
 func kindByFlavor(flavor string) string {
 	switch flavor {
@@ -87,37 +92,30 @@ func launchTemplateRef(ctx context.Context, u unstructured.Unstructured) (appv1a
 			return ref, err
 		}
 		ref.Version = strconv.Itoa(int(version))
-	case "AWSManagedMachinePool":
-		ref.ID, ok, err = unstructured.NestedString(u.Object, "spec", "launchTemplate", "id")
-		if !ok || err != nil {
-			return ref, err
-		}
-		ref.ID, ok, err = unstructured.NestedString(u.Object, "spec", "launchTemplate", "version")
-		if !ok || err != nil {
-			return ref, err
-		}
 	}
 	return ref, nil
 }
 
 func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster) error {
 	for i := range cl.Spec.Workers {
-		key := client.ObjectKey{
-			Name:      fmt.Sprintf("%s-mp-%d", cl.Name, i),
-			Namespace: cl.GetNamespace(),
+		if !cl.Spec.InfrastructureProvider.IsManaged() {
+			key := client.ObjectKey{
+				Name:      fmt.Sprintf("%s-mp-%d", cl.Name, i),
+				Namespace: cl.GetNamespace(),
+			}
+			u := unstructured.Unstructured{}
+			u.SetAPIVersion("infrastructure.cluster.x-k8s.io/v1alpha3")
+			u.SetKind(kindByFlavor(cl.Spec.InfrastructureProvider.Flavor))
+			err := r.Get(ctx, key, &u)
+			if err != nil {
+				return client.IgnoreNotFound(err)
+			}
+			ref, err := launchTemplateRef(ctx, u)
+			if err != nil {
+				return err
+			}
+			cl.Spec.Workers[i].LaunchTemplateReference = ref
 		}
-		u := unstructured.Unstructured{}
-		u.SetAPIVersion("infrastructure.cluster.x-k8s.io/v1alpha3")
-		u.SetKind(kindByFlavor(cl.Spec.InfrastructureProvider.Flavor))
-		err := r.Get(ctx, key, &u)
-		if err != nil {
-			return client.IgnoreNotFound(err)
-		}
-		ref, err := launchTemplateRef(ctx, u)
-		if err != nil {
-			return err
-		}
-		cl.Spec.Workers[i].LaunchTemplateReference = ref
 	}
 	return nil
 }
@@ -258,6 +256,20 @@ func Init(ctx context.Context, c client.Client, cfg []appv1alpha1.ValuesReferenc
 	}
 	cfg = append(cfg, v)
 	return cfg, nil
+}
+
+func PostInstall(ctx context.Context, c client.Client) error {
+	objs, err := util.ToUnstructured(identity)
+	if err != nil {
+		return err
+	}
+	for _, o := range objs {
+		_, err = util.CreateOrUpdate(ctx, c, &o)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Upgrade providers

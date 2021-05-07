@@ -47,6 +47,14 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 	return nil
 }
 
+func PostInstall(ctx context.Context, c client.Client, p configv1alpha1.Provider) error {
+	switch p.Spec.ProviderName {
+	case "undistro-aws":
+		return aws.PostInstall(ctx, c)
+	}
+	return nil
+}
+
 // ReconcileLaunchTemplate from clouds
 func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster) error {
 	switch cl.Spec.InfrastructureProvider.Name {

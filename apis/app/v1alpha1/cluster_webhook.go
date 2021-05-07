@@ -87,7 +87,6 @@ func (r *Cluster) Default() {
 				r.Spec.Workers[i].ProviderTags = make(map[string]string)
 			}
 			r.Spec.Workers[i].Labels[meta.LabelUndistroInfra] = "true"
-			r.Spec.Workers[i].Labels[meta.LabelK8sInfra] = "true"
 			r.Spec.Workers[i].ProviderTags["infra-node"] = "true"
 			r.Spec.Workers[i].Taints = []corev1.Taint{{
 				Key:    "dedicated",
@@ -200,12 +199,6 @@ func (r *Cluster) validate(old *Cluster) error {
 }
 
 func (r *Cluster) validateAWS(old runtime.Object, allErrs field.ErrorList) field.ErrorList {
-	if r.Spec.InfrastructureProvider.Name == "aws" && r.Spec.InfrastructureProvider.Flavor == "ec2" && r.Spec.InfrastructureProvider.SSHKey == "" {
-		allErrs = append(allErrs, field.Required(
-			field.NewPath("spec", "infrastructureProvider", "sshKey"),
-			"sshKey is required when flavor is ec2",
-		))
-	}
 	if r.Spec.InfrastructureProvider.Name == "aws" && !isValidNameForAWS(r.Name) {
 		allErrs = append(allErrs, field.Invalid(
 			field.NewPath("metadata", "name"),
