@@ -374,7 +374,7 @@ func (r *ClusterReconciler) hasDiff(cl *appv1alpha1.Cluster) bool {
 }
 
 func (r *ClusterReconciler) installCNI(ctx context.Context, cl appv1alpha1.Cluster) error {
-	const addr = "https://docs.projectcalico.org/manifests/calico.yaml"
+	addr := cloud.CNIAddrByFlavor(cl.Spec.InfrastructureProvider.Flavor)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, addr, nil)
 	if err != nil {
 		return err

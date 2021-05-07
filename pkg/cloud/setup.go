@@ -64,6 +64,15 @@ func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alph
 	return nil
 }
 
+func CNIAddrByFlavor(flavor string) string {
+	switch flavor {
+	case "eks":
+		return "https://docs.projectcalico.org/manifests/calico-vxlan.yaml"
+	default:
+		return "https://docs.projectcalico.org/manifests/calico.yaml"
+	}
+}
+
 // Init providers
 func Init(ctx context.Context, c client.Client, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
 	var err error
