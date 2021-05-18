@@ -197,7 +197,7 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         name: manager
-        {{.Values.devEnv}}
+        {{if .Values.devEnv}}
         env:
           - name: UNDISTRO_ENV
             value: dev

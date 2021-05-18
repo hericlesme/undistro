@@ -75,7 +75,6 @@ func NewServer(cfg *rest.Config, in io.Reader, out, errOut io.Writer, healthChec
 				http.MethodHead,
 				http.MethodDelete,
 				http.MethodConnect,
-
 			}),
 		)(router)
 	}
