@@ -1,6 +1,8 @@
 devEnv: false
 ingress:
   enabled: true
+  annotations:
+    kubernetes.io/ingress.class: cantour
 resources:
   limits:
     cpu: "2"
