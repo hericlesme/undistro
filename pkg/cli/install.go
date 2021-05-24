@@ -40,6 +40,7 @@ import (
 	"github.com/spf13/viper"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/getter"
+	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -259,7 +260,7 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 			if err != nil {
 				return err
 			}
-		} else {
+		} else if rel.Info.Status == release.StatusDeployed || rel.Info.Status == release.StatusFailed {
 			_, err = runner.Upgrade(hr, chart, chart.Values)
 			if err != nil {
 				return err
