@@ -1,6 +1,7 @@
 devEnv: false
 ingress:
   enabled: true
+  fqdn: undistro.local
   annotations:
     kubernetes.io/ingress.class: contour
     projectcontour.io/ingress.class: contour
