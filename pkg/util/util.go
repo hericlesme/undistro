@@ -26,7 +26,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/getupio-undistro/undistro/pkg/meta"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	"helm.sh/helm/v3/pkg/chartutil"
@@ -290,10 +289,11 @@ func IsKindCluster(ctx context.Context, c client.Client) (bool, error) {
 		return false, err
 	}
 	for _, node := range nodes.Items {
-		labels := node.GetLabels()
-		if labels != nil {
-			if labels[meta.LabelK8sHostname] == "kind-control-plane" {
-				return true, nil
+		for _, image := range node.Status.Images {
+			for _, name := range image.Names {
+				if strings.Contains(name, "kindnet") {
+					return true, nil
+				}
 			}
 		}
 	}
