@@ -554,6 +554,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 				return err
 			}
 			if isKind {
+				fmt.Fprintf(o.IOStreams.Out, "\n")
 				patchCmd := exec.CommandContext(cmd.Context(), "undistro", "patch", "daemonsets", "-n", "undistro-system", "envoy", "-p", contour.PatchLocal)
 				patchCmd.Stdin = o.IOStreams.In
 				patchCmd.Stderr = o.IOStreams.ErrOut
