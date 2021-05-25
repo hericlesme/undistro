@@ -87,6 +87,7 @@ func (r *Cluster) Default() {
 				r.Spec.Workers[i].ProviderTags = make(map[string]string)
 			}
 			r.Spec.Workers[i].Labels[meta.LabelUndistroInfra] = "true"
+			r.Spec.Workers[i].Labels[meta.LabelK8sInfra] = ""
 			r.Spec.Workers[i].ProviderTags["infra-node"] = "true"
 			r.Spec.Workers[i].Taints = []corev1.Taint{{
 				Key:    "dedicated",

@@ -26,6 +26,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/getupio-undistro/undistro/pkg/meta"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	"helm.sh/helm/v3/pkg/chartutil"
@@ -280,4 +281,21 @@ func RemoveDuplicateTaints(taints []corev1.Taint) []corev1.Taint {
 		return res[i].Key < res[j].Key
 	})
 	return res
+}
+
+func IsKindCluster(ctx context.Context, c client.Client) (bool, error) {
+	nodes := corev1.NodeList{}
+	err := c.List(ctx, &nodes)
+	if err != nil {
+		return false, err
+	}
+	for _, node := range nodes.Items {
+		labels := node.GetLabels()
+		if labels != nil {
+			if labels[meta.LabelK8sHostname] == "kind-control-plane" {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }

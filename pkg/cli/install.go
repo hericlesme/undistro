@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"os/exec"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
@@ -548,6 +549,20 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			}
 		}
 		if ready {
+			isKind, err := util.IsKindCluster(cmd.Context(), c)
+			if err != nil {
+				return err
+			}
+			if isKind {
+				patchCmd := exec.CommandContext(cmd.Context(), "undistro", "patch", "daemonsets", "-n", "undistro-system", "envoy", "-p", contour.PatchLocal)
+				patchCmd.Stdin = o.IOStreams.In
+				patchCmd.Stderr = o.IOStreams.ErrOut
+				patchCmd.Stdout = o.IOStreams.Out
+				err = patchCmd.Run()
+				if err != nil {
+					return err
+				}
+			}
 			fmt.Fprintln(o.IOStreams.Out, "\n\nManagement cluster is ready to use.")
 			return nil
 		}
