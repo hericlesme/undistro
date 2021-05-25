@@ -43,12 +43,12 @@ var _ = Describe("Validate UnDistro Installation", func() {
 			Expect(err).ToNot(HaveOccurred())
 			running := true
 			for _, p := range podList.Items {
-				if p.Status.Phase != corev1.PodRunning {
+				if p.Status.Phase != corev1.PodRunning && p.Status.Phase != corev1.PodSucceeded {
 					running = false
 				}
 			}
 			return running
-		}, 10*time.Minute, 1*time.Minute).Should(BeTrue())
+		}, 30*time.Minute, 1*time.Minute).Should(BeTrue())
 	})
 	It("Verify if UnDistro AWS is correctly installed", func() {
 		Eventually(func() string {
