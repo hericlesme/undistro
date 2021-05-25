@@ -15,6 +15,6 @@ resources:
     memory: 256Mi
 image:
   repository: getupioundistro/undistro
-  tag: v0.26.3
+  tag: v0.26.4
   pullPolicy: IfNotPresent
   pullSecrets: []
