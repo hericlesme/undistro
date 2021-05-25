@@ -43,7 +43,7 @@ var _ = Describe("Validate UnDistro Installation", func() {
 			Expect(err).ToNot(HaveOccurred())
 			running := true
 			for _, p := range podList.Items {
-				if p.Status.Phase != corev1.PodRunning && p.Status.Phase != corev1.PodSucceeded {
+				if p.Status.Phase == corev1.PodFailed {
 					running = false
 				}
 			}
