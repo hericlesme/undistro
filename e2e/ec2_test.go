@@ -141,7 +141,7 @@ var _ = Describe("Create EC2 cluster", func() {
 			)
 			out, stderr, err := cmd.Run(context.Background())
 			if err != nil {
-				fmt.Println(stderr)
+				fmt.Println(string(stderr))
 				fmt.Println(err)
 				fmt.Println(string(out))
 				return list.Items
