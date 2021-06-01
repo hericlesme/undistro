@@ -139,9 +139,11 @@ var _ = Describe("Create EC2 cluster", func() {
 				exec.WithCommand("undistro"),
 				exec.WithArgs("logs", undistroPodName, "-n", "undistro-system", "-c", "manager"),
 			)
-			out, _, err = cmd.Run(context.Background())
+			out, stderr, err := cmd.Run(context.Background())
 			if err != nil {
+				fmt.Println(stderr)
 				fmt.Println(err)
+				fmt.Println(string(out))
 				return list.Items
 			}
 			fmt.Println(string(out))
