@@ -71,8 +71,8 @@ func (s *Server) routes(router *mux.Router) {
 
 	router.Handle("/healthz/readiness", &s.HealthHandler)
 	router.HandleFunc("/healthz/liveness", health.HandleLive)
-	router.HandleFunc("/v1/provider/metadata", provHandler.HandleProviderMetadata).Methods(http.MethodGet)
-	router.PathPrefix("/v1/namespaces/{namespace}/clusters/{cluster}/proxy/").Handler(proxyHandler)
+	router.HandleFunc("/uapi/v1/provider/metadata", provHandler.HandleProviderMetadata).Methods(http.MethodGet)
+	router.PathPrefix("/uapi/v1/namespaces/{namespace}/clusters/{cluster}/proxy/").Handler(proxyHandler)
 	router.PathPrefix("/").Handler(fs.ReactHandler("", "frontend"))
 }
 
