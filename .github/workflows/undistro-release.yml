@@ -49,8 +49,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
         run: |
-          docker build -t registry.undistro.io/undistro:$GIT_VERSION .
-          docker push registry.undistro.io/undistro:$GIT_VERSION
+          docker build -t registry.undistro.io/library/undistro:$GIT_VERSION .
+          docker push registry.undistro.io/library/undistro:$GIT_VERSION
 
       - name: Helm Push
         working-directory: ./charts
