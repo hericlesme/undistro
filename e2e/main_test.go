@@ -115,6 +115,13 @@ func TestMain(m *testing.M) {
 	if !bytes.Contains(out, []byte("Management cluster is ready to use.")) {
 		msg := "failed to install undistro: " + string(stderr)
 		fmt.Println(msg)
+		cmd = exec.NewCommand(
+			exec.WithCommand("kubectl"),
+			exec.WithArgs("get", "pods", "-n", "undistro-system"),
+		)
+		out, stderr, _ = cmd.Run(ctx)
+		fmt.Println(string(out))
+		fmt.Println("err:", string(stderr))
 		os.Exit(1)
 	}
 	config, err := clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
