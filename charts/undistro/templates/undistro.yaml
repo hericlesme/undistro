@@ -270,18 +270,18 @@ spec:
         ports:
         - containerPort: 8443
           name: https
-      resources:
-        limits:
-          cpu: "1"
-          memory: 512Mi
-        requests:
-          cpu: "0.5"
-          memory: 256Mi
-      securityContext:
-        allowPrivilegeEscalation: false
-        runAsGroup: 65532
-        runAsNonRoot: true
-        runAsUser: 65532
+        resources:
+          limits:
+            cpu: "1"
+            memory: 512Mi
+          requests:
+            cpu: "0.5"
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsGroup: 65532
+          runAsNonRoot: true
+          runAsUser: 65532
       serviceAccountName: undistro-controller-manager
       terminationGracePeriodSeconds: 10
       volumes:
@@ -292,6 +292,16 @@ spec:
       - configMap:
           name: undistro-manager-config
         name: manager-config
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  labels:
+    undistro.io: undistro
+  name: undistro-selfsigned-issuer
+  namespace: undistro-system
+spec:
+  selfSigned: {}
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -308,16 +318,6 @@ spec:
     kind: Issuer
     name: undistro-selfsigned-issuer
   secretName: webhook-server-cert
----
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  labels:
-    undistro.io: undistro
-  name: undistro-selfsigned-issuer
-  namespace: undistro-system
-spec:
-  selfSigned: {}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
