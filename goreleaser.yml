@@ -24,7 +24,7 @@ dockers:
       - "registry.undistro.io/library/undistro-amd64:{{ .Tag }}"
     use: buildx
     ids: [manager]
-    goarch: arm64
+    goarch: amd64
     dockerfile: Dockerfile
     build_flag_templates:
       - "--pull"
