@@ -138,6 +138,13 @@ func TestMain(m *testing.M) {
 		fmt.Println("err:", string(stderr))
 		cmd = exec.NewCommand(
 			exec.WithCommand("kubectl"),
+			exec.WithArgs("describe", "nodes"),
+		)
+		out, stderr, _ = cmd.Run(ctx)
+		fmt.Println(string(out))
+		fmt.Println("err:", string(stderr))
+		cmd = exec.NewCommand(
+			exec.WithCommand("kubectl"),
 			exec.WithArgs("describe", "pods", "-n", "undistro-system"),
 		)
 		out, stderr, _ = cmd.Run(ctx)
