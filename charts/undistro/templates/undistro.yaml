@@ -246,13 +246,6 @@ spec:
         ports:
         - containerPort: 8443
           name: https
-        resources:
-          limits:
-            cpu: "1"
-            memory: 512Mi
-          requests:
-            cpu: "0.5"
-            memory: 256Mi
         securityContext:
           allowPrivilegeEscalation: false
           runAsGroup: 65532
