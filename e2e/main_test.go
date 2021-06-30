@@ -131,7 +131,7 @@ func TestMain(m *testing.M) {
 		fmt.Println(msg)
 		cmd = exec.NewCommand(
 			exec.WithCommand("kubectl"),
-			exec.WithArgs("get", "pods", "-n", "undistro-system"),
+			exec.WithArgs("get", "pods", "--all-namespaces"),
 		)
 		out, stderr, _ = cmd.Run(ctx)
 		fmt.Println(string(out))
