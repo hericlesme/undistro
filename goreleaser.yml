@@ -24,22 +24,20 @@ dockers:
   - image_templates:
       - "registry.undistro.io/library/undistro:{{ .Tag }}"
       - "registry.undistro.io/library/undistro-amd64:{{ .Tag }}"
-    use: buildx
+    use: docker
     ids: [manager]
     goarch: amd64
     dockerfile: Dockerfile
     build_flag_templates:
-      - "--pull"
       - "--platform=linux/amd64"
 
   - image_templates:
       - "registry.undistro.io/library/undistro-arm64:{{ .Tag }}"
-    use: buildx
+    use: docker
     ids: [manager]
     goarch: arm64
     dockerfile: Dockerfile
     build_flag_templates:
-      - "--pull"
       - "--platform=linux/arm64"
 
 brews:
