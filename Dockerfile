@@ -2,7 +2,7 @@
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM registry.undistro.io/gcr/distroless/static:nonroot
 WORKDIR /
-COPY manager .
+COPY manager /
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]
