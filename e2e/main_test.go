@@ -59,8 +59,13 @@ func TestMain(m *testing.M) {
 	image := fmt.Sprintf("localhost:5000/undistro:%s", sha)
 	cmd := exec.NewCommand(
 		exec.WithCommand("docker"),
-		exec.WithArgs("build", "-t", image, "-f", "../tilt.docker", "."),
+		exec.WithArgs("build", "-t", image, "-f", "tilt.docker", "."),
 	)
+	err := os.Chdir("../")
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 	stout, stderr, err := cmd.Run(ctx)
 	if err != nil {
 		fmt.Println(string(stderr))
@@ -79,6 +84,11 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 	fmt.Println(string(stout))
+	err = os.Chdir("./e2e")
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 	cfg := cli.Config{
 		Providers: []cli.Provider{
 			{
