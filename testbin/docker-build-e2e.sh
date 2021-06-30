@@ -17,6 +17,7 @@
 set -o errexit
 set -o pipefail
 
-cd ../
-docker build -t $1 -f tilt.docker .
-cd ./e2e
+cd ../;
+make cli;
+docker build -t $1 -f tilt.docker .;
+cd ./e2e;
