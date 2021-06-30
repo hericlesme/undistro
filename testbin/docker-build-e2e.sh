@@ -18,6 +18,6 @@ set -o errexit
 set -o pipefail
 
 cd ../;
-make cli;
+make manager;
 docker build -t $1 -f tilt.docker .;
 cd ./e2e;
