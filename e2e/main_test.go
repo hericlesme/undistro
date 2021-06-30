@@ -59,7 +59,7 @@ func TestMain(m *testing.M) {
 	image := fmt.Sprintf("localhost:5000/undistro:%s", sha)
 	cmd := exec.NewCommand(
 		exec.WithCommand("docker"),
-		exec.WithArgs("build", "-t", image, "-f", "tilt.docker", "."),
+		exec.WithArgs("build", "-t", image, "-f", "../tilt.docker", "."),
 	)
 	stout, stderr, err := cmd.Run(ctx)
 	if err != nil {
