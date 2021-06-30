@@ -45,13 +45,6 @@ jobs:
           yarn
           yarn build
 
-      - name: docker build and push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-        run: |
-          docker build -t registry.undistro.io/library/undistro:$GIT_VERSION .
-          docker push registry.undistro.io/library/undistro:$GIT_VERSION
-
       - name: Helm Push
         working-directory: ./charts
         env:
@@ -72,7 +65,6 @@ jobs:
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
-          version: v0.166.0
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
