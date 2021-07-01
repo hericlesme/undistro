@@ -174,7 +174,11 @@ a target
 
 The UnDistro CLI tool handles the lifecycle of an UnDistro management cluster.
 
-Download the latest version from the releases page: https://github.com/getupio-undistro/undistro/releases or use Homebrew to install `brew install getupio-undistro/tap/undistro`.
+Download the latest version from the releases page: https://github.com/getupio-undistro/undistro/releases or use Homebrew to install. 
+
+~~~bash
+brew install getupio-undistro/tap/undistro
+~~~
 
 ## Create the configuration file
 
