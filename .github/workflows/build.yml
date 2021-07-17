@@ -42,7 +42,9 @@ jobs:
         uses: helm/chart-testing-action@v2.0.1
 
       - name: Run chart-testing (lint)
-        run: ct lint --all
+        run: |
+          helm repo add undistro https://registry.undistro.io/chartrepo/library
+          ct lint --all
 
       - name: Get dependencies
         run: go mod download
@@ -52,6 +54,9 @@ jobs:
 
       - name: Build Manager
         run: make manager
+
+      - name: Build AWS Init
+        run: make aws-init
 
       - name: Build UI
         working-directory: ./UI

@@ -27,7 +27,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getupio-undistro/undistro/pkg/cli"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -54,12 +53,11 @@ func TestMain(m *testing.M) {
 		os.Exit(0)
 	}
 	ctx := context.Background()
-	fmt.Println("Build docker image")
+	fmt.Println("Build docker image and push")
 	sha := os.Getenv("GITHUB_SHA")
-	image := fmt.Sprintf("localhost:5000/undistro:%s", sha)
 	cmd := exec.NewCommand(
 		exec.WithCommand("bash"),
-		exec.WithArgs("-c", fmt.Sprintf("../testbin/docker-build-e2e.sh %s", image)),
+		exec.WithArgs("-c", fmt.Sprintf("../testbin/docker-build-e2e.sh %s", sha)),
 	)
 	stout, stderr, err := cmd.Run(ctx)
 	if err != nil {
@@ -68,36 +66,22 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 	fmt.Println(string(stout))
-	fmt.Println("Push docker image")
-	cmd = exec.NewCommand(
-		exec.WithCommand("docker"),
-		exec.WithArgs("push", image),
-	)
-	stout, _, err = cmd.Run(ctx)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	fmt.Println(string(stout))
-	cfg := cli.Config{
-		Providers: []cli.Provider{
-			{
-				Name: "aws",
-				Configuration: map[string]interface{}{
-					"accessKeyID":     os.Getenv("E2E_AWS_ACCESS_KEY_ID"),
-					"secretAccessKey": os.Getenv("E2E_AWS_SECRET_ACCESS_KEY"),
-				},
+	cfg := map[string]interface{}{
+		"undistro": map[string]interface{}{
+			"global": map[string]interface{}{
+				"undistroRepository": "localhost:5000",
+				"undistroVersion":    sha,
 			},
 		},
-		CoreProviders: []cli.Provider{
-			{
-				Name: "undistro",
-				Configuration: map[string]interface{}{
-					"image": map[string]interface{}{
-						"repository": "localhost:5000/undistro",
-						"tag":        sha,
-					},
-				},
+		"undistro-aws": map[string]interface{}{
+			"enabled": true,
+			"credentials": map[string]interface{}{
+				"accessKeyID":     os.Getenv("E2E_AWS_ACCESS_KEY_ID"),
+				"secretAccessKey": os.Getenv("E2E_AWS_SECRET_ACCESS_KEY"),
+			},
+			"global": map[string]interface{}{
+				"undistroRepository": "localhost:5000",
+				"undistroVersion":    sha,
 			},
 		},
 	}
@@ -167,22 +151,42 @@ func TestMain(m *testing.M) {
 				fmt.Println("err:", string(stderr))
 			}
 		}
+		cmd = exec.NewCommand(
+			exec.WithCommand("helm"),
+			exec.WithArgs("get", "values", "undistro", "-n", "undistro-system"),
+		)
+		out, _, err = cmd.Run(ctx)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		fmt.Println(string(out))
+		cmd = exec.NewCommand(
+			exec.WithCommand("helm"),
+			exec.WithArgs("ls", "-n", "undistro-system"),
+		)
+		out, _, err = cmd.Run(ctx)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		fmt.Println(string(out))
+		cmd = exec.NewCommand(
+			exec.WithCommand("helm"),
+			exec.WithArgs("status", "undistro", "--show-desc", "-n", "undistro-system"),
+		)
+		out, _, err = cmd.Run(ctx)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		fmt.Println(string(out))
 		os.Exit(1)
 	}
 
 	cmd = exec.NewCommand(
 		exec.WithCommand("undistro"),
 		exec.WithArgs("get", "pods", "-n", "undistro-system"),
-	)
-	out, _, err = cmd.Run(ctx)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	fmt.Println(string(out))
-	cmd = exec.NewCommand(
-		exec.WithCommand("mv"),
-		exec.WithArgs("aws-iam-authenticator", "./bin"),
 	)
 	out, _, err = cmd.Run(ctx)
 	if err != nil {

@@ -27,7 +27,6 @@ import (
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
-	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/onsi/ginkgo"
@@ -93,9 +92,6 @@ func NewEnvironment() *Environment {
 	mgr, err := ctrl.NewManager(env.Config, options)
 	if err != nil {
 		klog.Fatalf("Failed to start testenv manager: %v", err)
-	}
-	if err = (&configv1alpha1.Provider{}).SetupWebhookWithManager(mgr); err != nil {
-		klog.Fatalln(err, "unable to create webhook", "webhook", "Provider")
 	}
 	if err = (&appv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {
 		klog.Fatalln(err, "unable to create webhook", "webhook", "Cluster")

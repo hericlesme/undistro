@@ -26,7 +26,6 @@ import (
 
 	"github.com/getupio-undistro/undistro/pkg/fs"
 	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver/health"
-	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver/provider"
 	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver/proxy"
 	"github.com/gorilla/mux"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -66,12 +65,10 @@ func NewServer(cfg *rest.Config, in io.Reader, out, errOut io.Writer, healthChec
 }
 
 func (s *Server) routes(router *mux.Router) {
-	provHandler := provider.New(s.K8sCfg)
 	proxyHandler := proxy.NewHandler(s.K8sCfg)
 
 	router.Handle("/healthz/readiness", &s.HealthHandler)
 	router.HandleFunc("/healthz/liveness", health.HandleLive)
-	router.HandleFunc("/uapi/v1/provider/metadata", provHandler.HandleProviderMetadata).Methods(http.MethodGet)
 	router.PathPrefix("/uapi/v1/namespaces/{namespace}/clusters/{cluster}/proxy/").Handler(proxyHandler)
 	router.PathPrefix("/").Handler(fs.ReactHandler("", "frontend"))
 }

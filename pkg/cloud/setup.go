@@ -19,10 +19,8 @@ import (
 	"context"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
-	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws"
 	"k8s.io/apimachinery/pkg/util/json"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -48,14 +46,6 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 	return nil
 }
 
-func PostInstall(ctx context.Context, c client.Client, p configv1alpha1.Provider) error {
-	switch p.Spec.ProviderName {
-	case "undistro-aws":
-		return aws.PostInstall(ctx, c)
-	}
-	return nil
-}
-
 // ReconcileLaunchTemplate from clouds
 func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster) error {
 	switch cl.Spec.InfrastructureProvider.Name {
@@ -76,43 +66,12 @@ func CalicoValues(flavor string) ([]byte, error) {
 	return json.Marshal(values)
 }
 
-// Init providers
-func Init(ctx context.Context, c client.Client, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
-	var err error
-	switch p.Spec.ProviderName {
-	case "undistro-aws":
-		p.Spec.ConfigurationFrom, err = aws.Init(ctx, c, p.Spec.ConfigurationFrom, p.Spec.ProviderVersion)
-		if err != nil {
-			return p, err
-		}
-	}
-	return p, nil
-}
-
-// Upgrade providers
-func Upgrade(ctx context.Context, c client.Client, p configv1alpha1.Provider) (configv1alpha1.Provider, error) {
-	var err error
-	switch p.Spec.ProviderName {
-	case "undistro-aws":
-		p.Spec.ConfigurationFrom, err = aws.Upgrade(ctx, c, p.Spec.ConfigurationFrom, p.Spec.ProviderVersion)
-		if err != nil {
-			return p, err
-		}
-	}
-	return p, nil
-}
-
-// InstallTools install required tools for provider
-func InstallTools(ctx context.Context, streams genericclioptions.IOStreams, providerName string) error {
-	var err error
-	switch providerName {
+func GetAccount(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (Account, error) {
+	switch cl.Spec.InfrastructureProvider.Name {
 	case "aws":
-		err = aws.InstallTools(ctx, streams)
-		if err != nil {
-			return err
-		}
+		return aws.NewAccount(ctx, c)
 	}
-	return nil
+	return nil, nil
 }
 
 func DefaultRegion(infra string) string {
@@ -121,12 +80,4 @@ func DefaultRegion(infra string) string {
 		return aws.DefaultAWSRegion
 	}
 	return ""
-}
-
-func GetAccount(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (Account, error) {
-	switch cl.Spec.InfrastructureProvider.Name {
-	case "aws":
-		return aws.NewAccount(ctx, c)
-	}
-	return nil, nil
 }

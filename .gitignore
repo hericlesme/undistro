@@ -31,5 +31,8 @@ node_modules/
 .DS_Store
 dist/
 .env
-pkg/fs/frontend
+pkg/fs/frontend/*
+!pkg/fs/frontend/.gitkeep
+pkg/fs/chart/*
+!pkg/fs/chart/.gitkeep
 

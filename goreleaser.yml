@@ -1,3 +1,6 @@
+before:
+  hooks:
+    - go generate ./...
 builds:
   - binary: undistro
     id: undistro
@@ -14,6 +17,17 @@ builds:
   - binary: manager
     id: manager
     main: main.go
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -a
+    ldflags: -X github.com/getupio-undistro/undistro/pkg/version.buildDate={{.Env.BUILD_DATETIME}} -X github.com/getupio-undistro/undistro/pkg/version.gitCommit={{.Env.BUILD_COMMIT}} -X github.com/getupio-undistro/undistro/pkg/version.gitTreeState={{.Env.BUILD_STATE}} -X github.com/getupio-undistro/undistro/pkg/version.gitMajor={{.Env.GIT_MAJOR}} -X github.com/getupio-undistro/undistro/pkg/version.gitMinor={{.Env.GIT_MINOR}} -X github.com/getupio-undistro/undistro/pkg/version.gitVersion={{.Env.GIT_VERSION}} -X github.com/getupio-undistro/undistro/pkg/version.gitReleaseCommit={{.Env.RELEASE_COMMIT}}
+    goos:
+      - linux
+
+  - binary: aws-init
+    id: aws-init
+    main: ./cmd/aws-init/main.go
     env:
       - CGO_ENABLED=0
     flags:
@@ -44,6 +58,27 @@ dockers:
     ids: [manager]
     goarch: arm64
     dockerfile: Dockerfile
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+
+  - image_templates:
+      - "registry.undistro.io/library/aws-init:{{ .Tag }}"
+      - "registry.undistro.io/library/aws-init-amd64:{{ .Tag }}"
+    use: buildx
+    ids: [aws-init]
+    goarch: amd64
+    dockerfile: aws-init.docker
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+
+  - image_templates:
+      - "registry.undistro.io/library/aws-init-arm64:{{ .Tag }}"
+    use: buildx
+    ids: [aws-init]
+    goarch: arm64
+    dockerfile: aws-init.docker
     build_flag_templates:
       - "--pull"
       - "--platform=linux/arm64"

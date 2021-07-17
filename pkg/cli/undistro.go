@@ -107,6 +107,5 @@ func NewUndistroCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	cmd.AddCommand(NewCmdUpgrade(f, ioStreams))
 	cmd.AddCommand(NewCmdCompletion(ioStreams))
 	cmd.AddCommand(version.NewVersionCommand())
-	cobra.OnInitialize(cfgFlags.Init())
 	return cmd
 }

@@ -19,5 +19,10 @@ set -o pipefail
 
 cd ../;
 make manager;
-docker build -t $1 -f tilt.docker .;
-cd ./e2e;
+mv ./bin/manager .;
+docker build -t localhost:5000/undistro:$1 .;
+docker push localhost:5000/undistro:$1;
+make aws-init;
+mv ./bin/aws-init .;
+docker build -t localhost:5000/aws-init:$1 -f aws-init.docker .;
+docker push localhost:5000/aws-init:$1;

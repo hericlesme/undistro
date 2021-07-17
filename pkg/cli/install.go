@@ -17,32 +17,27 @@ package cli
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
+	"io/fs"
 	"os"
+	"strings"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
-	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/capi"
 	"github.com/getupio-undistro/undistro/pkg/certmanager"
-	"github.com/getupio-undistro/undistro/pkg/cloud"
+	undistrofs "github.com/getupio-undistro/undistro/pkg/fs"
 	"github.com/getupio-undistro/undistro/pkg/helm"
 	"github.com/getupio-undistro/undistro/pkg/internalautohttps"
 	"github.com/getupio-undistro/undistro/pkg/kube"
-	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/release"
-	"helm.sh/helm/v3/pkg/repo"
-	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -50,6 +45,7 @@ import (
 	"sigs.k8s.io/cluster-api/util/kubeconfig"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/yaml"
 )
 
 var (
@@ -101,86 +97,11 @@ func (o *InstallOptions) Validate() error {
 	return nil
 }
 
-func (o *InstallOptions) installProviders(ctx context.Context, streams genericclioptions.IOStreams, c client.Client, providers []Provider, indexFile *repo.IndexFile, secretRef *corev1.LocalObjectReference) error {
-	for _, p := range providers {
-		chart := fmt.Sprintf("undistro-%s", p.Name)
-		versions := indexFile.Entries[chart]
-		if versions.Len() == 0 {
-			return errors.Errorf("chart %s not found", chart)
-		}
-		version := versions[0]
-		secretName := fmt.Sprintf("%s-config", chart)
-		fmt.Fprintf(streams.Out, "Installing provider %s version %s\n", p.Name, version.AppVersion)
-		fmt.Fprintf(streams.Out, "Installing provider %s required tools\n", p.Name)
-		err := cloud.InstallTools(ctx, streams, p.Name)
-		if err != nil {
-			return errors.Errorf("unable to install required tools for provider %s: %v", p.Name, err)
-		}
-		secretData := make(map[string][]byte)
-		valuesRef := make([]appv1alpha1.ValuesReference, 0)
-		for k, v := range p.Configuration {
-			str, ok := v.(string)
-			if !ok {
-				continue
-			}
-			secretData[k] = []byte(str)
-			valuesRef = append(valuesRef, appv1alpha1.ValuesReference{
-				Kind:       "Secret",
-				Name:       secretName,
-				ValuesKey:  k,
-				TargetPath: k,
-			})
-		}
-		s := corev1.Secret{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: "v1",
-				Kind:       "Secret",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      secretName,
-				Namespace: ns,
-			},
-			Data: secretData,
-		}
-		hasDiff, err := util.CreateOrUpdate(ctx, c, &s)
-		if err != nil {
-			return err
-		}
-		provider := configv1alpha1.Provider{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: configv1alpha1.GroupVersion.String(),
-				Kind:       "Provider",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      p.Name,
-				Namespace: ns,
-			},
-			Spec: configv1alpha1.ProviderSpec{
-				ProviderName:      chart,
-				ProviderVersion:   version.Version,
-				ProviderType:      string(configv1alpha1.InfraProviderType),
-				ConfigurationFrom: valuesRef,
-				Repository: configv1alpha1.Repository{
-					SecretRef: secretRef,
-				},
-			},
-		}
-		if hasDiff {
-			provider, err = cloud.Init(ctx, c, provider)
-			if err != nil {
-				return err
-			}
-		}
-		_, err = util.CreateOrUpdate(ctx, c, &provider)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (o *InstallOptions) installChart(restGetter genericclioptions.RESTClientGetter, chartRepo *helm.ChartRepository, secretRef *corev1.LocalObjectReference, chartName string, overrideValuesMap map[string]interface{}) (*configv1alpha1.Provider, error) {
+func (o *InstallOptions) installChart(ctx context.Context, c client.Client, restGetter genericclioptions.RESTClientGetter, chartName string, overrideValuesMap map[string]interface{}) (*appv1alpha1.HelmRelease, error) {
 	overrideValues := &apiextensionsv1.JSON{}
+	if overrideValuesMap == nil {
+		overrideValuesMap = make(map[string]interface{})
+	}
 	if len(overrideValuesMap) > 0 {
 		byt, err := json.Marshal(overrideValuesMap)
 		if err != nil {
@@ -188,21 +109,34 @@ func (o *InstallOptions) installChart(restGetter genericclioptions.RESTClientGet
 		}
 		overrideValues.Raw = byt
 	}
-	versions := chartRepo.Index.Entries[chartName]
-	if versions.Len() == 0 {
-		return nil, errors.Errorf("chart %s not found", chartName)
-	}
-	version := versions[0]
-	ch, err := chartRepo.Get(chartName, version.Version)
+	var (
+		file  fs.File
+		found bool
+	)
+	err := fs.WalkDir(undistrofs.ChartFS, "chart", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if found {
+			return nil
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+		file, err = undistrofs.ChartFS.Open(path)
+		if err != nil {
+			return err
+		}
+		if strings.Contains(path, chartName) {
+			found = true
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	fmt.Fprintf(o.IOStreams.Out, "Downloading required resources to perform %s installation\n", chartName)
-	res, err := chartRepo.DownloadChart(ch)
-	if err != nil {
-		return nil, err
-	}
-	chart, err := loader.LoadArchive(res)
+	chart, err := loader.LoadArchive(file)
 	if err != nil {
 		return nil, err
 	}
@@ -210,49 +144,45 @@ func (o *InstallOptions) installChart(restGetter genericclioptions.RESTClientGet
 	for _, dep := range chart.Dependencies() {
 		fmt.Fprintf(o.IOStreams.Out, "Installing %s version %s\n", dep.Name(), dep.AppVersion())
 	}
-	p := configv1alpha1.Provider{
+	wait := true
+	forceUpgrade := true
+	reset := false
+	history := 0
+	_, dev := os.LookupEnv("DEV_ENV")
+	hr := appv1alpha1.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: configv1alpha1.GroupVersion.String(),
-			Kind:       "Provider",
+			APIVersion: appv1alpha1.GroupVersion.String(),
+			Kind:       "HelmRelease",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      chartName,
 			Namespace: ns,
-			Labels: map[string]string{
-				meta.LabelProviderType: string(configv1alpha1.CoreProviderType),
-			},
 		},
-		Spec: configv1alpha1.ProviderSpec{
-			ProviderName:    chartName,
-			ProviderVersion: version.Version,
-			ProviderType:    string(configv1alpha1.CoreProviderType),
-			Repository: configv1alpha1.Repository{
-				SecretRef: secretRef,
+		Spec: appv1alpha1.HelmReleaseSpec{
+			Paused: dev,
+			Chart: appv1alpha1.ChartSource{
+				RepoChartSource: appv1alpha1.RepoChartSource{
+					RepoURL: undistroRepo,
+					Name:    chartName,
+					Version: chart.Metadata.Version,
+				},
 			},
-			Configuration: overrideValues,
+			ReleaseName:     chartName,
+			TargetNamespace: ns,
+			Values:          overrideValues,
+			Wait:            &wait,
+			MaxHistory:      &history,
+			ResetValues:     &reset,
+			ForceUpgrade:    &forceUpgrade,
+			Timeout: &metav1.Duration{
+				Duration: 5 * time.Minute,
+			},
 		},
 	}
 	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
 		runner, err := helm.NewRunner(restGetter, ns, log.Log)
 		if err != nil {
 			return err
-		}
-		wait := true
-		forceUpgrade := true
-		reset := false
-		history := 0
-		hr := appv1alpha1.HelmRelease{
-			Spec: appv1alpha1.HelmReleaseSpec{
-				ReleaseName:     chartName,
-				TargetNamespace: ns,
-				Wait:            &wait,
-				MaxHistory:      &history,
-				ResetValues:     &reset,
-				ForceUpgrade:    &forceUpgrade,
-				Timeout: &metav1.Duration{
-					Duration: 1 * time.Minute,
-				},
-			},
 		}
 		m := make(map[string]interface{})
 		if overrideValues.Raw != nil {
@@ -276,22 +206,57 @@ func (o *InstallOptions) installChart(restGetter genericclioptions.RESTClientGet
 		}
 		return nil
 	})
-	return &p, err
+	return &hr, err
 }
-
-func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error {
-	cfg := Config{}
-	if o.ConfigPath != "" {
-		err := viper.Unmarshal(&cfg)
-		if err != nil {
-			return errors.Errorf("unable to unmarshal config: %v", err)
-		}
+func (o *InstallOptions) installCore(ctx context.Context, c client.Client, restGetter genericclioptions.RESTClientGetter, cfg map[string]interface{}, charts ...string) ([]appv1alpha1.HelmRelease, error) {
+	var depsMap = map[string]string{
+		"cert-manager": certmanager.TestResources,
+		"cluster-api":  capi.TestResources,
+		"undistro":     undistro.TestResources,
 	}
+	hrs := make([]appv1alpha1.HelmRelease, len(charts))
+	for i, chart := range charts {
+		values := defaultValues(ctx, c, chart)
+		cfgValues, ok := cfg[chart]
+		if ok {
+			values = util.MergeMaps(cfgValues.(map[string]interface{}), values)
+		}
+		hr, err := o.installChart(ctx, c, restGetter, chart, values)
+		if err != nil {
+			return nil, err
+		}
+		testRes := depsMap[chart]
+		if testRes != "" {
+			objs, err := util.ToUnstructured([]byte(testRes))
+			if err != nil {
+				return nil, err
+			}
+			for _, o := range objs {
+				err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+					_, err = util.CreateOrUpdate(ctx, c, &o)
+					return err
+				})
+			}
+		}
+		if chart == "undistro" {
+			isLocal, ok := values["local"].(bool)
+			if ok && isLocal {
+				fmt.Fprintf(o.IOStreams.Out, "Installing local certificates\n")
+				err = internalautohttps.InstallLocalCert(ctx, c)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+		hrs[i] = *hr
+	}
+	return hrs, nil
+}
+func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error {
 	restCfg, err := f.ToRESTConfig()
 	if err != nil {
 		return err
 	}
-	secretName := "undistro-config"
 	c, err := client.New(restCfg, client.Options{
 		Scheme: scheme.Scheme,
 	})
@@ -316,249 +281,57 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			return err
 		}
 	}
-	_, err = util.CreateOrUpdate(cmd.Context(), c, &corev1.Namespace{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Namespace",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: ns,
-		},
-	})
+	cfg := make(map[string]interface{})
+	byt, err := os.ReadFile(o.ConfigPath)
 	if err != nil {
 		return err
 	}
-	var clientOpts []getter.Option
-	var secretRef *corev1.LocalObjectReference
-	if cfg.Credentials.Username != "" && cfg.Credentials.Password != "" {
-		secretRef = &corev1.LocalObjectReference{
-			Name: secretName,
-		}
-		userb64 := base64.StdEncoding.EncodeToString([]byte(cfg.Credentials.Username))
-		passb64 := base64.StdEncoding.EncodeToString([]byte(cfg.Credentials.Password))
-		s := corev1.Secret{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: "v1",
-				Kind:       "Secret",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      secretName,
-				Namespace: ns,
-			},
-			Data: map[string][]byte{
-				"username": []byte(userb64),
-				"password": []byte(passb64),
-			},
-		}
-		_, err = util.CreateOrUpdate(cmd.Context(), c, &s)
-		if err != nil {
-			return err
-		}
-		opts, cleanup, err := helm.ClientOptionsFromSecret(s)
-		if err != nil {
-			return err
-		}
-		defer cleanup()
-		clientOpts = opts
-	}
-	chartRepo, err := helm.NewChartRepository(undistroRepo, getters, clientOpts)
+	err = yaml.Unmarshal(byt, &cfg)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(o.IOStreams.Out, "Downloading repository index\n")
-	err = chartRepo.DownloadIndex()
-	if err != nil {
-		return errors.Wrap(err, "failed to download repository index")
-	}
-	fmt.Fprintf(o.IOStreams.Out, "Ensure cert-manager is installed\n")
-	certObjs, err := util.ToUnstructured([]byte(certmanager.TestResources))
+	hrs, err := o.installCore(cmd.Context(), c, restGetter, cfg, "cert-manager", "cluster-api", "undistro", "ingress-nginx", "undistro-aws")
 	if err != nil {
 		return err
 	}
-	installCert := false
-	for _, o := range certObjs {
-		_, err = util.CreateOrUpdate(cmd.Context(), c, &o)
-		if err != nil {
-			installCert = true
-			break
-		}
-	}
-	providers := make([]*configv1alpha1.Provider, 0)
-	if installCert {
-		provider, err := o.installChart(restGetter, chartRepo, secretRef, "cert-manager", getConfigFrom(cmd.Context(), c, cfg.CoreProviders, "cert-manager"))
-		if err != nil {
-			return err
-		}
-		providers = append(providers, provider)
-		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-			for _, o := range certObjs {
-				_, errCert := util.CreateOrUpdate(cmd.Context(), c, &o)
-				if errCert != nil {
-					return errCert
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-	}
-	installCapi := false
-	capiObjs, err := util.ToUnstructured([]byte(capi.TestResources))
-	if err != nil {
-		return err
-	}
-	for _, o := range capiObjs {
-		_, errCapi := util.CreateOrUpdate(cmd.Context(), c, &o)
-		if errCapi != nil {
-			installCapi = true
-			break
-		}
-	}
-	if installCapi {
-		providerCapi, err := o.installChart(restGetter, chartRepo, secretRef, "cluster-api", getConfigFrom(cmd.Context(), c, cfg.CoreProviders, "cluster-api"))
-		if err != nil {
-			return err
-		}
-		providers = append(providers, providerCapi)
-		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-			for _, o := range capiObjs {
-				_, errCert := util.CreateOrUpdate(cmd.Context(), c, &o)
-				if errCert != nil {
-					return errCert
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	installUndistro := false
-	undistroObjs, err := util.ToUnstructured([]byte(undistro.TestResources))
-	if err != nil {
-		return err
-	}
-	for _, o := range undistroObjs {
-		_, errUndistro := util.CreateOrUpdate(cmd.Context(), c, &o)
-		if errUndistro != nil {
-			installUndistro = true
-			break
-		}
-	}
-	if installUndistro {
-		undistroChartValues := getConfigFrom(cmd.Context(), c, cfg.CoreProviders, "undistro")
-		providerUndistro, err := o.installChart(restGetter, chartRepo, secretRef, "undistro", undistroChartValues)
-		if err != nil {
-			return err
-		}
-		providers = append(providers, providerUndistro)
-
-		providerNginx, err := o.installChart(restGetter, chartRepo, secretRef, "ingress-nginx", getConfigFrom(cmd.Context(), c, cfg.CoreProviders, "ingress-nginx"))
-		if err != nil {
-			return err
-		}
-		providers = append(providers, providerNginx)
-		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-			for _, o := range undistroObjs {
-				_, errCert := util.CreateOrUpdate(cmd.Context(), c, &o)
-				if errCert != nil {
-					return errCert
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-		// install cert in local environments
-		isLocal := undistroChartValues["local"].(bool)
-		if isLocal {
-			fmt.Fprintf(o.IOStreams.Out, "Installing local certificates\n")
-			err = internalautohttps.InstallLocalCert(cmd.Context(), c)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-		for _, p := range providers {
-			if p.Labels == nil {
-				p.Labels = make(map[string]string)
-			}
-			p.Labels[meta.LabelProviderType] = "core"
-			_, err = util.CreateOrUpdate(cmd.Context(), c, p)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-		return o.installProviders(cmd.Context(), o.IOStreams, c, cfg.Providers, chartRepo.Index, secretRef)
-	})
-	if err != nil {
-		return err
-	}
-
-	fmt.Fprint(o.IOStreams.Out, "Waiting all providers to be ready")
+	fmt.Fprint(o.IOStreams.Out, "Waiting all components to be ready")
+	ctx, cancel := context.WithDeadline(cmd.Context(), time.Now().Add(10*time.Minute))
+	defer cancel()
 	for {
-		list := configv1alpha1.ProviderList{}
-		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-			err = c.List(cmd.Context(), &list, client.InNamespace(ns))
+		select {
+		case <-ctx.Done():
+			fmt.Fprint(o.ErrOut, "\n\n")
+			return ctx.Err()
+		default:
+			ready := true
+			runner, err := helm.NewRunner(restGetter, ns, log.Log)
 			if err != nil {
 				return err
 			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-		ready := true
-		for _, item := range list.Items {
-			if !meta.InReadyCondition(item.Status.Conditions) {
-				ready = false
-				break
+			for _, hr := range hrs {
+				_, err = util.CreateOrUpdate(ctx, c, &hr)
+				if err != nil {
+					ready = false
+					continue
+				}
+				rel, err := runner.Status(hr)
+				if err != nil {
+					return err
+				}
+				if rel.Info.Status != release.StatusDeployed {
+					ready = false
+					continue
+				}
 			}
-			err = cloud.PostInstall(cmd.Context(), c, item)
-			if err != nil {
-				return err
+			if ready {
+				fmt.Fprintln(o.IOStreams.Out, "\n\nManagement cluster is ready to use.")
+				return nil
 			}
+			fmt.Fprint(o.IOStreams.Out, ".")
+			<-time.After(15 * time.Second)
 		}
-
-		// retest objects because certmanager update certs when new pod is added
-		for _, o := range certObjs {
-			_, err = util.CreateOrUpdate(cmd.Context(), c, &o)
-			if err != nil {
-				ready = false
-				break
-			}
-		}
-		for _, o := range undistroObjs {
-			_, err = util.CreateOrUpdate(cmd.Context(), c, &o)
-			if err != nil {
-				ready = false
-				break
-			}
-		}
-		for _, o := range capiObjs {
-			_, err = util.CreateOrUpdate(cmd.Context(), c, &o)
-			if err != nil {
-				ready = false
-				break
-			}
-		}
-		if ready {
-			fmt.Fprintln(o.IOStreams.Out, "\n\nManagement cluster is ready to use.")
-			return nil
-		}
-		fmt.Fprint(o.IOStreams.Out, ".")
-		<-time.After(15 * time.Second)
 	}
+
 }
 
 func NewCmdInstall(f *ConfigFlags, streams genericclioptions.IOStreams) *cobra.Command {

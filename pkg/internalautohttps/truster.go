@@ -37,9 +37,15 @@ func InstallLocalCert(ctx context.Context, c client.Client) (err error) {
 		Name:      caSecretName,
 	}
 	secret := corev1.Secret{}
-	err = c.Get(ctx, objKey, &secret)
+	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+		err = c.Get(ctx, objKey, &secret)
+		if err != nil {
+			return errors.Errorf("unable to get CA secret %s: %v", caSecretName, err)
+		}
+		return nil
+	})
 	if err != nil {
-		return errors.Errorf("unable to get CA secret %s: %v", caSecretName, err)
+		return err
 	}
 	crtByt := secret.Data[caName]
 	block, _ := pem.Decode(crtByt)
@@ -49,13 +55,11 @@ func InstallLocalCert(ctx context.Context, c client.Client) (err error) {
 	}
 
 	if !trusted(rootCert) {
-		err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-			return truststore.Install(rootCert,
-				truststore.WithDebug(),
-				truststore.WithFirefox(),
-				truststore.WithJava(),
-			)
-		})
+		err = truststore.Install(rootCert,
+			truststore.WithDebug(),
+			truststore.WithFirefox(),
+			truststore.WithJava(),
+		)
 		if err != nil {
 			return errors.Errorf("unable to install certificate %s: %v", caName, err)
 		}

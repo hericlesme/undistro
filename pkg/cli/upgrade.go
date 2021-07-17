@@ -18,7 +18,7 @@ package cli
 import (
 	"fmt"
 
-	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
+	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/helm"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
@@ -34,9 +34,10 @@ import (
 
 type UpgradeOptions struct {
 	genericclioptions.IOStreams
-	Version      string
-	ProviderName string
+	Version string
 }
+
+const releaseName = "undistro"
 
 func NewUpgradeOptions(streams genericclioptions.IOStreams) *UpgradeOptions {
 	return &UpgradeOptions{
@@ -46,14 +47,6 @@ func NewUpgradeOptions(streams genericclioptions.IOStreams) *UpgradeOptions {
 
 func (o *UpgradeOptions) AddFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.Version, "version", "", "provider version to upgrade")
-}
-
-func (o *UpgradeOptions) Complete(f cmdutil.Factory, cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		return errors.New("required 1 argument")
-	}
-	o.ProviderName = args[0]
-	return nil
 }
 
 func (o *UpgradeOptions) RunUpgrade(f cmdutil.Factory, cmd *cobra.Command) error {
@@ -69,10 +62,10 @@ func (o *UpgradeOptions) RunUpgrade(f cmdutil.Factory, cmd *cobra.Command) error
 		return errors.Errorf("unable to create client: %v", err)
 	}
 	key := client.ObjectKey{
-		Name:      o.ProviderName,
+		Name:      releaseName,
 		Namespace: ns,
 	}
-	p := configv1alpha1.Provider{}
+	p := appv1alpha1.HelmRelease{}
 	err = workloadClient.Get(cmd.Context(), key, &p)
 	if err != nil {
 		return err
@@ -83,26 +76,27 @@ func (o *UpgradeOptions) RunUpgrade(f cmdutil.Factory, cmd *cobra.Command) error
 			return err
 		}
 		p.TypeMeta = metav1.TypeMeta{
-			Kind:       "Provider",
-			APIVersion: configv1alpha1.GroupVersion.String(),
+			Kind:       "HelmRelease",
+			APIVersion: appv1alpha1.GroupVersion.String(),
 		}
 		fmt.Fprintf(o.IOStreams.Out, "Downloading repository index\n")
 		err = chartRepo.DownloadIndex()
 		if err != nil {
 			return errors.Wrap(err, "failed to download repository index")
 		}
-		versions := chartRepo.Index.Entries[o.ProviderName]
+		versions := chartRepo.Index.Entries[releaseName]
 		if versions.Len() == 0 {
-			return errors.Errorf("chart %s not found", o.ProviderName)
+			return errors.Errorf("chart %s not found", releaseName)
 		}
 		version := versions[0]
-		_, err = chartRepo.Get(o.ProviderName, version.Version)
+		_, err = chartRepo.Get(releaseName, version.Version)
 		if err != nil {
 			return err
 		}
 		o.Version = version.Version
 	}
-	p.Spec.ProviderVersion = o.Version
+	p.Spec.Chart.RepoChartSource.Version = o.Version
+	p.Spec.Paused = false
 	_, err = util.CreateOrUpdate(cmd.Context(), workloadClient, &p)
 	return err
 }
@@ -121,7 +115,6 @@ func NewCmdUpgrade(f cmdutil.Factory, streams genericclioptions.IOStreams) *cobr
 		undistro upgrade undistro
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
-			cmdutil.CheckErr(o.Complete(f, cmd, args))
 			cmdutil.CheckErr(o.RunUpgrade(f, cmd))
 		},
 	}

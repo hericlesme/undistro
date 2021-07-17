@@ -201,7 +201,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: "{{ .Values.global.undistroRepository}}/undistro:{{ .Values.global.undistroVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         livenessProbe:
           httpGet:
@@ -360,27 +360,6 @@ webhooks:
     resources:
     - helmreleases
   sideEffects: None
-- admissionReviewVersions:
-  - v1
-  - v1beta1
-  clientConfig:
-    service:
-      name: undistro-webhook-service
-      namespace: undistro-system
-      path: /mutate-config-undistro-io-v1alpha1-provider
-  failurePolicy: Fail
-  name: mprovider.undistro.io
-  rules:
-  - apiGroups:
-    - config.undistro.io
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - providers
-  sideEffects: None
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
@@ -453,25 +432,4 @@ webhooks:
     - UPDATE
     resources:
     - helmreleases
-  sideEffects: None
-- admissionReviewVersions:
-  - v1
-  - v1beta1
-  clientConfig:
-    service:
-      name: undistro-webhook-service
-      namespace: undistro-system
-      path: /validate-config-undistro-io-v1alpha1-provider
-  failurePolicy: Fail
-  name: vprovider.undistro.io
-  rules:
-  - apiGroups:
-    - config.undistro.io
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - providers
   sideEffects: None

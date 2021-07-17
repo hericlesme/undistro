@@ -64,6 +64,9 @@ aws_session_token = {{ .SessionToken }}
 //go:embed undistro-aws.yaml
 var identity []byte
 
+//go:embed instancetypes.json
+var InstanceTypes []byte
+
 func kindByFlavor(flavor string) string {
 	switch flavor {
 	case "ec2":
@@ -226,36 +229,34 @@ func (c AwsCredentials) renderAWSDefaultProfile() (string, error) {
 	return credsFileStr.String(), nil
 }
 
-func (c AwsCredentials) setBase64EncodedAWSDefaultProfile(ctx context.Context, cl client.Client, secret *corev1.Secret) (appv1alpha1.ValuesReference, error) {
+func (c AwsCredentials) setBase64EncodedAWSDefaultProfile(ctx context.Context, cl client.Client, secret *corev1.Secret) error {
 	profile, err := c.renderAWSDefaultProfile()
 	if err != nil {
-		return appv1alpha1.ValuesReference{}, err
+		return err
 	}
 	secret.Data[key] = []byte(profile)
 	err = cl.Update(ctx, secret)
 	if err != nil {
-		return appv1alpha1.ValuesReference{}, err
+		return err
 	}
-	return appv1alpha1.ValuesReference{
-		Kind:       "Secret",
-		Name:       name,
-		ValuesKey:  key,
-		TargetPath: key,
-	}, nil
+	return nil
 }
 
 // Init providers
-func Init(ctx context.Context, c client.Client, cfg []appv1alpha1.ValuesReference, version string) ([]appv1alpha1.ValuesReference, error) {
+func Init(ctx context.Context, c client.Client) error {
 	cred, secret, err := Credentials(ctx, c)
 	if err != nil {
-		return cfg, err
+		return err
 	}
-	v, err := cred.setBase64EncodedAWSDefaultProfile(ctx, c, secret)
+	err = cred.setBase64EncodedAWSDefaultProfile(ctx, c, secret)
 	if err != nil {
-		return cfg, err
+		return err
 	}
-	cfg = append(cfg, v)
-	return cfg, nil
+	err = reconcileCloudformation(cred)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func PostInstall(ctx context.Context, c client.Client) error {
@@ -270,19 +271,6 @@ func PostInstall(ctx context.Context, c client.Client) error {
 		}
 	}
 	return nil
-}
-
-// Upgrade providers
-func Upgrade(ctx context.Context, c client.Client, cfg []appv1alpha1.ValuesReference, version string) ([]appv1alpha1.ValuesReference, error) {
-	cred, _, err := Credentials(ctx, c)
-	if err != nil {
-		return cfg, err
-	}
-	err = reconcileCloudformation(cred)
-	if err != nil {
-		return cfg, err
-	}
-	return cfg, nil
 }
 
 func reconcileCloudformation(cred AwsCredentials) error {

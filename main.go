@@ -22,9 +22,7 @@ import (
 	"os"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
-	configv1alpha1 "github.com/getupio-undistro/undistro/apis/config/v1alpha1"
 	appcontroller "github.com/getupio-undistro/undistro/controllers/app"
-	configcontroller "github.com/getupio-undistro/undistro/controllers/config"
 	"github.com/getupio-undistro/undistro/pkg/record"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver"
@@ -75,14 +73,6 @@ func main() {
 
 	record.InitFromRecorder(mgr.GetEventRecorderFor("undistro-controller"))
 
-	if err = (&configcontroller.ProviderReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Provider"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Provider")
-		os.Exit(1)
-	}
 	if err = (&appcontroller.ClusterReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Cluster"),
@@ -105,10 +95,6 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "DefaultPolicies")
-		os.Exit(1)
-	}
-	if err = (&configv1alpha1.Provider{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "Provider")
 		os.Exit(1)
 	}
 	if err = (&appv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {

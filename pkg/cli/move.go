@@ -28,7 +28,6 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -87,13 +86,7 @@ func (o *MoveOptions) Validate() error {
 
 func (o *MoveOptions) RunMove(f cmdutil.Factory, cmd *cobra.Command) error {
 	log := log.Log
-	cfg := Config{}
-	if o.ConfigPath != "" {
-		err := viper.Unmarshal(&cfg)
-		if err != nil {
-			return errors.Errorf("unable to unmarshal config: %v", err)
-		}
-	}
+
 	key := client.ObjectKey{
 		Namespace: o.Namespace,
 		Name:      o.ClusterName,
