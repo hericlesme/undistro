@@ -32,5 +32,7 @@ RUN apt-get update \
     && curl -sSL -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl \
     && chmod +x /usr/local/bin/kubectl \
     && curl -s https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash - \
-    && go get sigs.k8s.io/kind@v0.10.0 \
+    && go get sigs.k8s.io/kind@v0.11.1 \
     && curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
+    && curl -L -o kubebuilder https://go.kubebuilder.io/dl/latest/$(go env GOOS)/$(go env GOARCH)
+    && chmod +x kubebuilder && mv kubebuilder /usr/local/bin/
