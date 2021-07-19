@@ -30,6 +30,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/helm"
 	"github.com/getupio-undistro/undistro/pkg/internalautohttps"
 	"github.com/getupio-undistro/undistro/pkg/kube"
+	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
@@ -208,18 +209,50 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 	})
 	return &hr, err
 }
+
+func (o *InstallOptions) checkEnabledList(cfg map[string]interface{}) []string {
+	p := meta.CoreProviders
+	for k := range cfg {
+		item, ok := cfg[k].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		v, ok := item["enabled"]
+		if !ok {
+			continue
+		}
+		enabled, ok := v.(bool)
+		if !ok {
+			continue
+		}
+		if !enabled {
+			continue
+		}
+		p = append(p, k)
+	}
+	return p
+}
+
 func (o *InstallOptions) installCore(ctx context.Context, c client.Client, restGetter genericclioptions.RESTClientGetter, cfg map[string]interface{}, charts ...string) ([]appv1alpha1.HelmRelease, error) {
 	var depsMap = map[string]string{
 		"cert-manager": certmanager.TestResources,
 		"cluster-api":  capi.TestResources,
 		"undistro":     undistro.TestResources,
 	}
+	globalValue, hasGlobal := cfg["global"]
 	hrs := make([]appv1alpha1.HelmRelease, len(charts))
 	for i, chart := range charts {
 		values := defaultValues(ctx, c, chart)
 		cfgValues, ok := cfg[chart]
+		if !ok {
+			cfgValues = make(map[string]interface{})
+		}
+		vMap, ok := cfgValues.(map[string]interface{})
 		if ok {
-			values = util.MergeMaps(cfgValues.(map[string]interface{}), values)
+			if hasGlobal {
+				vMap["global"] = globalValue
+			}
+			values = util.MergeMaps(vMap, values)
 		}
 		hr, err := o.installChart(ctx, c, restGetter, chart, values)
 		if err != nil {
@@ -290,7 +323,8 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	if err != nil {
 		return err
 	}
-	hrs, err := o.installCore(cmd.Context(), c, restGetter, cfg, "cert-manager", "cluster-api", "undistro", "ingress-nginx", "undistro-aws")
+	providers := o.checkEnabledList(cfg)
+	hrs, err := o.installCore(cmd.Context(), c, restGetter, cfg, providers...)
 	if err != nil {
 		return err
 	}

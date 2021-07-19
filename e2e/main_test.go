@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/getupio-undistro/undistro/pkg/scheme"
+	_ "github.com/go-task/slim-sprig"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -67,21 +68,15 @@ func TestMain(m *testing.M) {
 	}
 	fmt.Println(string(stout))
 	cfg := map[string]interface{}{
-		"undistro": map[string]interface{}{
-			"global": map[string]interface{}{
-				"undistroRepository": "localhost:5000",
-				"undistroVersion":    sha,
-			},
+		"global": map[string]interface{}{
+			"undistroRepository": "localhost:5000",
+			"undistroVersion":    sha,
 		},
 		"undistro-aws": map[string]interface{}{
 			"enabled": true,
 			"credentials": map[string]interface{}{
 				"accessKeyID":     os.Getenv("E2E_AWS_ACCESS_KEY_ID"),
 				"secretAccessKey": os.Getenv("E2E_AWS_SECRET_ACCESS_KEY"),
-			},
-			"global": map[string]interface{}{
-				"undistroRepository": "localhost:5000",
-				"undistroVersion":    sha,
 			},
 		},
 	}

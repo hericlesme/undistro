@@ -22,6 +22,8 @@ const (
 	Finalizer string = "finalizer.undistro.io"
 )
 
+var CoreProviders = []string{"cert-manager", "cluster-api", "undistro", "ingress-nginx"}
+
 // ReconcileAnnotationValue returns a value for the reconciliation
 // request annotations, which can be used to detect changes; and, a
 // boolean indicating whether either annotation was set.
