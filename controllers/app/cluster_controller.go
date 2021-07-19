@@ -247,7 +247,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 			return appv1alpha1.ClusterNotReady(cl, meta.ReconcileNodesFailed, err.Error()), ctrl.Result{}, err
 		}
 		cl = appv1alpha1.ClusterReady(cl)
-		return cl, ctrl.Result{}, nil
+		return cl, ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
 	}
 	return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 }

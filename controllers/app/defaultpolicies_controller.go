@@ -171,7 +171,7 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 	if err != nil {
 		appv1alpha1.DefaultPoliciesNotReady(p, meta.ArtifactFailedReason, err.Error())
 	}
-	return appv1alpha1.DefaultPoliciesReady(p), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	return appv1alpha1.DefaultPoliciesReady(p), ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
 }
 
 func (r *DefaultPoliciesReconciler) applyPolicies(ctx context.Context, log logr.Logger, clusterClient client.Client, p appv1alpha1.DefaultPolicies) (appv1alpha1.DefaultPolicies, error) {

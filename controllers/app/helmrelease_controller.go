@@ -321,10 +321,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		return hr, ctrl.Result{}, err
 	}
 	meta.SetResourceCondition(&hr, meta.ObjectsAppliedCondition, metav1.ConditionTrue, meta.ObjectsAppliedSuccessReason, "objects successfully applied after install")
-	if hr.Spec.AutoUpgrade {
-		return hr, ctrl.Result{RequeueAfter: 15 * time.Minute}, nil
-	}
-	return hr, ctrl.Result{}, nil
+	return hr, ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
 }
 
 func (r *HelmReleaseReconciler) applyObjs(ctx context.Context, c client.Client, objs []apiextensionsv1.JSON) error {
