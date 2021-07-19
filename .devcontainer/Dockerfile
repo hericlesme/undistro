@@ -33,6 +33,6 @@ RUN apt-get update \
     && chmod +x /usr/local/bin/kubectl \
     && curl -s https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash - \
     && go get sigs.k8s.io/kind@v0.11.1 \
-    && curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
-    && curl -L -o kubebuilder https://go.kubebuilder.io/dl/latest/$(go env GOOS)/$(go env GOARCH)
+    && curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash \
+    && curl -L -o kubebuilder https://go.kubebuilder.io/dl/latest/$(go env GOOS)/$(go env GOARCH) \
     && chmod +x kubebuilder && mv kubebuilder /usr/local/bin/
