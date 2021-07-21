@@ -19,6 +19,12 @@ class Provider {
     return res.data
   }
 
+  async getUserIp() {
+    const url = 'https://api.ipify.org/?format=json'
+    const res = await this.http.get(url)
+    return res.data
+  }
+
   getEvents() {
     const url = 'http://localhost/uapi/v1/namespaces/undistro-system/clusters/management/proxy/api/v1/namespaces/undistro-system/events?watch=true'
     fetch(url)

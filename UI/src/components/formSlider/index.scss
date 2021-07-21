@@ -1,0 +1,43 @@
+@import 'styles/theme';
+
+@keyframes slide {
+  100% { width: 322px; }
+}
+
+
+.form-slider-container {
+  position: absolute;
+  height: 100%;
+  top: 0;
+  overflow: hidden;
+  width: 0;
+  background-color: var(--gray-blue-2, $gray-blue-2);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+
+  &--left {
+    left: 0;
+    animation: slide 0.4s forwards;
+    animation-delay: 0.1s;
+  }
+
+  &--right {
+    right: 0;
+    animation: slide 0.4s forwards;
+    animation-delay: 0.1s;
+  }
+
+  .title-slider {
+    font-size: 14px !important;
+  }
+
+  .form-slider-content {
+    .button {
+      margin-left: auto;
+      margin-top: 20px;
+    }
+  }
+}

@@ -1,0 +1,16 @@
+.kubernetes-network {
+  width: 443px;
+  margin: 82px 0 167px;
+
+  .single-input {
+    width: 129px;
+  }
+
+  .input-flex {
+    display: flex;
+
+    .input {
+      margin-right: 10px;
+    }
+  }
+}

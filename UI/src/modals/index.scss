@@ -15,6 +15,7 @@
   transition: ease-in-out 1s;
 
   .modal-content {
+    position: relative;
     box-sizing: border-box;
     border-radius: 4px;
     box-shadow: 0 3px 10px rgba(#000, 0.1);
@@ -218,7 +219,7 @@
       grid-template-columns: 1fr 1fr;
       grid-gap: 10px;
 
-      .input {
+      .select:last-child {
         grid-column: 1 / 3;
       }
     }

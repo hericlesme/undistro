@@ -11,6 +11,8 @@ type Props = {
   disabled?: boolean,
   validator?: {},
   onChange: FormEventHandler<HTMLInputElement>,
+  addButton?: boolean
+  handleEvent?: Function
 }
 
 const Input: FC<Props> = ({
@@ -20,7 +22,9 @@ const Input: FC<Props> = ({
   value,
   disabled,
   validator,
-  onChange
+  onChange,
+  addButton,
+  handleEvent
 }) => {
   const style = Classnames('input', {
     'input--error': validator
@@ -36,6 +40,7 @@ const Input: FC<Props> = ({
         disabled={disabled}
         onChange={onChange}
       />
+      {addButton && <i onClick={() => handleEvent?.()} className='icon-plus' />}
     </div>
   )
 }

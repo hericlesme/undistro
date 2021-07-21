@@ -5,6 +5,14 @@
   flex-direction: column;
   position: relative;
 
+  .icon-plus {
+    color: var(--off-white, $off-white);
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    top: 11px;
+  }
+
   label {
     color: var(--off-white, $off-white);
     background-color: var(--gray-blue-2, $gray-blue-2);

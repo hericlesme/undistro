@@ -9,14 +9,14 @@ type Props = {
   label?: string,
   options: any,
   onChange: Function,
-  value?: string
+  value?: string,
 }
 
 const SelectUndistro: FC<Props> = ({ 
   label,
   options,
   onChange,
-  value
+  value,
 }) => {
 
   const handleChange = (option: any) => {

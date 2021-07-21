@@ -58,4 +58,10 @@ button {
       background: var(--gray-light, $gray-light);
     }
   }
+
+  &.button--error {
+    border: 1px solid $error;
+    background: $error;
+    color: $text;
+  }
 }

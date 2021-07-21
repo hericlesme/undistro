@@ -1,0 +1,76 @@
+@import 'styles/theme';
+
+.bastion {
+  margin: 32px 0 0;
+
+  .input-container {
+    display: grid;
+    justify-content: center;
+    grid-template-columns: 90px 90px 216px;
+    grid-gap: 20px;
+    margin-bottom: 28px;
+
+    .toggle-container {
+      grid-column: 1 / 5;
+      margin: 0 0 17px;
+    }
+
+    .input {
+      input {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .flex-text {
+    display: flex;
+    margin: 15px 0 36px;
+
+    p {
+      margin: 0 8px 0 0;
+    }
+
+    span {
+      color: var(--off-white, $off-white);
+    }
+  }
+
+  .cidrs-container {
+    width: 436px;
+
+    ul {
+      height: 84px;
+      margin: 28px auto 17px;
+      list-style: none;
+      border: 1px solid var(--gray-blue-4, $gray-blue-4);
+      border-radius: 2px;
+      padding: 2px;
+      overflow: auto;
+
+      li {
+        padding: 2px 6px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+
+        &:hover {
+          background-color: var(--gray-blue-3, $gray-blue-3);
+        }
+
+        p {
+          flex: 1;
+        }
+
+        i {
+          font-size: 8px;
+          display: flex;
+          cursor: pointer;
+
+          &:hover {
+            color: var(--error, $error);
+          }
+        }
+      }
+    }
+  }
+}
