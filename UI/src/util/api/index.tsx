@@ -4,7 +4,7 @@ import Cluster from './cluster'
 import Provider from './provider'
 import Secret from './secret'
 
-const HOST = 'localhost'
+const HOST = window.location.hostname
 
 const BASE_URL = `http://${HOST}/uapi/v1`
 

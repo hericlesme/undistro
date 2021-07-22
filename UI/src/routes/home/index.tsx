@@ -67,6 +67,13 @@ export default function HomePage () {
 		Api.Cluster.list('undistro-system')
 			.then((clusters) => {
 				setClusters(clusters.items.map((elm: any) => {
+					let message: string = elm.status.conditions[0].message.toLowerCase()
+					let status = ''
+					if (message.includes('wait cluster')) status = 'Provisioning'
+					else if (message.includes('error')) status = 'Error'
+					else if (message.includes('paused')) status = 'Paused'
+					else status = 'Ready'
+
 					return {
 						name: elm.metadata.name,
 						provider: elm.spec.infrastructureProvider.name,
@@ -75,7 +82,7 @@ export default function HomePage () {
 						clusterGroups: elm.metadata.namespace,
 						machines: elm.status.controlPlane.replicas + elm.status.totalWorkerReplicas,
 						age: moment(elm.metadata.creationTimestamp).startOf('day').fromNow(),
-						status: elm.status.conditions[0].type
+						status: status
 					}
 				}))
 			})
