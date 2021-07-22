@@ -44,4 +44,26 @@ resources:
     defaulting: true
     validation: true
     webhookVersion: v1
+- api:
+    crdVersion: v1
+  controller: true
+  domain: undistro.io
+  group: metadata
+  kind: Provider
+  path: github.com/getupio-undistro/undistro/apis/metadata/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+  domain: undistro.io
+  group: metadata
+  kind: AWSMachine
+  path: github.com/getupio-undistro/undistro/apis/metadata/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+  domain: undistro.io
+  group: metadata
+  kind: Flavor
+  path: github.com/getupio-undistro/undistro/apis/metadata/v1alpha1
+  version: v1alpha1
 version: "3"

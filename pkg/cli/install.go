@@ -24,6 +24,7 @@ import (
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/capi"
 	"github.com/getupio-undistro/undistro/pkg/certmanager"
 	undistrofs "github.com/getupio-undistro/undistro/pkg/fs"
@@ -35,10 +36,12 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
+	"github.com/getupio-undistro/undistro/pkg/version"
 	"github.com/spf13/cobra"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/release"
+	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -62,6 +65,26 @@ const (
 	undistroRepo = "https://registry.undistro.io/chartrepo/library"
 	ns           = undistro.Namespace
 )
+
+var providersInfo = map[string]metadatav1alpha1.ProviderInfo{
+	"cert-manager": {
+		Category: metadatav1alpha1.ProviderCore,
+	},
+	"cluster-api": {
+		Category: metadatav1alpha1.ProviderCore,
+	},
+	"undistro": {
+		Category:   metadatav1alpha1.ProviderCore,
+		SecretName: "undistro-config",
+	},
+	"ingress-nginx": {
+		Category: metadatav1alpha1.ProviderCore,
+	},
+	"undistro-aws": {
+		Category:   metadatav1alpha1.ProviderInfra,
+		SecretName: "undistro-aws-config",
+	},
+}
 
 type InstallOptions struct {
 	ConfigPath  string
@@ -150,6 +173,7 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 	reset := false
 	history := 0
 	_, dev := os.LookupEnv("DEV_ENV")
+	label := strings.TrimPrefix(chartName, "undistro-")
 	hr := appv1alpha1.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: appv1alpha1.GroupVersion.String(),
@@ -158,6 +182,9 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      chartName,
 			Namespace: ns,
+			Labels: map[string]string{
+				meta.LabelProvider: label,
+			},
 		},
 		Spec: appv1alpha1.HelmReleaseSpec{
 			Paused: dev,
@@ -211,8 +238,17 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 }
 
 func (o *InstallOptions) checkEnabledList(cfg map[string]interface{}) []string {
-	p := meta.CoreProviders
+	p := make([]string, 0)
+	for k, v := range providersInfo {
+		if v.Category == metadatav1alpha1.ProviderCore {
+			p = append(p, k)
+		}
+	}
 	for k := range cfg {
+		_, ok := providersInfo[k]
+		if !ok {
+			continue
+		}
 		item, ok := cfg[k].(map[string]interface{})
 		if !ok {
 			continue
@@ -231,6 +267,39 @@ func (o *InstallOptions) checkEnabledList(cfg map[string]interface{}) []string {
 		p = append(p, k)
 	}
 	return p
+}
+
+func (o *InstallOptions) applyMetadata(ctx context.Context, c client.Client, providers ...string) error {
+	for k, v := range providersInfo {
+		o := metadatav1alpha1.Provider{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: metadatav1alpha1.GroupVersion.String(),
+				Kind:       "Provider",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: strings.TrimPrefix(k, "undistro-"),
+			},
+			Spec: metadatav1alpha1.ProviderSpec{
+				Paused:          !util.ContainsStringInSlice(providers, k),
+				AutoFetch:       true,
+				UnDistroVersion: version.Get().GitVersion,
+				Category:        v.Category,
+			},
+		}
+		if v.SecretName != "" {
+			o.Spec.SecretRef = &corev1.ObjectReference{
+				APIVersion: "v1",
+				Kind:       "Secret",
+				Name:       v.SecretName,
+				Namespace:  ns,
+			}
+		}
+		_, err := util.CreateOrUpdate(ctx, c, &o)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (o *InstallOptions) installCore(ctx context.Context, c client.Client, restGetter genericclioptions.RESTClientGetter, cfg map[string]interface{}, charts ...string) ([]appv1alpha1.HelmRelease, error) {
@@ -325,6 +394,11 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	}
 	providers := o.checkEnabledList(cfg)
 	hrs, err := o.installCore(cmd.Context(), c, restGetter, cfg, providers...)
+	if err != nil {
+		return err
+	}
+	fmt.Fprint(o.IOStreams.Out, "Applying metadata...")
+	err = o.applyMetadata(cmd.Context(), c, providers...)
 	if err != nil {
 		return err
 	}

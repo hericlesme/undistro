@@ -19,6 +19,7 @@ import (
 	"context"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws"
 	"k8s.io/apimachinery/pkg/util/json"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
@@ -29,6 +30,32 @@ type Account interface {
 	GetID() string
 	GetUsername() string
 	IsRoot() bool
+}
+
+type MetadataFunc func(context.Context, metadatav1alpha1.Provider) ([]client.Object, error)
+
+func RegionNames(provider metadatav1alpha1.Provider) []string {
+	switch provider.Name {
+	case appv1alpha1.Amazon.String():
+		return aws.Regions
+	}
+	return nil
+}
+
+func GetFlavors(provider metadatav1alpha1.Provider) MetadataFunc {
+	switch provider.Name {
+	case appv1alpha1.Amazon.String():
+		return aws.GetFlavors
+	}
+	return nil
+}
+
+func GetMachineMetadata(provider metadatav1alpha1.Provider) MetadataFunc {
+	switch provider.Name {
+	case appv1alpha1.Amazon.String():
+		return aws.GetMachineMetadata
+	}
+	return nil
 }
 
 // ReconcileNetwork from clouds

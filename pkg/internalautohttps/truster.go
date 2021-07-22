@@ -64,7 +64,7 @@ func InstallLocalCert(ctx context.Context, c client.Client) (err error) {
 			return errors.Errorf("unable to install certificate %s: %v", caName, err)
 		}
 	}
-	return
+	return nil
 }
 
 func trusted(cert *x509.Certificate) bool {

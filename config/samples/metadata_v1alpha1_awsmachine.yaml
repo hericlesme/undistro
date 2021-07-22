@@ -1,0 +1,7 @@
+apiVersion: metadata.undistro.io/v1alpha1
+kind: AWSMachine
+metadata:
+  name: awsmachine-sample
+spec:
+  # Add fields here
+  foo: bar

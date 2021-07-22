@@ -21,16 +21,18 @@ import (
 	"flag"
 	"os"
 
-	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
-	appcontroller "github.com/getupio-undistro/undistro/controllers/app"
-	"github.com/getupio-undistro/undistro/pkg/record"
-	"github.com/getupio-undistro/undistro/pkg/scheme"
-	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver"
-	"github.com/getupio-undistro/undistro/pkg/version"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	appcontroller "github.com/getupio-undistro/undistro/controllers/app"
+	metadatacontroller "github.com/getupio-undistro/undistro/controllers/metadata"
+	"github.com/getupio-undistro/undistro/pkg/record"
+	"github.com/getupio-undistro/undistro/pkg/scheme"
+	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver"
+	"github.com/getupio-undistro/undistro/pkg/version"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -97,6 +99,14 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "DefaultPolicies")
 		os.Exit(1)
 	}
+	if err = (&metadatacontroller.ProviderReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Metadata"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Provider")
+		os.Exit(1)
+	}
 	if err = (&appv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Cluster")
 		os.Exit(1)
@@ -110,7 +120,6 @@ func main() {
 		setupLog.Error(err, "unable to create webhook", "webhook", "DefaultPolicies")
 		os.Exit(1)
 	}
-
 	// +kubebuilder:scaffold:builder
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")

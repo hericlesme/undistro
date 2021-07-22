@@ -36,10 +36,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws/cloudformation"
 	"github.com/getupio-undistro/undistro/pkg/util"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
@@ -61,11 +64,101 @@ aws_session_token = {{ .SessionToken }}
 {{end}}`
 )
 
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
 //go:embed undistro-aws.yaml
 var identity []byte
 
 //go:embed instancetypes.json
-var InstanceTypes []byte
+var instanceTypes []byte
+
+var Regions = []string{
+	"ap-northeast-1",
+	"ap-northeast-2",
+	"ap-south-1",
+	"ap-southeast-1",
+	"ap-northeast-2",
+	"ca-central-1",
+	"eu-central-1",
+	"eu-west-1",
+	"eu-west-2",
+	"eu-west-3",
+	"sa-east-1",
+	"us-east-1",
+	"us-east-2",
+	"us-west-1",
+	"us-west-2",
+}
+
+var flavors = map[string][]string{
+	appv1alpha1.EC2.String(): {
+		"v1.18.19", "v1.18.20", "v1.19.12", "v1.20.8", "v1.21.2",
+	},
+	appv1alpha1.EKS.String(): {
+		"v1.18.16", "v1.19.8", "v1.20.4",
+	},
+}
+
+func GetFlavors(_ context.Context, p metadatav1alpha1.Provider) ([]client.Object, error) {
+	ref := &corev1.ObjectReference{
+		APIVersion: p.APIVersion,
+		Kind:       p.Kind,
+		Name:       p.Name,
+		Namespace:  p.Namespace,
+	}
+	typeMeta := metav1.TypeMeta{
+		APIVersion: metadatav1alpha1.GroupVersion.String(),
+		Kind:       "Flavor",
+	}
+	objs := make([]client.Object, len(flavors))
+	index := 0
+	for k, v := range flavors {
+		o := metadatav1alpha1.Flavor{
+			TypeMeta: typeMeta,
+			ObjectMeta: metav1.ObjectMeta{
+				Name: k,
+			},
+			Spec: metadatav1alpha1.FlavorSpec{
+				ProviderRef:          ref,
+				SupportedK8sVersions: v,
+			},
+		}
+		objs[index] = &o
+		index++
+	}
+	return objs, nil
+}
+
+func GetMachineMetadata(_ context.Context, p metadatav1alpha1.Provider) ([]client.Object, error) {
+	ref := &corev1.ObjectReference{
+		APIVersion: p.APIVersion,
+		Kind:       p.Kind,
+		Name:       p.Name,
+		Namespace:  p.Namespace,
+	}
+	typeMeta := metav1.TypeMeta{
+		APIVersion: metadatav1alpha1.GroupVersion.String(),
+		Kind:       "AWSMachine",
+	}
+	specs := make([]metadatav1alpha1.AWSMachineSpec, 0)
+	err := json.Unmarshal(instanceTypes, &specs)
+	if err != nil {
+		return nil, err
+	}
+	objs := make([]client.Object, len(specs))
+	for i, spec := range specs {
+		o := metadatav1alpha1.AWSMachine{
+			TypeMeta: typeMeta,
+			ObjectMeta: metav1.ObjectMeta{
+				Name: spec.InstanceType,
+			},
+			Spec: spec,
+		}
+		o.Spec.ProviderRef = ref
+		objs[i] = &o
+	}
+	return objs, nil
+}
 
 func kindByFlavor(flavor string) string {
 	switch flavor {

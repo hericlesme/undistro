@@ -277,7 +277,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api/kubeadm-control-plane-controller:v0.3.21
+        image: registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api/kubeadm-control-plane-controller:v0.3.22
         imagePullPolicy: IfNotPresent
         name: manager
       terminationGracePeriodSeconds: 10
@@ -321,7 +321,7 @@ spec:
         - --webhook-port=9443
         command:
         - /manager
-        image: registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api/kubeadm-control-plane-controller:v0.3.21
+        image: registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api/kubeadm-control-plane-controller:v0.3.22
         imagePullPolicy: IfNotPresent
         name: manager
         ports:

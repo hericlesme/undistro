@@ -17,6 +17,7 @@ package scheme
 
 import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -33,6 +34,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(Scheme))
 	utilruntime.Must(appv1alpha1.AddToScheme(Scheme))
+	utilruntime.Must(metadatav1alpha1.AddToScheme(Scheme))
 	utilruntime.Must(capi.AddToScheme(Scheme))
 	utilruntime.Must(capicp.AddToScheme(Scheme))
 	utilruntime.Must(apiextensionsv1.AddToScheme(Scheme))

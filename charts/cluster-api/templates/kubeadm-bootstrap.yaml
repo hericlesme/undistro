@@ -224,7 +224,7 @@ spec:
         - --feature-gates=MachinePool=true
         command:
         - /manager
-        image: registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api/kubeadm-bootstrap-controller:v0.3.21
+        image: registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api/kubeadm-bootstrap-controller:v0.3.22
         imagePullPolicy: IfNotPresent
         name: manager
       terminationGracePeriodSeconds: 10
@@ -269,7 +269,7 @@ spec:
         - --feature-gates=MachinePool=true
         command:
         - /manager
-        image: registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api/kubeadm-bootstrap-controller:v0.3.21
+        image: registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api/kubeadm-bootstrap-controller:v0.3.22
         imagePullPolicy: IfNotPresent
         name: manager
         ports:
