@@ -263,7 +263,7 @@ func RemoveDuplicateTaints(taints []corev1.Taint) []corev1.Taint {
 	return res
 }
 
-func IsKindCluster(ctx context.Context, c client.Client) (bool, error) {
+func IsLocalCluster(ctx context.Context, c client.Client) (bool, error) {
 	nodes := corev1.NodeList{}
 	err := c.List(ctx, &nodes)
 	if err != nil {
@@ -272,7 +272,7 @@ func IsKindCluster(ctx context.Context, c client.Client) (bool, error) {
 	for _, node := range nodes.Items {
 		for _, image := range node.Status.Images {
 			for _, name := range image.Names {
-				if strings.Contains(name, "kindnet") {
+				if strings.Contains(name, "kindnet") || strings.Contains(name, "minikube") {
 					return true, nil
 				}
 			}

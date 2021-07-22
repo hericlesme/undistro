@@ -58,7 +58,7 @@ func stringptr(s string) *string {
 }
 
 func defaultValues(ctx context.Context, c client.Client, name string) map[string]interface{} {
-	isKind, _ := util.IsKindCluster(ctx, c)
+	isKind, _ := util.IsLocalCluster(ctx, c)
 	switch name {
 	case "undistro":
 		if isKind {
