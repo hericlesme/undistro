@@ -1,4670 +1,4670 @@
 [
-	{
-		"instanceType": "t1.micro",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 1,
-		"memory": 0.612
-	},
-	{
-		"instanceType": "t2.nano",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 1,
-		"memory": 0.5
-	},
-	{
-		"instanceType": "t2.micro",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 1,
-		"memory": 1
-	},
-	{
-		"instanceType": "t2.small",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 1,
-		"memory": 2
-	},
-	{
-		"instanceType": "t2.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "t2.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "t2.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "t2.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "t3.nano",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 0.5
-	},
-	{
-		"instanceType": "t3.micro",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 1
-	},
-	{
-		"instanceType": "t3.small",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 2
-	},
-	{
-		"instanceType": "t3.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "t3.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "t3.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "t3.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "a1.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 1,
-		"memory": 2
-	},
-	{
-		"instanceType": "a1.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "a1.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 4,
-		"memory": 8
-	},
-	{
-		"instanceType": "a1.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 8,
-		"memory": 16
-	},
-	{
-		"instanceType": "a1.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 16,
-		"memory": 32
-	},
-	{
-		"instanceType": "a1.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 16,
-		"memory": 32
-	},
-	{
-		"instanceType": "c1.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 2,
-		"memory": 1.7
-	},
-	{
-		"instanceType": "c1.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 8,
-		"memory": 7
-	},
-	{
-		"instanceType": "c3.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 2,
-		"memory": 3.75
-	},
-	{
-		"instanceType": "c3.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 4,
-		"memory": 7.5
-	},
-	{
-		"instanceType": "c3.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 8,
-		"memory": 15
-	},
-	{
-		"instanceType": "c3.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 16,
-		"memory": 30
-	},
-	{
-		"instanceType": "c3.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 32,
-		"memory": 60
-	},
-	{
-		"instanceType": "c4.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 3.75
-	},
-	{
-		"instanceType": "c4.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 7.5
-	},
-	{
-		"instanceType": "c4.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 15
-	},
-	{
-		"instanceType": "c4.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 30
-	},
-	{
-		"instanceType": "c4.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 36,
-		"memory": 60
-	},
-	{
-		"instanceType": "c5.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "c5.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 8
-	},
-	{
-		"instanceType": "c5.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 16
-	},
-	{
-		"instanceType": "c5.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 32
-	},
-	{
-		"instanceType": "c5.9xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 36,
-		"memory": 72
-	},
-	{
-		"instanceType": "c5.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 96
-	},
-	{
-		"instanceType": "c5.18xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 72,
-		"memory": 144
-	},
-	{
-		"instanceType": "c5.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 192
-	},
-	{
-		"instanceType": "c5.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 192
-	},
-	{
-		"instanceType": "c5a.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "c5a.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 8
-	},
-	{
-		"instanceType": "c5a.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 16
-	},
-	{
-		"instanceType": "c5a.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 32
-	},
-	{
-		"instanceType": "c5a.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 64
-	},
-	{
-		"instanceType": "c5a.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 96
-	},
-	{
-		"instanceType": "c5a.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 128
-	},
-	{
-		"instanceType": "c5a.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 192
-	},
-	{
-		"instanceType": "c5ad.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "c5ad.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 8
-	},
-	{
-		"instanceType": "c5ad.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 16
-	},
-	{
-		"instanceType": "c5ad.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 32
-	},
-	{
-		"instanceType": "c5ad.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 64
-	},
-	{
-		"instanceType": "c5ad.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 96
-	},
-	{
-		"instanceType": "c5ad.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 128
-	},
-	{
-		"instanceType": "c5ad.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 192
-	},
-	{
-		"instanceType": "c5d.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "c5d.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 8
-	},
-	{
-		"instanceType": "c5d.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 16
-	},
-	{
-		"instanceType": "c5d.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 32
-	},
-	{
-		"instanceType": "c5d.9xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 36,
-		"memory": 72
-	},
-	{
-		"instanceType": "c5d.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 48,
-		"memory": 96
-	},
-	{
-		"instanceType": "c5d.18xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 72,
-		"memory": 144
-	},
-	{
-		"instanceType": "c5d.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 96,
-		"memory": 192
-	},
-	{
-		"instanceType": "c5d.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 96,
-		"memory": 192
-	},
-	{
-		"instanceType": "c5n.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 5.3
-	},
-	{
-		"instanceType": "c5n.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 10.5
-	},
-	{
-		"instanceType": "c5n.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 21
-	},
-	{
-		"instanceType": "c5n.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 42
-	},
-	{
-		"instanceType": "c5n.9xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 36,
-		"memory": 96
-	},
-	{
-		"instanceType": "c5n.18xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 72,
-		"memory": 192
-	},
-	{
-		"instanceType": "c5n.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 72,
-		"memory": 192
-	},
-	{
-		"instanceType": "c6g.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 1,
-		"memory": 2
-	},
-	{
-		"instanceType": "c6g.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "c6g.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 8
-	},
-	{
-		"instanceType": "c6g.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 16
-	},
-	{
-		"instanceType": "c6g.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 32
-	},
-	{
-		"instanceType": "c6g.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 64
-	},
-	{
-		"instanceType": "c6g.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 96
-	},
-	{
-		"instanceType": "c6g.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 128
-	},
-	{
-		"instanceType": "c6g.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 128
-	},
-	{
-		"instanceType": "c6gd.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 1,
-		"memory": 2
-	},
-	{
-		"instanceType": "c6gd.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "c6gd.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 8
-	},
-	{
-		"instanceType": "c6gd.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 16
-	},
-	{
-		"instanceType": "c6gd.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 32
-	},
-	{
-		"instanceType": "c6gd.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 64
-	},
-	{
-		"instanceType": "c6gd.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 96
-	},
-	{
-		"instanceType": "c6gd.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 128
-	},
-	{
-		"instanceType": "c6gd.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 128
-	},
-	{
-		"instanceType": "c6gn.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 1,
-		"memory": 2
-	},
-	{
-		"instanceType": "c6gn.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "c6gn.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 4,
-		"memory": 8
-	},
-	{
-		"instanceType": "c6gn.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 8,
-		"memory": 16
-	},
-	{
-		"instanceType": "c6gn.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 16,
-		"memory": 32
-	},
-	{
-		"instanceType": "c6gn.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 32,
-		"memory": 64
-	},
-	{
-		"instanceType": "c6gn.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 48,
-		"memory": 96
-	},
-	{
-		"instanceType": "c6gn.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 64,
-		"memory": 128
-	},
-	{
-		"instanceType": "cc2.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 32,
-		"memory": 60.5
-	},
-	{
-		"instanceType": "d2.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 30.5
-	},
-	{
-		"instanceType": "d2.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 61
-	},
-	{
-		"instanceType": "d2.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 122
-	},
-	{
-		"instanceType": "d2.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 36,
-		"memory": 244
-	},
-	{
-		"instanceType": "d3.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "d3.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "d3.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 16,
-		"memory": 128
-	},
-	{
-		"instanceType": "d3.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 32,
-		"memory": 256
-	},
-	{
-		"instanceType": "d3en.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "d3en.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "d3en.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "d3en.6xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 24,
-		"memory": 96
-	},
-	{
-		"instanceType": "d3en.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "d3en.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "f1.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 8,
-		"memory": 122
-	},
-	{
-		"instanceType": "f1.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 16,
-		"memory": 244
-	},
-	{
-		"instanceType": "f1.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 64,
-		"memory": 976
-	},
-	{
-		"instanceType": "g2.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 8,
-		"memory": 15
-	},
-	{
-		"instanceType": "g2.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 32,
-		"memory": 60
-	},
-	{
-		"instanceType": "g3.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 16,
-		"memory": 122
-	},
-	{
-		"instanceType": "g3.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 32,
-		"memory": 244
-	},
-	{
-		"instanceType": "g3.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 64,
-		"memory": 488
-	},
-	{
-		"instanceType": "g3s.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 4,
-		"memory": 30.5
-	},
-	{
-		"instanceType": "g4ad.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "g4ad.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "g4ad.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "g4dn.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "g4dn.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "g4dn.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "g4dn.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "g4dn.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "g4dn.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "g4dn.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 384
-	},
-	{
-		"instanceType": "h1.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "h1.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "h1.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "h1.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "i2.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 4,
-		"memory": 30.5
-	},
-	{
-		"instanceType": "i2.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 8,
-		"memory": 61
-	},
-	{
-		"instanceType": "i2.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 16,
-		"memory": 122
-	},
-	{
-		"instanceType": "i2.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 32,
-		"memory": 244
-	},
-	{
-		"instanceType": "i3.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 15.3
-	},
-	{
-		"instanceType": "i3.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 30.5
-	},
-	{
-		"instanceType": "i3.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 61
-	},
-	{
-		"instanceType": "i3.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 122
-	},
-	{
-		"instanceType": "i3.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 244
-	},
-	{
-		"instanceType": "i3.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 488
-	},
-	{
-		"instanceType": "i3.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 72,
-		"memory": 512
-	},
-	{
-		"instanceType": "i3en.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 16
-	},
-	{
-		"instanceType": "i3en.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "i3en.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "i3en.3xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 12,
-		"memory": 96
-	},
-	{
-		"instanceType": "i3en.6xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 24,
-		"memory": 192
-	},
-	{
-		"instanceType": "i3en.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 384
-	},
-	{
-		"instanceType": "i3en.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "i3en.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "inf1.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 8
-	},
-	{
-		"instanceType": "inf1.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 16
-	},
-	{
-		"instanceType": "inf1.6xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 24,
-		"memory": 48
-	},
-	{
-		"instanceType": "inf1.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 192
-	},
-	{
-		"instanceType": "m1.small",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 1,
-		"memory": 1.7
-	},
-	{
-		"instanceType": "m1.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 1,
-		"memory": 3.7
-	},
-	{
-		"instanceType": "m1.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 2,
-		"memory": 7.5
-	},
-	{
-		"instanceType": "m1.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 4,
-		"memory": 15
-	},
-	{
-		"instanceType": "m2.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 2,
-		"memory": 17.1
-	},
-	{
-		"instanceType": "m2.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 4,
-		"memory": 34.2
-	},
-	{
-		"instanceType": "m2.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 8,
-		"memory": 68.4
-	},
-	{
-		"instanceType": "m3.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 1,
-		"memory": 3.75
-	},
-	{
-		"instanceType": "m3.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 2,
-		"memory": 7.5
-	},
-	{
-		"instanceType": "m3.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 4,
-		"memory": 15
-	},
-	{
-		"instanceType": "m3.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 8,
-		"memory": 30
-	},
-	{
-		"instanceType": "m4.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "m4.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "m4.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "m4.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "m4.10xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 40,
-		"memory": 160
-	},
-	{
-		"instanceType": "m4.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "m5.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "m5.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "m5.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "m5.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "m5.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "m5.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "m5.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "m5.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 384
-	},
-	{
-		"instanceType": "m5.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 384
-	},
-	{
-		"instanceType": "m5a.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "m5a.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "m5a.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "m5a.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "m5a.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "m5a.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "m5a.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "m5a.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 384
-	},
-	{
-		"instanceType": "m5ad.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "m5ad.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "m5ad.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "m5ad.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "m5ad.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "m5ad.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "m5ad.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "m5ad.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 384
-	},
-	{
-		"instanceType": "m5d.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "m5d.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "m5d.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "m5d.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "m5d.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "m5d.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "m5d.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "m5d.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 384
-	},
-	{
-		"instanceType": "m5d.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 384
-	},
-	{
-		"instanceType": "m5dn.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "m5dn.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "m5dn.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "m5dn.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "m5dn.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "m5dn.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "m5dn.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "m5dn.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 384
-	},
-	{
-		"instanceType": "m5dn.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 384
-	},
-	{
-		"instanceType": "m5n.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "m5n.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "m5n.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "m5n.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "m5n.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "m5n.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "m5n.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "m5n.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 384
-	},
-	{
-		"instanceType": "m5n.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 384
-	},
-	{
-		"instanceType": "m5zn.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "m5zn.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "m5zn.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "m5zn.3xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 12,
-		"memory": 48
-	},
-	{
-		"instanceType": "m5zn.6xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 24,
-		"memory": 96
-	},
-	{
-		"instanceType": "m5zn.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "m5zn.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "m6g.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 1,
-		"memory": 4
-	},
-	{
-		"instanceType": "m6g.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "m6g.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "m6g.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "m6g.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "m6g.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "m6g.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "m6g.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "m6g.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "m6gd.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 1,
-		"memory": 4
-	},
-	{
-		"instanceType": "m6gd.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "m6gd.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "m6gd.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "m6gd.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 64
-	},
-	{
-		"instanceType": "m6gd.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 128
-	},
-	{
-		"instanceType": "m6gd.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 192
-	},
-	{
-		"instanceType": "m6gd.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "m6gd.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 256
-	},
-	{
-		"instanceType": "mac1.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b"
-		],
-		"vcpus": 12,
-		"memory": 32
-	},
-	{
-		"instanceType": "p2.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 4,
-		"memory": 61
-	},
-	{
-		"instanceType": "p2.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 32,
-		"memory": 488
-	},
-	{
-		"instanceType": "p2.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 64,
-		"memory": 732
-	},
-	{
-		"instanceType": "p3.2xlarge",
-		"availabilityZones": [
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 61
-	},
-	{
-		"instanceType": "p3.8xlarge",
-		"availabilityZones": [
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 244
-	},
-	{
-		"instanceType": "p3.16xlarge",
-		"availabilityZones": [
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 488
-	},
-	{
-		"instanceType": "p3dn.24xlarge",
-		"availabilityZones": [
-			"us-east-1b",
-			"us-east-1c"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "p4d.24xlarge",
-		"availabilityZones": [
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 96,
-		"memory": 1152
-	},
-	{
-		"instanceType": "r3.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 2,
-		"memory": 15
-	},
-	{
-		"instanceType": "r3.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 4,
-		"memory": 30.5
-	},
-	{
-		"instanceType": "r3.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 8,
-		"memory": 61
-	},
-	{
-		"instanceType": "r3.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 16,
-		"memory": 122
-	},
-	{
-		"instanceType": "r3.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d",
-			"us-east-1e"
-		],
-		"vcpus": 32,
-		"memory": 244
-	},
-	{
-		"instanceType": "r4.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 15.3
-	},
-	{
-		"instanceType": "r4.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 30.5
-	},
-	{
-		"instanceType": "r4.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 61
-	},
-	{
-		"instanceType": "r4.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 122
-	},
-	{
-		"instanceType": "r4.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 244
-	},
-	{
-		"instanceType": "r4.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 488
-	},
-	{
-		"instanceType": "r5.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 16
-	},
-	{
-		"instanceType": "r5.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "r5.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "r5.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 128
-	},
-	{
-		"instanceType": "r5.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 256
-	},
-	{
-		"instanceType": "r5.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 384
-	},
-	{
-		"instanceType": "r5.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 512
-	},
-	{
-		"instanceType": "r5.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r5.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r5a.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 16
-	},
-	{
-		"instanceType": "r5a.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "r5a.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "r5a.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 128
-	},
-	{
-		"instanceType": "r5a.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 256
-	},
-	{
-		"instanceType": "r5a.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 384
-	},
-	{
-		"instanceType": "r5a.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 512
-	},
-	{
-		"instanceType": "r5a.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r5ad.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 16
-	},
-	{
-		"instanceType": "r5ad.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "r5ad.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "r5ad.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 128
-	},
-	{
-		"instanceType": "r5ad.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 256
-	},
-	{
-		"instanceType": "r5ad.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 384
-	},
-	{
-		"instanceType": "r5ad.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 512
-	},
-	{
-		"instanceType": "r5ad.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r5b.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c"
-		],
-		"vcpus": 2,
-		"memory": 16
-	},
-	{
-		"instanceType": "r5b.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "r5b.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "r5b.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c"
-		],
-		"vcpus": 16,
-		"memory": 128
-	},
-	{
-		"instanceType": "r5b.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c"
-		],
-		"vcpus": 32,
-		"memory": 256
-	},
-	{
-		"instanceType": "r5b.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c"
-		],
-		"vcpus": 48,
-		"memory": 384
-	},
-	{
-		"instanceType": "r5b.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c"
-		],
-		"vcpus": 64,
-		"memory": 512
-	},
-	{
-		"instanceType": "r5b.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r5b.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r5d.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 16
-	},
-	{
-		"instanceType": "r5d.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "r5d.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "r5d.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 128
-	},
-	{
-		"instanceType": "r5d.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 256
-	},
-	{
-		"instanceType": "r5d.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 384
-	},
-	{
-		"instanceType": "r5d.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 512
-	},
-	{
-		"instanceType": "r5d.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r5d.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r5dn.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 16
-	},
-	{
-		"instanceType": "r5dn.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "r5dn.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "r5dn.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 128
-	},
-	{
-		"instanceType": "r5dn.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 256
-	},
-	{
-		"instanceType": "r5dn.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 384
-	},
-	{
-		"instanceType": "r5dn.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 512
-	},
-	{
-		"instanceType": "r5dn.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r5dn.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r5n.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 16
-	},
-	{
-		"instanceType": "r5n.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "r5n.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "r5n.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 128
-	},
-	{
-		"instanceType": "r5n.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 256
-	},
-	{
-		"instanceType": "r5n.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 384
-	},
-	{
-		"instanceType": "r5n.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 512
-	},
-	{
-		"instanceType": "r5n.24xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r5n.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 96,
-		"memory": 768
-	},
-	{
-		"instanceType": "r6g.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 1,
-		"memory": 8
-	},
-	{
-		"instanceType": "r6g.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 16
-	},
-	{
-		"instanceType": "r6g.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "r6g.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "r6g.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 128
-	},
-	{
-		"instanceType": "r6g.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 256
-	},
-	{
-		"instanceType": "r6g.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 384
-	},
-	{
-		"instanceType": "r6g.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 512
-	},
-	{
-		"instanceType": "r6g.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 512
-	},
-	{
-		"instanceType": "r6gd.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 1,
-		"memory": 8
-	},
-	{
-		"instanceType": "r6gd.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 16
-	},
-	{
-		"instanceType": "r6gd.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "r6gd.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "r6gd.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 128
-	},
-	{
-		"instanceType": "r6gd.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 256
-	},
-	{
-		"instanceType": "r6gd.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 384
-	},
-	{
-		"instanceType": "r6gd.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 512
-	},
-	{
-		"instanceType": "r6gd.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 512
-	},
-	{
-		"instanceType": "t3a.nano",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 0.5
-	},
-	{
-		"instanceType": "t3a.micro",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 1
-	},
-	{
-		"instanceType": "t3a.small",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 2
-	},
-	{
-		"instanceType": "t3a.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "t3a.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "t3a.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "t3a.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "t4g.nano",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 0.5
-	},
-	{
-		"instanceType": "t4g.micro",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 1
-	},
-	{
-		"instanceType": "t4g.small",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 2
-	},
-	{
-		"instanceType": "t4g.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 4
-	},
-	{
-		"instanceType": "t4g.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 8
-	},
-	{
-		"instanceType": "t4g.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 16
-	},
-	{
-		"instanceType": "t4g.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 32
-	},
-	{
-		"instanceType": "u-12tb1.112xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 448,
-		"memory": 12288
-	},
-	{
-		"instanceType": "u-6tb1.56xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 224,
-		"memory": 6144
-	},
-	{
-		"instanceType": "u-6tb1.112xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 448,
-		"memory": 6144
-	},
-	{
-		"instanceType": "u-9tb1.112xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1d"
-		],
-		"vcpus": 448,
-		"memory": 9216
-	},
-	{
-		"instanceType": "x1.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 976
-	},
-	{
-		"instanceType": "x1.32xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1e",
-			"us-east-1f"
-		],
-		"vcpus": 128,
-		"memory": 1952
-	},
-	{
-		"instanceType": "x1e.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 4,
-		"memory": 122
-	},
-	{
-		"instanceType": "x1e.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 8,
-		"memory": 244
-	},
-	{
-		"instanceType": "x1e.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 16,
-		"memory": 488
-	},
-	{
-		"instanceType": "x1e.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 32,
-		"memory": 976
-	},
-	{
-		"instanceType": "x1e.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 64,
-		"memory": 1952
-	},
-	{
-		"instanceType": "x1e.32xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d"
-		],
-		"vcpus": 128,
-		"memory": 3904
-	},
-	{
-		"instanceType": "x2gd.medium",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 1,
-		"memory": 16
-	},
-	{
-		"instanceType": "x2gd.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 32
-	},
-	{
-		"instanceType": "x2gd.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 64
-	},
-	{
-		"instanceType": "x2gd.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 128
-	},
-	{
-		"instanceType": "x2gd.4xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 16,
-		"memory": 256
-	},
-	{
-		"instanceType": "x2gd.8xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 32,
-		"memory": 512
-	},
-	{
-		"instanceType": "x2gd.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 768
-	},
-	{
-		"instanceType": "x2gd.16xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 1024
-	},
-	{
-		"instanceType": "x2gd.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 64,
-		"memory": 1024
-	},
-	{
-		"instanceType": "z1d.large",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 2,
-		"memory": 16
-	},
-	{
-		"instanceType": "z1d.xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 4,
-		"memory": 32
-	},
-	{
-		"instanceType": "z1d.2xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 8,
-		"memory": 64
-	},
-	{
-		"instanceType": "z1d.3xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 12,
-		"memory": 96
-	},
-	{
-		"instanceType": "z1d.6xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 24,
-		"memory": 192
-	},
-	{
-		"instanceType": "z1d.12xlarge",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 384
-	},
-	{
-		"instanceType": "z1d.metal",
-		"availabilityZones": [
-			"us-east-1a",
-			"us-east-1b",
-			"us-east-1c",
-			"us-east-1d",
-			"us-east-1f"
-		],
-		"vcpus": 48,
-		"memory": 384
-	}
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t1.micro",
+        "memory": "0.612",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "t2.nano",
+        "memory": "0.5",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "t2.micro",
+        "memory": "1",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "t2.small",
+        "memory": "2",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "t2.medium",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "t2.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "t2.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "t2.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3.nano",
+        "memory": "0.5",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3.micro",
+        "memory": "1",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3.small",
+        "memory": "2",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3.medium",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "a1.medium",
+        "memory": "2",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "a1.large",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "a1.xlarge",
+        "memory": "8",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "a1.2xlarge",
+        "memory": "16",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "a1.4xlarge",
+        "memory": "32",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "a1.metal",
+        "memory": "32",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "c1.medium",
+        "memory": "1.7",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "c1.xlarge",
+        "memory": "7",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "c3.large",
+        "memory": "3.75",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "c3.xlarge",
+        "memory": "7.5",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "c3.2xlarge",
+        "memory": "15",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "c3.4xlarge",
+        "memory": "30",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "c3.8xlarge",
+        "memory": "60",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "c4.large",
+        "memory": "3.75",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "c4.xlarge",
+        "memory": "7.5",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "c4.2xlarge",
+        "memory": "15",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "c4.4xlarge",
+        "memory": "30",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "c4.8xlarge",
+        "memory": "60",
+        "vcpus": "36"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5.large",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5.xlarge",
+        "memory": "8",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5.2xlarge",
+        "memory": "16",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5.4xlarge",
+        "memory": "32",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5.9xlarge",
+        "memory": "72",
+        "vcpus": "36"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5.12xlarge",
+        "memory": "96",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5.18xlarge",
+        "memory": "144",
+        "vcpus": "72"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5.24xlarge",
+        "memory": "192",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5.metal",
+        "memory": "192",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5a.large",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5a.xlarge",
+        "memory": "8",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5a.2xlarge",
+        "memory": "16",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5a.4xlarge",
+        "memory": "32",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5a.8xlarge",
+        "memory": "64",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5a.12xlarge",
+        "memory": "96",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5a.16xlarge",
+        "memory": "128",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5a.24xlarge",
+        "memory": "192",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5ad.large",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5ad.xlarge",
+        "memory": "8",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5ad.2xlarge",
+        "memory": "16",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5ad.4xlarge",
+        "memory": "32",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5ad.8xlarge",
+        "memory": "64",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5ad.12xlarge",
+        "memory": "96",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5ad.16xlarge",
+        "memory": "128",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5ad.24xlarge",
+        "memory": "192",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5d.large",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5d.xlarge",
+        "memory": "8",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5d.2xlarge",
+        "memory": "16",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5d.4xlarge",
+        "memory": "32",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5d.9xlarge",
+        "memory": "72",
+        "vcpus": "36"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "c5d.12xlarge",
+        "memory": "96",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5d.18xlarge",
+        "memory": "144",
+        "vcpus": "72"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "c5d.24xlarge",
+        "memory": "192",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "c5d.metal",
+        "memory": "192",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5n.large",
+        "memory": "5.3",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5n.xlarge",
+        "memory": "10.5",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5n.2xlarge",
+        "memory": "21",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5n.4xlarge",
+        "memory": "42",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5n.9xlarge",
+        "memory": "96",
+        "vcpus": "36"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5n.18xlarge",
+        "memory": "192",
+        "vcpus": "72"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c5n.metal",
+        "memory": "192",
+        "vcpus": "72"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6g.medium",
+        "memory": "2",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6g.large",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6g.xlarge",
+        "memory": "8",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6g.2xlarge",
+        "memory": "16",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6g.4xlarge",
+        "memory": "32",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6g.8xlarge",
+        "memory": "64",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6g.12xlarge",
+        "memory": "96",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6g.16xlarge",
+        "memory": "128",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6g.metal",
+        "memory": "128",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6gd.medium",
+        "memory": "2",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6gd.large",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6gd.xlarge",
+        "memory": "8",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6gd.2xlarge",
+        "memory": "16",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6gd.4xlarge",
+        "memory": "32",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6gd.8xlarge",
+        "memory": "64",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6gd.12xlarge",
+        "memory": "96",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6gd.16xlarge",
+        "memory": "128",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "c6gd.metal",
+        "memory": "128",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "c6gn.medium",
+        "memory": "2",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "c6gn.large",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "c6gn.xlarge",
+        "memory": "8",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "c6gn.2xlarge",
+        "memory": "16",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "c6gn.4xlarge",
+        "memory": "32",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "c6gn.8xlarge",
+        "memory": "64",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "c6gn.12xlarge",
+        "memory": "96",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "c6gn.16xlarge",
+        "memory": "128",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "cc2.8xlarge",
+        "memory": "60.5",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "d2.xlarge",
+        "memory": "30.5",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "d2.2xlarge",
+        "memory": "61",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "d2.4xlarge",
+        "memory": "122",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "d2.8xlarge",
+        "memory": "244",
+        "vcpus": "36"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "d3.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "d3.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "d3.4xlarge",
+        "memory": "128",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "d3.8xlarge",
+        "memory": "256",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "d3en.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "d3en.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "d3en.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "d3en.6xlarge",
+        "memory": "96",
+        "vcpus": "24"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "d3en.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "d3en.12xlarge",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "f1.2xlarge",
+        "memory": "122",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "f1.4xlarge",
+        "memory": "244",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "f1.16xlarge",
+        "memory": "976",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "g2.2xlarge",
+        "memory": "15",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "g2.8xlarge",
+        "memory": "60",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "g3.4xlarge",
+        "memory": "122",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "g3.8xlarge",
+        "memory": "244",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "g3.16xlarge",
+        "memory": "488",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "g3s.xlarge",
+        "memory": "30.5",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "g4ad.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "g4ad.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "g4ad.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "g4dn.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "g4dn.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "g4dn.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "g4dn.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "g4dn.12xlarge",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "g4dn.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "g4dn.metal",
+        "memory": "384",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "h1.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "h1.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "h1.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "h1.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "i2.xlarge",
+        "memory": "30.5",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "i2.2xlarge",
+        "memory": "61",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "i2.4xlarge",
+        "memory": "122",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "i2.8xlarge",
+        "memory": "244",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "i3.large",
+        "memory": "15.3",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "i3.xlarge",
+        "memory": "30.5",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "i3.2xlarge",
+        "memory": "61",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "i3.4xlarge",
+        "memory": "122",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "i3.8xlarge",
+        "memory": "244",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "i3.16xlarge",
+        "memory": "488",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "i3.metal",
+        "memory": "512",
+        "vcpus": "72"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "i3en.large",
+        "memory": "16",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "i3en.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "i3en.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "i3en.3xlarge",
+        "memory": "96",
+        "vcpus": "12"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "i3en.6xlarge",
+        "memory": "192",
+        "vcpus": "24"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "i3en.12xlarge",
+        "memory": "384",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "i3en.24xlarge",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "i3en.metal",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "inf1.xlarge",
+        "memory": "8",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "inf1.2xlarge",
+        "memory": "16",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "inf1.6xlarge",
+        "memory": "48",
+        "vcpus": "24"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "inf1.24xlarge",
+        "memory": "192",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "m1.small",
+        "memory": "1.7",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "m1.medium",
+        "memory": "3.7",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "m1.large",
+        "memory": "7.5",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "m1.xlarge",
+        "memory": "15",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "m2.xlarge",
+        "memory": "17.1",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "m2.2xlarge",
+        "memory": "34.2",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "m2.4xlarge",
+        "memory": "68.4",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "m3.medium",
+        "memory": "3.75",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "m3.large",
+        "memory": "7.5",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "m3.xlarge",
+        "memory": "15",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "m3.2xlarge",
+        "memory": "30",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "m4.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "m4.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "m4.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "m4.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "m4.10xlarge",
+        "memory": "160",
+        "vcpus": "40"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "m4.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5.12xlarge",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5.24xlarge",
+        "memory": "384",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5.metal",
+        "memory": "384",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5a.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5a.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5a.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5a.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5a.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5a.12xlarge",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5a.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5a.24xlarge",
+        "memory": "384",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5ad.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5ad.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5ad.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5ad.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5ad.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5ad.12xlarge",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5ad.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5ad.24xlarge",
+        "memory": "384",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5d.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5d.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5d.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5d.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5d.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5d.12xlarge",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5d.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5d.24xlarge",
+        "memory": "384",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5d.metal",
+        "memory": "384",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5dn.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5dn.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5dn.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5dn.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5dn.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5dn.12xlarge",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5dn.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5dn.24xlarge",
+        "memory": "384",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5dn.metal",
+        "memory": "384",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5n.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5n.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5n.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5n.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5n.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5n.12xlarge",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5n.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5n.24xlarge",
+        "memory": "384",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5n.metal",
+        "memory": "384",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5zn.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5zn.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5zn.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5zn.3xlarge",
+        "memory": "48",
+        "vcpus": "12"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5zn.6xlarge",
+        "memory": "96",
+        "vcpus": "24"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5zn.12xlarge",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m5zn.metal",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6g.medium",
+        "memory": "4",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6g.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6g.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6g.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6g.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6g.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6g.12xlarge",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6g.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6g.metal",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6gd.medium",
+        "memory": "4",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6gd.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6gd.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6gd.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6gd.4xlarge",
+        "memory": "64",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6gd.8xlarge",
+        "memory": "128",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6gd.12xlarge",
+        "memory": "192",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6gd.16xlarge",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "m6gd.metal",
+        "memory": "256",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b"
+        ],
+        "instanceType": "mac1.metal",
+        "memory": "32",
+        "vcpus": "12"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "p2.xlarge",
+        "memory": "61",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "p2.8xlarge",
+        "memory": "488",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "p2.16xlarge",
+        "memory": "732",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1f"
+        ],
+        "instanceType": "p3.2xlarge",
+        "memory": "61",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1f"
+        ],
+        "instanceType": "p3.8xlarge",
+        "memory": "244",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1f"
+        ],
+        "instanceType": "p3.16xlarge",
+        "memory": "488",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1b",
+            "us-east-1c"
+        ],
+        "instanceType": "p3dn.24xlarge",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "p4d.24xlarge",
+        "memory": "1152",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "r3.large",
+        "memory": "15",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "r3.xlarge",
+        "memory": "30.5",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "r3.2xlarge",
+        "memory": "61",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "r3.4xlarge",
+        "memory": "122",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d",
+            "us-east-1e"
+        ],
+        "instanceType": "r3.8xlarge",
+        "memory": "244",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "r4.large",
+        "memory": "15.3",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "r4.xlarge",
+        "memory": "30.5",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "r4.2xlarge",
+        "memory": "61",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "r4.4xlarge",
+        "memory": "122",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "r4.8xlarge",
+        "memory": "244",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "r4.16xlarge",
+        "memory": "488",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5.large",
+        "memory": "16",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5.4xlarge",
+        "memory": "128",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5.8xlarge",
+        "memory": "256",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5.12xlarge",
+        "memory": "384",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5.16xlarge",
+        "memory": "512",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5.24xlarge",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5.metal",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5a.large",
+        "memory": "16",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5a.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5a.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5a.4xlarge",
+        "memory": "128",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5a.8xlarge",
+        "memory": "256",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5a.12xlarge",
+        "memory": "384",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5a.16xlarge",
+        "memory": "512",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5a.24xlarge",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5ad.large",
+        "memory": "16",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5ad.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5ad.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5ad.4xlarge",
+        "memory": "128",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5ad.8xlarge",
+        "memory": "256",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5ad.12xlarge",
+        "memory": "384",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5ad.16xlarge",
+        "memory": "512",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5ad.24xlarge",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c"
+        ],
+        "instanceType": "r5b.large",
+        "memory": "16",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c"
+        ],
+        "instanceType": "r5b.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c"
+        ],
+        "instanceType": "r5b.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c"
+        ],
+        "instanceType": "r5b.4xlarge",
+        "memory": "128",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c"
+        ],
+        "instanceType": "r5b.8xlarge",
+        "memory": "256",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c"
+        ],
+        "instanceType": "r5b.12xlarge",
+        "memory": "384",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c"
+        ],
+        "instanceType": "r5b.16xlarge",
+        "memory": "512",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c"
+        ],
+        "instanceType": "r5b.24xlarge",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c"
+        ],
+        "instanceType": "r5b.metal",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5d.large",
+        "memory": "16",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5d.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5d.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5d.4xlarge",
+        "memory": "128",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5d.8xlarge",
+        "memory": "256",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5d.12xlarge",
+        "memory": "384",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5d.16xlarge",
+        "memory": "512",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5d.24xlarge",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5d.metal",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5dn.large",
+        "memory": "16",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5dn.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5dn.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5dn.4xlarge",
+        "memory": "128",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5dn.8xlarge",
+        "memory": "256",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5dn.12xlarge",
+        "memory": "384",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5dn.16xlarge",
+        "memory": "512",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5dn.24xlarge",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5dn.metal",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5n.large",
+        "memory": "16",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5n.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5n.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5n.4xlarge",
+        "memory": "128",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5n.8xlarge",
+        "memory": "256",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5n.12xlarge",
+        "memory": "384",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5n.16xlarge",
+        "memory": "512",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5n.24xlarge",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r5n.metal",
+        "memory": "768",
+        "vcpus": "96"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6g.medium",
+        "memory": "8",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6g.large",
+        "memory": "16",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6g.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6g.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6g.4xlarge",
+        "memory": "128",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6g.8xlarge",
+        "memory": "256",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6g.12xlarge",
+        "memory": "384",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6g.16xlarge",
+        "memory": "512",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6g.metal",
+        "memory": "512",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6gd.medium",
+        "memory": "8",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6gd.large",
+        "memory": "16",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6gd.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6gd.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6gd.4xlarge",
+        "memory": "128",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6gd.8xlarge",
+        "memory": "256",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6gd.12xlarge",
+        "memory": "384",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6gd.16xlarge",
+        "memory": "512",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "r6gd.metal",
+        "memory": "512",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3a.nano",
+        "memory": "0.5",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3a.micro",
+        "memory": "1",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3a.small",
+        "memory": "2",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3a.medium",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3a.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3a.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t3a.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t4g.nano",
+        "memory": "0.5",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t4g.micro",
+        "memory": "1",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t4g.small",
+        "memory": "2",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t4g.medium",
+        "memory": "4",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t4g.large",
+        "memory": "8",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t4g.xlarge",
+        "memory": "16",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "t4g.2xlarge",
+        "memory": "32",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "u-12tb1.112xlarge",
+        "memory": "12288",
+        "vcpus": "448"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "u-6tb1.56xlarge",
+        "memory": "6144",
+        "vcpus": "224"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "u-6tb1.112xlarge",
+        "memory": "6144",
+        "vcpus": "448"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1d"
+        ],
+        "instanceType": "u-9tb1.112xlarge",
+        "memory": "9216",
+        "vcpus": "448"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "x1.16xlarge",
+        "memory": "976",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1e",
+            "us-east-1f"
+        ],
+        "instanceType": "x1.32xlarge",
+        "memory": "1952",
+        "vcpus": "128"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "x1e.xlarge",
+        "memory": "122",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "x1e.2xlarge",
+        "memory": "244",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "x1e.4xlarge",
+        "memory": "488",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "x1e.8xlarge",
+        "memory": "976",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "x1e.16xlarge",
+        "memory": "1952",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d"
+        ],
+        "instanceType": "x1e.32xlarge",
+        "memory": "3904",
+        "vcpus": "128"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "x2gd.medium",
+        "memory": "16",
+        "vcpus": "1"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "x2gd.large",
+        "memory": "32",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "x2gd.xlarge",
+        "memory": "64",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "x2gd.2xlarge",
+        "memory": "128",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "x2gd.4xlarge",
+        "memory": "256",
+        "vcpus": "16"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "x2gd.8xlarge",
+        "memory": "512",
+        "vcpus": "32"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "x2gd.12xlarge",
+        "memory": "768",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "x2gd.16xlarge",
+        "memory": "1024",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "x2gd.metal",
+        "memory": "1024",
+        "vcpus": "64"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "z1d.large",
+        "memory": "16",
+        "vcpus": "2"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "z1d.xlarge",
+        "memory": "32",
+        "vcpus": "4"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "z1d.2xlarge",
+        "memory": "64",
+        "vcpus": "8"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "z1d.3xlarge",
+        "memory": "96",
+        "vcpus": "12"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "z1d.6xlarge",
+        "memory": "192",
+        "vcpus": "24"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "z1d.12xlarge",
+        "memory": "384",
+        "vcpus": "48"
+    },
+    {
+        "availabilityZones": [
+            "us-east-1a",
+            "us-east-1b",
+            "us-east-1c",
+            "us-east-1d",
+            "us-east-1f"
+        ],
+        "instanceType": "z1d.metal",
+        "memory": "384",
+        "vcpus": "48"
+    }
 ]
