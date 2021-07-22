@@ -397,7 +397,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	if err != nil {
 		return err
 	}
-	fmt.Fprint(o.IOStreams.Out, "Applying metadata...")
+	fmt.Fprintln(o.IOStreams.Out, "Applying metadata...")
 	err = o.applyMetadata(cmd.Context(), c, providers...)
 	if err != nil {
 		return err
