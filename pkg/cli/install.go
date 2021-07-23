@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -152,7 +153,9 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 		if err != nil {
 			return err
 		}
-		if strings.Contains(path, chartName) {
+		name := filepath.Base(path)
+		name = util.ChartNameByFile(name)
+		if name == chartName {
 			found = true
 		}
 		return nil
@@ -238,12 +241,7 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 }
 
 func (o *InstallOptions) checkEnabledList(cfg map[string]interface{}) []string {
-	p := make([]string, 0)
-	for k, v := range providersInfo {
-		if v.Category == metadatav1alpha1.ProviderCore {
-			p = append(p, k)
-		}
-	}
+	p := []string{"cert-manager", "cluster-api", "undistro", "ingress-nginx"} // force core order installations
 	for k := range cfg {
 		_, ok := providersInfo[k]
 		if !ok {

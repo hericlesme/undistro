@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -41,6 +42,12 @@ import (
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+var chartNameRegex *regexp.Regexp
+
+func init() {
+	chartNameRegex = regexp.MustCompile("[a-z]+-?[a-z]{2,}")
+}
 
 // MergeMaps merges map b into given map a and returns the result.
 // It allows overwrites of map values with flat values, and vice versa.
@@ -279,4 +286,10 @@ func IsLocalCluster(ctx context.Context, c client.Client) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func ChartNameByFile(name string) string {
+	// just support chart-name format
+	// chart-name-test this format will fail
+	return chartNameRegex.FindString(name)
 }

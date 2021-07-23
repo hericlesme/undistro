@@ -341,3 +341,24 @@ func TestRemoveDuplicateTaints(t *testing.T) {
 		})
 	}
 }
+
+func TestChartNameByFile(t *testing.T) {
+
+	tests := []struct {
+		name string
+		want string
+	}{
+		{"cert-manager-1.2.0.tgz", "cert-manager"},
+		{"cluster-api-0.3.22.tgz", "cluster-api"},
+		{"ingress-nginx-3.32.0.tgz", "ingress-nginx"},
+		{"undistro-v0.31.4-beta.tgz", "undistro"},
+		{"undistro-aws-0.6.6.tgz", "undistro-aws"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ChartNameByFile(tt.name); got != tt.want {
+				t.Errorf("ChartNameByFile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
