@@ -92,7 +92,7 @@ var Regions = []string{
 
 var flavors = map[string][]string{
 	appv1alpha1.EC2.String(): {
-		"v1.18.19", "v1.18.20", "v1.19.12", "v1.20.8", "v1.21.2",
+		"v1.18.19", "v1.18.20", "v1.19.12", "v1.20.8", "v1.21.2", "v1.21.3",
 	},
 	appv1alpha1.EKS.String(): {
 		"v1.18.16", "v1.19.8", "v1.20.4",
