@@ -7,8 +7,9 @@ class Provider {
     this.http = httpWrapper
   }
 
-  async list() {
-    const url = 'namespaces/undistro-system/clusters/management/proxy/apis/config.undistro.io/v1alpha1/namespaces/undistro-system/providers'
+  async list(kind: string) {
+    //kinds: awsmachines, flavors, providers.
+    const url = `namespaces/undistro-system/clusters/management/proxy/apis/metadata.undistro.io/v1alpha1/${kind}`
     const res = await this.http.get(url)
     return res.data
   }

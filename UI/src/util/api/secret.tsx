@@ -5,8 +5,8 @@ class Secret {
     this.http = httpWrapper
   }
 
-  async list () {
-    const url = 'namespaces/undistro-system/clusters/management/proxy/api/v1/namespaces/undistro-system/secrets/undistro-aws-config'
+  async list (secretRef: string) {
+    const url = `namespaces/undistro-system/clusters/management/proxy/api/v1/namespaces/undistro-system/secrets/${secretRef}`
     const res = await this.http.get(url)
     return res.data
   }

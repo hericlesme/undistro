@@ -3,7 +3,6 @@ import Select from '@components/select'
 import Toggle from '@components/toggle'
 import Input from '@components/input'
 import Button from '@components/button'
-import AsyncSelect from '@components/asyncSelect'
 import FormSlider from '@components/formSlider'
 import { TypeOption, TypeWorkersAdvanced } from '../../../types/cluster'
 import './index.scss'
@@ -103,9 +102,9 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
       <div className='input-container'>
         <Input value={replicas} onChange={formReplica} type='text' label='replicas' />
         <Input type='text' value={subnet} onChange={formSubnet} label='Subnet' />
-        <AsyncSelect value={cpu} onChange={formCpu} loadOptions={getCpu} label='CPU' />
-        <AsyncSelect value={memory} onChange={formMem} loadOptions={getMem} label='mem' />
-        <AsyncSelect value={machineTypes} onChange={formMachineTypes} loadOptions={getMachineTypes} label='machineType' />
+        <Select value={cpu} onChange={formCpu} options={getCpu} label='CPU' />
+        <Select value={memory} onChange={formMem} options={getMem} label='mem' />
+        <Select value={machineTypes} onChange={formMachineTypes} options={getMachineTypes} label='machineType' />
       </div>
 
       <div className='auto-scale-container'>

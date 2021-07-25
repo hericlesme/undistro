@@ -1,8 +1,8 @@
 import React, { FC, useState } from 'react'
-import AsyncSelect from '@components/asyncSelect'
 import Input from '@components/input'
 import Button from '@components/button'
 import Toggle from '@components/toggle'
+import Select from '@components/select'
 import FormSlider from '@components/formSlider'
 import { TypeOption, TypeControlPlane } from '../../../types/cluster'
 import './index.scss'
@@ -104,9 +104,9 @@ const ControlPlane: FC<TypeControlPlane> = ({
     <div className={!isAdvanced ? 'control-plane' : 'control-plane advanced'}>
       <div className='input-container'>
         <Input value={replicas} onChange={formReplica} type='text' label='replicas' />
-        <AsyncSelect value={cpu} onChange={formCpu} loadOptions={getCpu} label='CPU' />
-        <AsyncSelect value={memory} onChange={formMem} loadOptions={getMem} label='mem' />
-        <AsyncSelect value={machineTypes} onChange={formMachineTypes} loadOptions={getMachineTypes} label='machineType' />
+        <Select value={cpu} onChange={formCpu} options={getCpu} label='CPU' />
+        <Select value={memory} onChange={formMem} options={getMem} label='mem' />
+        <Select value={machineTypes} onChange={formMachineTypes} options={getMachineTypes} label='machineType' />
       </div>
 
       {!isAdvanced ? 
@@ -115,9 +115,9 @@ const ControlPlane: FC<TypeControlPlane> = ({
           <Toggle label='InfraNode' value={infraNode} onChange={() => setInfraNode?.(!infraNode)} />
           <div className='input-container'>
             <Input type='text' label='replicas' value={replicasWorkers} onChange={formReplicaWorkers} />
-            <AsyncSelect value={cpuWorkers} onChange={formCpuWorkers} loadOptions={getCpu} label='CPU' />
-            <AsyncSelect value={memoryWorkers} onChange={formMemWorkers} loadOptions={getMem} label='mem' />
-            <AsyncSelect value={machineTypesWorkers} onChange={formMachineTypesWorkers} loadOptions={getMachineTypes} label='machineType' />
+            <Select value={cpuWorkers} onChange={formCpuWorkers} options={getCpu} label='CPU' />
+            <Select value={memoryWorkers} onChange={formMemWorkers} options={getMem} label='mem' />
+            <Select value={machineTypesWorkers} onChange={formMachineTypesWorkers} options={getMachineTypes} label='machineType' />
             <div className='button-container'>
               <Button onClick={() => createWorkers?.()} type='gray' size='small' children='Add' />
             </div>

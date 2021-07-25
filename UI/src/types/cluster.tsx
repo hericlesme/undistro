@@ -1,6 +1,6 @@
 export type TypeWorker = {
   id: string
-  machineType: TypeOption | null
+  machineType: string
   replicas: number
   infraNode: boolean
 }
@@ -30,6 +30,25 @@ export type TypeAsyncSelect = {
   value: TypeOption | null
 }
 
+export type TypeCluster = {
+  clusterName: string
+  setClusterName: Function
+  namespace: string
+  setNamespace: Function
+  provider: string
+  setProvider: Function,
+  providerOptions: any
+  regionOptions: TypeOption[]
+  region: string
+  setRegion: Function
+  accessKey: string
+  setAccesskey: Function
+  secret: string
+  setSecret: Function
+  session: string
+  setSession: Function
+}
+
 export type TypeInfra = {
   provider: string
   setProvider: Function
@@ -45,7 +64,6 @@ export type TypeInfra = {
   sshKey: string
   setSshKey: Function
   k8sOptions: any
-  sshKeyOptions: string[]
 }
 
 export type TypeTaints = {
@@ -57,24 +75,24 @@ export type TypeTaints = {
 export type TypeControlPlane = {
   replicas: number
   setReplicas: Function
-  cpu: TypeOption | null
+  cpu: string
   setCpu: Function
-  getCpu: Function
-  getMem: Function
-  memory: TypeOption | null
+  getCpu: TypeOption[] | undefined
+  getMem: TypeOption[] | undefined
+  memory: string
   setMemory: Function
-  machineTypes: TypeOption | null
+  machineTypes: string
   setMachineTypes: Function
-  getMachineTypes: Function
+  getMachineTypes: TypeOption[] | undefined
   infraNode?: boolean | any 
   setInfraNode?: Function
   replicasWorkers?: number | any
   setReplicasWorkers?: Function
-  cpuWorkers?: TypeOption | null | any
+  cpuWorkers?: string
   setCpuWorkers?: Function
-  memoryWorkers?: TypeOption | null | any
+  memoryWorkers?: string
   setMemoryWorkers?: Function
-  machineTypesWorkers?: TypeOption | null | any
+  machineTypesWorkers?: string
   setMachineTypesWorkers?: Function
   createWorkers?: () => void
   workers?: TypeWorker[]
@@ -112,15 +130,15 @@ export type TypeControlPlane = {
 export type TypeWorkersAdvanced = {
   replicas: number
   setReplicas: Function
-  cpu: TypeOption | null
+  cpu: string
   setCpu: Function
-  getCpu: Function
-  getMem: Function
-  memory: TypeOption | null
+  getCpu: TypeOption[] | undefined
+  getMem: TypeOption[] | undefined
+  memory: string
   setMemory: Function
-  machineTypes: TypeOption | null
+  machineTypes: string
   setMachineTypes: Function
-  getMachineTypes: Function
+  getMachineTypes: TypeOption[] | undefined
   autoScale: boolean
   setAutoScale: Function
   maxSize: number
@@ -195,15 +213,15 @@ export type TypeBastion = {
   setIngress: Function
   replicas: number
   setReplicas: Function
-  cpu: TypeOption | null
+  cpu: string
   setCpu: Function
-  getCpu: Function
-  getMem: Function
-  memory: TypeOption | null
+  getCpu: TypeOption[] | undefined
+  getMem: TypeOption[] | undefined
+  memory: string
   setMemory: Function
-  machineTypes: TypeOption | null
+  machineTypes: string
   setMachineTypes: Function
-  getMachineTypes: Function
+  getMachineTypes: TypeOption[] | undefined
   cidr: string
   setCidr: Function
   cidrs: string[]

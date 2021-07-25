@@ -1,9 +1,19 @@
 import React, { FC } from 'react'
-// import Dropdown from '@components/dropdownMenu'
 import Logo from '@assets/images/logo.png'
+import Modals from 'util/modals'
+
 import './index.scss'
 
 const MenuTopBar: FC = () => {
+	const showModal = () => {
+    Modals.show('create-cluster', {
+      title: 'Create',
+			ndTitle: 'Cluster',
+      width: '720',
+      height: '600'
+    })
+  }
+
 	return (
 		<div className='menu-top-container'>
 			<div className='img-container'>
@@ -11,7 +21,7 @@ const MenuTopBar: FC = () => {
 			</div>
 			<ul>
 				<li>
-					<p>Create</p>
+					<p onClick={() => showModal()}>Create</p>
 				</li>
 				<li>
 					<p>Manage</p>

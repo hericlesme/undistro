@@ -219,7 +219,7 @@
       grid-template-columns: 1fr 1fr;
       grid-gap: 10px;
 
-      .select:last-child {
+      .input {
         grid-column: 1 / 3;
       }
     }

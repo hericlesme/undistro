@@ -1,5 +1,6 @@
 import React, { FC } from 'react'
 import Select from '@components/select'
+import Input from '@components/input'
 import { TypeInfra } from '../../../types/cluster'
 
 const InfrastructureProvider: FC<TypeInfra> = ({
@@ -16,16 +17,15 @@ const InfrastructureProvider: FC<TypeInfra> = ({
   region,
   setRegion,
   sshKey,
-  setSshKey,
-  sshKeyOptions  
+  setSshKey
 }) => {
 
   const formProvider = (value: string) => {
     setProvider(value)
   }
 
-  const formSshKey = (value: string) => {
-    setSshKey(value)
+  const formSshKey = (e: React.FormEvent<HTMLInputElement>) => {
+    setSshKey(e.currentTarget.value)
   }
 
   const formRegion = (value: string) => {
@@ -48,7 +48,7 @@ const InfrastructureProvider: FC<TypeInfra> = ({
         <Select value={flavor} onChange={formFlavor} options={flavorOptions} label='flavor' />
         <Select options={regionOptions} value={region} onChange={formRegion} label='region' />
         <Select value={k8sVersion} onChange={formK8s} options={k8sOptions?.[flavor]?.selectOptions ?? []} label='kubernetes version' />
-        <Select value={sshKey} onChange={formSshKey} options={sshKeyOptions} label='sshKey' />
+        <Input type='text' value={sshKey} onChange={formSshKey} label='sshKey' />
       </form>
     </>
   )

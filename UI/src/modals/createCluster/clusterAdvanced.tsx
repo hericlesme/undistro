@@ -9,15 +9,14 @@ import Infra from '@components/modals/infrastructureProvider'
 import ControlPlane from '@components/modals/controlPlane'
 import Bastion from '@components/modals/bastion'
 import Workers from '@components/modals/workersAdvanced'
-import { LoadOptions } from 'react-select-async-paginate'
 import Steps from './steps'
 import Api from 'util/api'
 import { TypeOption, TypeSelectOptions, TypeSubnet, TypeTaints } from '../../types/cluster'
-import { TypeModal } from '../../types/generic'
+import { TypeModal, apiResponse } from '../../types/generic'
 
 type TypeWorkers = {
   replicas: number
-  machineType: TypeOption | null
+  machineType: string
   subnet: string
   labels: {}[]
   providerTags: {}[]
@@ -55,9 +54,9 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [ingress, setIngress] = useState<boolean>(false)
   const [internalLB, setInternalLB] = useState<boolean>(false)
   const [replicas, setReplicas] = useState<number>(0)
-  const [machineTypes, setMachineTypes] = useState<TypeOption | null>(null)
-  const [memory, setMemory] = useState<TypeOption | null>(null)
-  const [cpu, setCpu] = useState<TypeOption | null>(null)
+  const [machineTypes, setMachineTypes] = useState<string>('')
+  const [memory, setMemory] = useState<string>('')
+  const [cpu, setCpu] = useState<string>('')
   const [keyTaint, setKeyTaint] = useState<string>('')
   const [valueTaint, setValueTaint] = useState<string>('')
   const [keyLabel, setKeyLabel] = useState<string>('')
@@ -74,17 +73,15 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [labels, setLabels] = useState<{}[]>()
   const [providerTags, setProviderTags] = useState<{}[]>()
   const [regionOptions, setRegionOptions] = useState<TypeOption[]>([])
-  const [flavorOptions, setFlavorOptions] = useState<TypeOption[]>([])
   const [k8sOptions, setK8sOptions] = useState<TypeSelectOptions>()
   const [sshKey, setSshKey] = useState<string>('')
   const [subnets, SetSubnets] = useState<TypeSubnet[]>([])
   const [subnetWorkers, SetSubnetWorkers] = useState<string>('')
-  const [sshKeyOptions, setSshKeyOptions] = useState<string[]>([])
   const providerOptions = [{ value: 'aws', label: 'aws' }]
   const [replicasWorkers, setReplicasWorkers] = useState<number>(0)
-  const [memoryWorkers, setMemoryWorkers] = useState<TypeOption | null>(null)
-  const [cpuWorkers, setCpuWorkers] = useState<TypeOption | null>(null)
-  const [machineTypesWorkers, setMachineTypesWorkers] = useState<TypeOption | null>(null)
+  const [memoryWorkers, setMemoryWorkers] = useState<string>('')
+  const [cpuWorkers, setCpuWorkers] = useState<string>('')
+  const [machineTypesWorkers, setMachineTypesWorkers] = useState<string>('')
   const [keyTaintWorkers, setKeyTaintWorkers] = useState<string>('')
   const [valueTaintWorkers, setValueTaintWorkers] = useState<string>('')
   const [keyLabelWorkers, setKeyLabelWorkers] = useState<string>('')
@@ -101,6 +98,11 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [labelsWorkers, setLabelsWorkers] = useState<{}[]>()
   const groupIdOptions = [{ value: '', label: ''}]
   const [groups, setGroups] = useState<TypeWorkers[]>()
+  const [flavorOptions, setFlavorOptions] = useState<TypeOption[]>([])
+  const [cpuOptions, setCpuOptions] = useState<TypeOption[]>()
+  const [memOptions, setMemOptions] = useState<TypeOption[]>()
+  const [MachineOptions, setMachineOptions] = useState<TypeOption[]>()
+  const [session, setSession] = useState<string>('')
   // const handleAction = () => {
   //   handleClose()
   //   if (body.handleAction) body.handleAction()
@@ -208,15 +210,6 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
     setCidrs(newCidrs)
   }
 
-  const getSecrets = () => {
-    Api.Secret.list()
-      .then(res => {
-        setAccesskey(atob(res.data.accessKeyID))
-        setSecret(atob(res.data.secretAccessKey))
-        setRegion(atob(res.data.region))
-      })
-  }
-
   const createSubnets = () => {
     SetSubnets([...subnets, {
       id: idSubnet,
@@ -243,82 +236,60 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
     SetSubnets(newSubnets)
   }
 
-  const getMachineTypes: LoadOptions<TypeOption, { page: number }> = async (value, loadedOptions, additional: any) => {
-    const res = await Api.Provider.listMetadata('aws', 'machineTypes', '15', additional ? additional.page : 1, region)
-    const totalPages = res.TotalPages
-    const machineTypes = res.MachineTypes.map((elm: Partial<{ instanceType: string }>) => ({ value: elm.instanceType, label: elm.instanceType }))
-    return {
-      options: machineTypes,
-      hasMore: additional && totalPages > additional.page,
-      additional: { page: additional ? additional.page + 1 : 1 }
-    }
+  const getSecrets = (secretRef: string) => {
+    Api.Secret.list(secretRef).then(res => {
+      setAccesskey(atob(res.data.accessKeyID))
+      setSecret(atob(res.data.secretAccessKey))
+      setRegion(atob(res.data.region))
+    })
   }
 
-  const getCpu: LoadOptions<TypeOption, { page: number }> = async (value, loadedOptions, additional: any) => {
-    const res = await Api.Provider.listMetadata('aws', 'machineTypes', '15', additional ? additional.page : 1, region)
-    const totalPages = res.TotalPages
-    const cpu = res.MachineTypes.map((elm: Partial<{ vcpus: string }>) => ({ value: elm.vcpus, label: elm.vcpus }))
-    return {
-      options: cpu,
-      hasMore: additional && totalPages > additional.page,
-      additional: { page: additional ? additional.page + 1 : 1 }
-    }
+  const getMachines = () => {
+    Api.Provider.list('awsmachines')
+      .then(res => {
+        const name = res.items.map((elm: any) => ({ label: elm.metadata.name, value: elm.metadata.name }))
+        const cpu = res.items.map((elm: any) => ({ label: elm.spec.vcpus, value: elm.spec.vcpus }))
+        const mem = res.items.map((elm: any) => ({ label: elm.spec.memory, value: elm.spec.memory }))
+
+        setMachineOptions(name)
+        setMemOptions(mem)
+        setCpuOptions(cpu)
+      })
   }
 
-  const getMem: LoadOptions<TypeOption, { page: number }> = async (value, loadedOptions, additional: any) => {
-    const res = await Api.Provider.listMetadata('aws', 'machineTypes', '15', additional ? additional.page : 1, region)
-    const totalPages = res.TotalPages
-    const cpu = res.MachineTypes.map((elm: Partial<{ memory: string }>) => ({ value: elm.memory, label: elm.memory }))
-    return {
-      options: cpu,
-      hasMore: additional && totalPages > additional.page,
-      additional: { page: additional ? additional.page + 1 : 1 }
-    }
-  }
-
-  const getRegion = async () => {
-    const res = await Api.Provider.listMetadata('aws', 'regions', '24', 1, region)
-
-    setRegionOptions(res.map((elm: any) => ({ value: elm, label: elm })))
+  const getProviders = () => {
+    Api.Provider.list('providers')
+      .then(res => {
+        const newArray = res.items.filter((elm: any) => { return elm.spec.category.includes('infra') })
+        setProvider(newArray[0].metadata.name)
+        setRegionOptions(newArray[0].status.regionNames.map((elm: string) => ({ value: elm, label: elm })))
+        getSecrets(newArray[0].spec.secretRef.name)
+        return newArray
+      })
   }
 
   const getFlavors = async () => {
-    const res = await Api.Provider.listMetadata('aws', 'supportedFlavors', '1', 1, region)
-    type apiOption = {
-      name: string;
-      kubernetesVersion: string[];
-    };
-
-    type apiResponse = apiOption[];
-
+    const res = await Api.Provider.list('flavors')
+    const names = res.items.map((elm: any) => ({ label: elm.metadata.name, value: elm.metadata.name }))
     const parse = (data: apiResponse): TypeSelectOptions => {
       return data.reduce<TypeSelectOptions>((acc, curr) => {
-        acc[curr.name] = {
-          selectOptions: curr.kubernetesVersion.map((ver) => ({
-            label: ver,
-            value: ver,
-          })),
-        };
+        acc[curr.metadata.name] = {
+          selectOptions: curr.spec.supportedK8SVersions.map(elm => ({ label: elm, value: elm}))
+      }
 
-        return acc;
-      }, {});
-    };
+        return acc
+      }, {})
+    }
 
-    const parseData = parse(res)
-    setFlavorOptions(Object.keys(parseData).map(elm => ({ value: elm, label: elm })))
+    const parseData = parse(res.items)  
     setK8sOptions(parseData)
-  }
-
-  const getKeys = async () => {
-    const res = await Api.Provider.listMetadata('aws', 'sshKeys', '1', 1, region)
-    setSshKeyOptions(res.map((elm: string) => ({ value: elm, label: elm })))
+    setFlavorOptions(names)
   }
 
   useEffect(() => {
-    getSecrets()
-    getRegion()
     getFlavors()
-    getKeys()
+    getProviders()
+    getMachines()
   }, [])
 
   console.log(subnets)
@@ -347,6 +318,8 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setAccesskey={setAccesskey}
             secret={secret}
             setSecret={setSecret}
+            session={session}
+            setSession={setSession}
           />
 
           <Infra 
@@ -364,7 +337,6 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             k8sOptions={k8sOptions}
             sshKey={sshKey}
             setSshKey={setSshKey}
-            sshKeyOptions={sshKeyOptions}
           />
 
           <InfraNetwork 
@@ -405,13 +377,13 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setReplicas={setReplicas}
             cpu={cpu}
             setCpu={setCpu}
-            getCpu={getCpu}
-            getMem={getMem}
+            getCpu={cpuOptions}
+            getMem={memOptions}
             memory={memory}
             setMemory={setMemory}
             machineTypes={machineTypes}
             setMachineTypes={setMachineTypes}
-            getMachineTypes={getMachineTypes}
+            getMachineTypes={MachineOptions}
             cidr={cidrBastion}
             setCidr={setCidrBastion}
             cidrs={(cidrs || [])}
@@ -424,14 +396,14 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setReplicas={setReplicas}
             cpu={cpu}
             setCpu={setCpu}
-            getCpu={getCpu}
+            getCpu={cpuOptions}
             memory={memory}
             setMemory={setMemory}
-            getMem={getMem}
+            getMem={memOptions}
             machineTypes={machineTypes}
             setMachineTypes={setMachineTypes}
             clusterName={clusterName}
-            getMachineTypes={getMachineTypes}
+            getMachineTypes={MachineOptions}
             isAdvanced
             keyTaint={keyTaint}
             setKeyTaint={setKeyTaint}
@@ -469,13 +441,13 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setReplicas={setReplicasWorkers}
             cpu={cpuWorkers}
             setCpu={setCpuWorkers}
-            getCpu={getCpu}
-            getMem={getMem}
+            getCpu={cpuOptions}
+            getMem={memOptions}
             memory={memoryWorkers}
             setMemory={setMemoryWorkers}
             machineTypes={machineTypesWorkers}
             setMachineTypes={setMachineTypesWorkers}
-            getMachineTypes={getMachineTypes}
+            getMachineTypes={MachineOptions}
             autoScale={autoScale}
             setAutoScale={setAutoScale}
             maxSize={maxSize}

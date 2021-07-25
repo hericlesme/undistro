@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Button from '@components/button'
 import Table from '@components/table'
-import Modals from 'util/modals'
 import Api from 'util/api'
 import moment from 'moment'
 
@@ -34,16 +32,6 @@ export default function HomePage () {
 	const [pause, setPause] = useState<boolean>(false)
 	const name = (clusters || []).map(elm => elm.name).toString()
 	const namespace = (clusters || []).map(elm => elm.clusterGroups).toString()
-
-
-	const showModal = () => {
-    Modals.show('create-cluster', {
-      title: 'Create',
-			ndTitle: 'Cluster',
-			width: '600',
-      height: '420'
-    })
-  }
 
 	moment.updateLocale('en', {
     relativeTime : {
@@ -118,7 +106,6 @@ export default function HomePage () {
 
 	return (
 		<div className='home-page-route'>
-			<Button onClick={() => showModal()} size='large' type='primary' children='LgBtnText' />
 			<Table data={(clusters || [])} icon={pause} delete={() => deleteCluster()} pause={() => pauseCluster()} header={headers}/>	
 		</div>
 	)

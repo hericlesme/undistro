@@ -2,7 +2,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { FC, useEffect, useState } from 'react'
 import store from '../store'
-import { LoadOptions } from 'react-select-async-paginate'
 import CreateCluster from '@components/modals/cluster'
 import Infra from '@components/modals/infrastructureProvider'
 import ControlPlane from '@components/modals/controlPlane'
@@ -10,7 +9,7 @@ import { generateId } from 'util/helpers'
 import Steps from './steps'
 import Api from 'util/api'
 import { TypeOption, TypeWorker, TypeSelectOptions } from '../../types/cluster'
-import { TypeModal } from '../../types/generic'
+import { TypeModal, apiResponse } from '../../types/generic'
 
 const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
   const body = store.useState((s: any) => s.body)
@@ -25,18 +24,21 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
   const [replicas, setReplicas] = useState<number>(0)
   const [infraNode, setInfraNode] = useState<boolean>(false)
   const [workers, setWorkers] = useState<TypeWorker[]>([])
-  const [machineTypes, setMachineTypes] = useState<TypeOption | null>(null)
-  const [memory, setMemory] = useState<TypeOption | null>(null)
-  const [cpu, setCpu] = useState<TypeOption | null>(null)
+  const [machineTypes, setMachineTypes] = useState<string>('')
+  const [memory, setMemory] = useState<string>('')
+  const [cpu, setCpu] = useState<string>('')
   const [replicasWorkers, setReplicasWorkers] = useState<number>(0)
-  const [memoryWorkers, setMemoryWorkers] = useState<TypeOption | null>(null)
-  const [cpuWorkers, setCpuWorkers] = useState<TypeOption | null>(null)
-  const [machineTypesWorkers, setMachineTypesWorkers] = useState<TypeOption | null>(null)
+  const [memoryWorkers, setMemoryWorkers] = useState<string>('')
+  const [cpuWorkers, setCpuWorkers] = useState<string>('')
+  const [machineTypesWorkers, setMachineTypesWorkers] = useState<string>('')
   const [regionOptions, setRegionOptions] = useState<[]>([])
   const [flavorOptions, setFlavorOptions] = useState<TypeOption[]>([])
+  const [cpuOptions, setCpuOptions] = useState<TypeOption[]>()
+  const [memOptions, setMemOptions] = useState<TypeOption[]>()
+  const [MachineOptions, setMachineOptions] = useState<TypeOption[]>()
   const [k8sOptions, setK8sOptions] = useState<TypeSelectOptions>()
   const [sshKey, setSshKey] = useState<string>('')
-  const [sshKeyOptions, setSshKeyOptions] = useState<string[]>([])
+  const [session, setSession] = useState<string>('')
   const providerOptions = [{ value: provider, label: 'aws' }]
 
   const handleAction = () => {
@@ -90,8 +92,8 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
     }, 600)
   }
 
-  const getSecrets = () => {
-    Api.Secret.list().then(res => {
+  const getSecrets = (secretRef: string) => {
+    Api.Secret.list(secretRef).then(res => {
       setAccesskey(atob(res.data.accessKeyID))
       setSecret(atob(res.data.secretAccessKey))
       setRegion(atob(res.data.region))
@@ -115,120 +117,52 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
     setWorkers(newWorkers)
   }
 
-  const getProviders = () => {
-    Api.Provider.list().then(res => {
-      setProvider(res.items[0].metadata.name)
-    })
-  }
+  const getMachines = () => {
+    Api.Provider.list('awsmachines')
+      .then(res => {
+        const name = res.items.map((elm: any) => ({ label: elm.metadata.name, value: elm.metadata.name }))
+        const cpu = res.items.map((elm: any) => ({ label: elm.spec.vcpus, value: elm.spec.vcpus }))
+        const mem = res.items.map((elm: any) => ({ label: elm.spec.memory, value: elm.spec.memory }))
 
-  const getMachineTypes: LoadOptions<TypeOption, { page: number }> = async (value, loadedOptions, additional: any) => {
-    const res = await Api.Provider.listMetadata('aws', 'machineTypes', '15', additional ? additional.page : 1, region)
-    const totalPages = res.TotalPages
-    const machineTypes = res.MachineTypes.map(
-      (elm: Partial<{ instanceType: string }>) => ({
-        value: elm.instanceType,
-        label: elm.instanceType
+        setMachineOptions(name)
+        setMemOptions(mem)
+        setCpuOptions(cpu)
       })
-    )
-    return {
-      options: machineTypes,
-      hasMore: additional && totalPages > additional.page,
-      additional: { page: additional ? additional.page + 1 : 1 }
-    }
   }
 
-  const getRegion = async () => {
-    const res = await Api.Provider.listMetadata(
-      'aws',
-      'regions',
-      '24',
-      1,
-      region
-    )
-
-    setRegionOptions(res.map((elm: any) => ({ value: elm, label: elm })))
+  const getProviders = () => {
+    Api.Provider.list('providers')
+      .then(res => {
+        const newArray = res.items.filter((elm: any) => { return elm.spec.category.includes('infra') })
+        setProvider(newArray[0].metadata.name)
+        setRegionOptions(newArray[0].status.regionNames.map((elm: string) => ({ value: elm, label: elm })))
+        getSecrets(newArray[0].spec.secretRef.name)
+        return newArray
+      })
   }
 
   const getFlavors = async () => {
-    const res = await Api.Provider.listMetadata(
-      'aws',
-      'supportedFlavors',
-      '1',
-      1,
-      region
-    )
-    type apiOption = {
-      name: string
-      kubernetesVersion: string[]
-    }
-
-    type apiResponse = apiOption[]
-
+    const res = await Api.Provider.list('flavors')
+    const names = res.items.map((elm: any) => ({ label: elm.metadata.name, value: elm.metadata.name }))
     const parse = (data: apiResponse): TypeSelectOptions => {
       return data.reduce<TypeSelectOptions>((acc, curr) => {
-        acc[curr.name] = {
-          selectOptions: curr.kubernetesVersion.map(ver => ({
-            label: ver,
-            value: ver
-          }))
-        }
+        acc[curr.metadata.name] = {
+          selectOptions: curr.spec.supportedK8SVersions.map(elm => ({ label: elm, value: elm}))
+      }
 
         return acc
       }, {})
     }
 
-    const parseData = parse(res)
-    setFlavorOptions(
-      Object.keys(parseData).map(elm => ({ value: elm, label: elm }))
-    )
+    const parseData = parse(res.items)  
     setK8sOptions(parseData)
-  }
-
-  const getKeys = async () => {
-    const res = await Api.Provider.listMetadata(
-      'aws',
-      'sshKeys',
-      '1',
-      1,
-      region
-    )
-    setSshKeyOptions(res.map((elm: string) => ({ value: elm, label: elm })))
-  }
-
-  const getCpu: LoadOptions<TypeOption, { page: number }> = async (value, loadedOptions, additional: any) => {
-    const res = await Api.Provider.listMetadata('aws', 'machineTypes', '15', additional ? additional.page : 1, region)
-    const totalPages = res.TotalPages
-    const cpu = res.MachineTypes.map((elm: Partial<{ vcpus: string }>) => ({
-      value: elm.vcpus,
-      label: elm.vcpus
-    }))
-    return {
-      options: cpu,
-      hasMore: additional && totalPages > additional.page,
-      additional: { page: additional ? additional.page + 1 : 1 }
-    }
-  }
-
-  const getMem: LoadOptions<TypeOption, { page: number }> = async (value, loadedOptions, additional: any) => {
-    const res = await Api.Provider.listMetadata('aws', 'machineTypes', '15', additional ? additional.page : 1, region)
-    const totalPages = res.TotalPages
-    const cpu = res.MachineTypes.map((elm: Partial<{ memory: string }>) => ({
-      value: elm.memory,
-      label: elm.memory
-    }))
-    return {
-      options: cpu,
-      hasMore: additional && totalPages > additional.page,
-      additional: { page: additional ? additional.page + 1 : 1 }
-    }
+    setFlavorOptions(names)
   }
 
   useEffect(() => {
-    getSecrets()
     getProviders()
-    getRegion()
     getFlavors()
-    getKeys()
+    getMachines()
   }, [])
 
   return (
@@ -257,6 +191,8 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
             setAccesskey={setAccesskey}
             secret={secret}
             setSecret={setSecret}
+            session={session}
+            setSession={setSession}
           />
 
           <Infra 
@@ -274,7 +210,6 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
             k8sOptions={k8sOptions}
             sshKey={sshKey}
             setSshKey={setSshKey}
-            sshKeyOptions={sshKeyOptions}
           />
 
           <ControlPlane 
@@ -282,13 +217,13 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
             setReplicas={setReplicas}
             cpu={cpu}
             setCpu={setCpu}
-            getCpu={getCpu}
+            getCpu={cpuOptions}
             memory={memory}
             setMemory={setMemory}
-            getMem={getMem}
+            getMem={memOptions}
             machineTypes={machineTypes}
             setMachineTypes={setMachineTypes}
-            getMachineTypes={getMachineTypes}
+            getMachineTypes={MachineOptions}
             infraNode={infraNode}
             setInfraNode={setInfraNode}
             workers={workers}
@@ -304,6 +239,8 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
             setMachineTypesWorkers={setMachineTypesWorkers}
             clusterName={clusterName}
           />
+
+
 
         </Steps>
       </div>

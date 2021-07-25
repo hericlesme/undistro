@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState } from 'react'
 import Input from '@components/input'
 import Toggle from '@components/toggle'
-import AsyncSelect from '@components/asyncSelect'
+import Select from '@components/select'
 import { TypeBastion, TypeOption } from '../../../types/cluster'
 import Api from 'util/api'
 
@@ -63,9 +63,9 @@ const Bastion: FC<TypeBastion> = ({
         </div>
 
         <div className='input-container'>
-          <AsyncSelect value={cpu} onChange={formCpu} loadOptions={getCpu} label='CPU' />
-          <AsyncSelect value={memory} onChange={formMem} loadOptions={getMem} label='mem' />
-          <AsyncSelect value={machineTypes} onChange={formMachineTypes} loadOptions={getMachineTypes} label='machineType' />
+          <Select value={cpu} onChange={formCpu} options={getCpu} label='CPU' />
+          <Select value={memory} onChange={formMem} options={getMem} label='mem' />
+          <Select value={machineTypes} onChange={formMachineTypes} options={getMachineTypes} label='machineType' />
 
         </div>
 

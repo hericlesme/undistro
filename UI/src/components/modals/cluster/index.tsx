@@ -1,31 +1,9 @@
 import React, { FC } from 'react'
 import Input from '@components/input'
 import Select from '@components/select'
+import { TypeCluster } from '../../../types/cluster'
 
 import './index.scss'
-
-type Option = {
-  value: string,
-  label: string,
-}
-
-type TypeCluster = {
-  clusterName: string
-  setClusterName: Function
-  namespace: string
-  setNamespace: Function
-  provider: string
-  setProvider: Function,
-  providerOptions: any
-  regionOptions: Option[]
-  region: string
-  setRegion: Function
-  accessKey: string
-  setAccesskey: Function
-  secret: string
-  setSecret: Function
-}
-
 
 const Cluster: FC<TypeCluster> = ({
   clusterName,
@@ -41,7 +19,9 @@ const Cluster: FC<TypeCluster> = ({
   accessKey,
   setAccesskey,
   secret,
-  setSecret
+  setSecret,
+  session,
+  setSession
 }) => {
 
   const formCluster = (e: React.FormEvent<HTMLInputElement>) => {
@@ -68,6 +48,10 @@ const Cluster: FC<TypeCluster> = ({
     setRegion(value)
   }
 
+  const formSession = (e: React.FormEvent<HTMLInputElement>) => {
+    setSession(e.currentTarget.value)
+  }
+
   return (
     <>
       <h3 className="title-box">Cluster</h3>
@@ -80,7 +64,7 @@ const Cluster: FC<TypeCluster> = ({
         </div>
         <Input disabled type='text' label='secret access ID' value={accessKey} onChange={formAccessKey} />
         <Input disabled type='text' label='secret access key' value={secret} onChange={formSecret} />
-        <Input disabled type='text' label='session token' value='' onChange={() => console.log('aa')} />
+        <Input disabled type='text' label='session token' value={session} onChange={formSession} />
       </form>
     </>
   )
