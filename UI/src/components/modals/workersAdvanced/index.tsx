@@ -107,12 +107,17 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
         <Select value={machineTypes} onChange={formMachineTypes} options={getMachineTypes} label='machineType' />
       </div>
 
-      <div className='auto-scale-container'>
-        <Toggle value={autoScale} onChange={() => setAutoScale(!autoScale)} label='enable auto scale' />
+      <div className='toggles'>
+        <div className='infra-node-container'>
+          <Toggle value={autoScale} onChange={() => setAutoScale(!autoScale)} label='InfraNode' />
+        </div>
+        <div className='auto-scale-container'>
+          <Toggle value={autoScale} onChange={() => setAutoScale(!autoScale)} label='enable auto scale' />
 
-        <div className='size-inputs'>
-          <Input type='text' value={minSize} onChange={formMin} label='min size' />
-          <Input type='text' value={maxSize} onChange={formMax} label='max size' />
+          <div className='size-inputs'>
+            <Input type='text' value={minSize} onChange={formMin} label='min size' />
+            <Input type='text' value={maxSize} onChange={formMax} label='max size' />
+          </div>
         </div>
       </div>
 
@@ -122,7 +127,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
           <ul>
             {(taints || []).map((elm: any, i) => {
               return (
-                <li key={elm}>
+                <li key={i}>
                   <p>taint-{i}</p>
                   <i onClick={() => deleteTaints?.(elm)} className='icon-close' />
                 </li>
@@ -134,8 +139,8 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
             <FormSlider
               direction='left'
               title='Add taints'
-              key={keyTaint!}
-              setKey={setKeyTaint!}
+              keyValue={keyTaint!}
+              setKeyValue={setKeyTaint!}
               value={valueTaint!}
               setValue={setValueTaint!}
               taint={effectValue}
@@ -152,7 +157,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
           <ul>
             {(labels || []).map((elm: any, i) => {
               return (
-                <li key={elm}>
+                <li key={i}>
                   <p>label-{i}</p>
                   <i onClick={() => deleteLabels?.(elm)} className='icon-close' />
                 </li>
@@ -164,8 +169,8 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
             <FormSlider
               direction='right'
               title='Add labels'
-              key={keyLabel!}
-              setKey={setKeyLabel!}
+              keyValue={keyLabel!}
+              setKeyValue={setKeyLabel!}
               value={valueLabel!}
               setValue={setValueLabel!}
               handleAction={() => handleActionLabel?.()}
@@ -179,7 +184,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
           <ul>
             {(providers || []).map((elm: any, i) => {
               return (
-                <li key={elm}>
+                <li key={i}>
                   <p>provTag-{i}</p>
                   <i onClick={() => deleteProviders?.(elm)} className='icon-close' />
                 </li>
@@ -192,8 +197,8 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
             <FormSlider
               direction='right'
               title='Add provider tags'
-              key={keyProv!}
-              setKey={setKeyProv!}
+              keyValue={keyProv!}
+              setKeyValue={setKeyProv!}
               value={valueProv!}
               setValue={setValueProv!}
               handleAction={() => handleActionProv?.()}

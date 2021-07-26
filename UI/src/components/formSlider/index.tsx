@@ -8,8 +8,8 @@ import './index.scss'
 
 type TypeSlider = {
   title: string
-  key: string
-  setKey: Function
+  keyValue: string
+  setKeyValue: Function
   value: string
   setValue: Function
   handleAction: Function
@@ -23,8 +23,8 @@ type TypeSlider = {
 
 const FormSlider: FC<TypeSlider> = ({
   title,
-  key,
-  setKey,
+  keyValue,
+  setKeyValue,
   value,
   setValue,
   handleAction,
@@ -40,7 +40,7 @@ const FormSlider: FC<TypeSlider> = ({
   )
 
   const formKey = (e: React.FormEvent<HTMLInputElement>) => {
-    setKey(e.currentTarget.value)
+    setKeyValue(e.currentTarget.value)
   }
 
   const formValue = (e: React.FormEvent<HTMLInputElement>) => {
@@ -56,7 +56,7 @@ const FormSlider: FC<TypeSlider> = ({
       <p className='title-slider'>{title}</p>
       
       <div className='form-slider-content'>
-        <Input type='text' label='key' value={key} onChange={formKey} />
+        <Input type='text' label='key' value={keyValue} onChange={formKey} />
         <Input type='text' label='value' value={value} onChange={formValue} />
         {select && <Select label='taint effect' value={taint} options={options} onChange={formTaint} />}
         <Button size='small' type='gray' children='add' onClick={() => handleAction()} />

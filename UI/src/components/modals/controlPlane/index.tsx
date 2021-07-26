@@ -141,7 +141,7 @@ const ControlPlane: FC<TypeControlPlane> = ({
               <ul>
                 {(taints || []).map((elm: any, i) => {
                   return (
-                    <li key={elm}>
+                    <li key={i}>
                       <p>taint-{i}</p>
                       <i onClick={() => deleteTaints?.(elm)} className='icon-close' />
                     </li>
@@ -153,8 +153,8 @@ const ControlPlane: FC<TypeControlPlane> = ({
                 <FormSlider
                   direction='left'
                   title='Add taints'
-                  key={keyTaint!}
-                  setKey={setKeyTaint!}
+                  keyValue={keyTaint!}
+                  setKeyValue={setKeyTaint!}
                   value={valueTaint!}
                   setValue={setValueTaint!}
                   taint={effectValue}
@@ -171,7 +171,7 @@ const ControlPlane: FC<TypeControlPlane> = ({
               <ul>
                 {(labels || []).map((elm: any, i) => {
                   return (
-                    <li key={elm}>
+                    <li key={i}>
                       <p>label-{i}</p>
                       <i onClick={() => deleteLabels?.(elm)} className='icon-close' />
                     </li>
@@ -183,8 +183,8 @@ const ControlPlane: FC<TypeControlPlane> = ({
                 <FormSlider
                   direction='right'
                   title='Add labels'
-                  key={keyLabel!}
-                  setKey={setKeyLabel!}
+                  keyValue={keyLabel!}
+                  setKeyValue={setKeyLabel!}
                   value={valueLabel!}
                   setValue={setValueLabel!}
                   handleAction={() => handleActionLabel?.()}
@@ -198,7 +198,7 @@ const ControlPlane: FC<TypeControlPlane> = ({
               <ul>
                 {(providers || []).map((elm: any, i) => {
                   return (
-                    <li key={elm}>
+                    <li key={i}>
                       <p>provTag-{i}</p>
                       <i onClick={() => deleteProviders?.(elm)} className='icon-close' />
                     </li>
@@ -211,8 +211,8 @@ const ControlPlane: FC<TypeControlPlane> = ({
                 <FormSlider
                   direction='right'
                   title='Add provider tags'
-                  key={keyProv!}
-                  setKey={setKeyProv!}
+                  keyValue={keyProv!}
+                  setKeyValue={setKeyProv!}
                   value={valueProv!}
                   setValue={setValueProv!}
                   handleAction={() => handleActionProv?.()}

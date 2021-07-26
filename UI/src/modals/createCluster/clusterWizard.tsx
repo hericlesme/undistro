@@ -7,6 +7,7 @@ import Infra from '@components/modals/infrastructureProvider'
 import ControlPlane from '@components/modals/controlPlane'
 import { generateId } from 'util/helpers'
 import Steps from './steps'
+import Modals from 'util/modals'
 import Api from 'util/api'
 import { TypeOption, TypeWorker, TypeSelectOptions } from '../../types/cluster'
 import { TypeModal, apiResponse } from '../../types/generic'
@@ -40,6 +41,15 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
   const [sshKey, setSshKey] = useState<string>('')
   const [session, setSession] = useState<string>('')
   const providerOptions = [{ value: provider, label: 'aws' }]
+
+  const showModal = () => {
+    Modals.show('create-cluster', {
+      title: 'Create',
+			ndTitle: 'Cluster',
+      width: '720',
+      height: '600'
+    })
+  }
 
   const handleAction = () => {
     const getWorkers = workers.map(elm => ({
@@ -175,7 +185,12 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
         <i onClick={handleClose} className="icon-close" />
       </header>
       <div className='box'>
-        <Steps wizard handleClose={handleClose} handleAction={() => handleAction()}>
+        <Steps
+          wizard
+          handleClose={handleClose} 
+          handleAction={() => handleAction()}
+          handleBack={() => showModal()} 
+        >
           <CreateCluster 
             clusterName={clusterName}
             setClusterName={setClusterName}
@@ -217,13 +232,13 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
             setReplicas={setReplicas}
             cpu={cpu}
             setCpu={setCpu}
-            getCpu={cpuOptions}
+            getCpu={cpuOptions || []}
             memory={memory}
             setMemory={setMemory}
-            getMem={memOptions}
+            getMem={memOptions || []}
             machineTypes={machineTypes}
             setMachineTypes={setMachineTypes}
-            getMachineTypes={MachineOptions}
+            getMachineTypes={MachineOptions || []}
             infraNode={infraNode}
             setInfraNode={setInfraNode}
             workers={workers}

@@ -169,7 +169,7 @@ export type TypeWorkersAdvanced = {
   handleActionTaints?: Function
   handleActionLabel?: Function
   handleActionProv?: Function
-  groupIdOptions: TypeOption[]
+  groupIdOptions: TypeOption[] | undefined
   groupId: string
   setGroupId: Function
   handleAction: Function

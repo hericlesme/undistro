@@ -10,6 +10,7 @@ import ControlPlane from '@components/modals/controlPlane'
 import Bastion from '@components/modals/bastion'
 import Workers from '@components/modals/workersAdvanced'
 import Steps from './steps'
+import Modals from 'util/modals'
 import Api from 'util/api'
 import { TypeOption, TypeSelectOptions, TypeSubnet, TypeTaints } from '../../types/cluster'
 import { TypeModal, apiResponse } from '../../types/generic'
@@ -96,25 +97,22 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [groupId, setGroupId] = useState<string>('')
   const [providerTagsWorkers, setProviderTagsWorkers] = useState<{}[]>()
   const [labelsWorkers, setLabelsWorkers] = useState<{}[]>()
-  const groupIdOptions = [{ value: '', label: ''}]
+  const [groupIdOptions, setGroupIdOptions] = useState<TypeOption[]>()
   const [groups, setGroups] = useState<TypeWorkers[]>()
   const [flavorOptions, setFlavorOptions] = useState<TypeOption[]>([])
   const [cpuOptions, setCpuOptions] = useState<TypeOption[]>()
   const [memOptions, setMemOptions] = useState<TypeOption[]>()
   const [MachineOptions, setMachineOptions] = useState<TypeOption[]>()
   const [session, setSession] = useState<string>('')
-  // const handleAction = () => {
-  //   handleClose()
-  //   if (body.handleAction) body.handleAction()
-  // }
 
-  // const showModal = () => {
-  //   handleClose()
-  //   Modals.show('create-cluster', {
-  //     title: 'Create',
-  // 		ndTitle: 'Cluster'
-  //   })
-  // }
+	const showModal = () => {
+    Modals.show('create-cluster', {
+      title: 'Create',
+			ndTitle: 'Cluster',
+      width: '720',
+      height: '600'
+    })
+  }
 
   const handleAction = () => {
     const data = {
@@ -200,6 +198,11 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
     }])
   }
 
+  const generateGroups = () => {
+    const allGroups = (groups || []).map((elm: any, i = 0) => ({ value: elm, label: `${clusterName}-mp-${i}` }))
+    setGroupIdOptions(allGroups)
+  }
+
 
   const createCidrs = () => {
     setCidrs([...(cidrs || []), cidrBastion])
@@ -227,8 +230,10 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
     }])
   }
 
-  const createMap = (onChange: Function, data: {}[], key: string, value: string) => {
-    onChange([...data, { key: value }])
+  const createMap = (onChange: Function, data: {}[], keyValue: string, value: string) => {
+    let obj: any = {}
+    obj[keyValue] = value
+    onChange([...data, obj])
   }
 
   const deleteSubnets = (id: any) => {
@@ -292,8 +297,9 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
     getMachines()
   }, [])
 
-  console.log(subnets)
-
+  useEffect(() => {
+    generateGroups()
+  }, [groups])
 
   return (
     <>
@@ -302,7 +308,11 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
       <i onClick={handleClose} className="icon-close" />
     </header>
       <div className='box'>
-        <Steps handleClose={handleClose} handleAction={() => handleAction()}>
+        <Steps 
+          handleClose={handleClose} 
+          handleAction={() => handleAction()}
+          handleBack={() => showModal()} 
+        >
           <CreateCluster 
             clusterName={clusterName}
             setClusterName={setClusterName}
@@ -377,13 +387,13 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setReplicas={setReplicas}
             cpu={cpu}
             setCpu={setCpu}
-            getCpu={cpuOptions}
-            getMem={memOptions}
+            getCpu={cpuOptions || []}
+            getMem={memOptions || []}
             memory={memory}
             setMemory={setMemory}
             machineTypes={machineTypes}
             setMachineTypes={setMachineTypes}
-            getMachineTypes={MachineOptions}
+            getMachineTypes={MachineOptions || []}
             cidr={cidrBastion}
             setCidr={setCidrBastion}
             cidrs={(cidrs || [])}
@@ -396,14 +406,14 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setReplicas={setReplicas}
             cpu={cpu}
             setCpu={setCpu}
-            getCpu={cpuOptions}
+            getCpu={cpuOptions || []}
             memory={memory}
             setMemory={setMemory}
-            getMem={memOptions}
+            getMem={memOptions || []}
             machineTypes={machineTypes}
             setMachineTypes={setMachineTypes}
             clusterName={clusterName}
-            getMachineTypes={MachineOptions}
+            getMachineTypes={MachineOptions || []}
             isAdvanced
             keyTaint={keyTaint}
             setKeyTaint={setKeyTaint}
@@ -441,13 +451,13 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setReplicas={setReplicasWorkers}
             cpu={cpuWorkers}
             setCpu={setCpuWorkers}
-            getCpu={cpuOptions}
-            getMem={memOptions}
+            getCpu={cpuOptions || []}
+            getMem={memOptions || []}
             memory={memoryWorkers}
             setMemory={setMemoryWorkers}
             machineTypes={machineTypesWorkers}
             setMachineTypes={setMachineTypesWorkers}
-            getMachineTypes={MachineOptions}
+            getMachineTypes={MachineOptions || []}
             autoScale={autoScale}
             setAutoScale={setAutoScale}
             maxSize={maxSize}
