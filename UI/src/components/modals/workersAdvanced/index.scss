@@ -13,13 +13,14 @@
 
       .group-id {
         width: 260px;
-        margin: 25px 0;
+        margin: 16px 0;
       }
+
       .input-container {
         display: grid;
         justify-content: center;
         grid-template-columns: 80px 138px 90px 90px 216px;
-        grid-gap: 10px;
+        grid-gap: 15px;
 
         .toggle-container {
           grid-column: 1 / 5;
@@ -38,27 +39,40 @@
         }
       }
 
-      .auto-scale-container {
+      .toggles {
         display: flex;
-        justify-content: space-evenly;
         margin: 20px 20px 0;
-        padding: 12px 12px 0;
-        border: 1px solid var(--gray-blue-4, $gray-blue-4);
-        border-radius: 2px;
-        width: 95%;
+        width: 673px;
 
-        .size-inputs {
+        .infra-node-container {
+          padding: 12px 12px 0;
+          border: 1px solid var(--gray-blue-4, $gray-blue-4);
+          width: 228px;
+          margin-right: 10px;
+        }
+
+        .auto-scale-container {
           display: flex;
+          justify-content: space-evenly;
+          padding: 12px 12px 0;
+          border: 1px solid var(--gray-blue-4, $gray-blue-4);
+          border-radius: 2px;
+          width: 406px;
+  
+          .size-inputs {
+            display: flex;
+            margin-left: 10px;
 
-          .input {
-            width: 99px;
-            margin-right: 10px;
+            .input {
+              width: 99px;
+              margin-right: 10px;
+            }
           }
         }
-      }
-
-      .toggle-container {
-        justify-content: center;
+  
+        .toggle-container {
+          justify-content: center;
+        }
       }
 
       .boxes-container {
@@ -69,7 +83,7 @@
 
         .box-content {
           width: 222px;
-          margin: 0 3px;
+          margin: 0 1px;
           border: 1px solid var(--gray-blue-4, $gray-blue-4);
           display: flex;
           flex-direction: column;

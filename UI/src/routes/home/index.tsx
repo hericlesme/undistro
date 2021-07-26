@@ -102,8 +102,6 @@ export default function HomePage () {
 		getClusters()
 	}, [])
 
-	console.log(pause)
-
 	return (
 		<div className='home-page-route'>
 			<Table data={(clusters || [])} icon={pause} delete={() => deleteCluster()} pause={() => pauseCluster()} header={headers}/>	

@@ -7,6 +7,7 @@ type Props = {
   children: ReactChild[]
   handleAction: () => void
   handleClose: () => void
+  handleBack: () => void
   error?: ClusterCreationError,
   wizard?: boolean
 }
@@ -15,18 +16,16 @@ const Steps: FC<Props> = ({
   children,
   handleAction,
   handleClose,
+  handleBack,
   error,
   wizard
 }) => {
   const [index, setIndex] = useState<number>(0)
-
+  const hasError=!!error
   const step = wizard ? 3 : 7
 
-  if (index === step) {
-    handleAction()
-  }
-
-  const hasError=!!error
+  if (index === step) handleAction()
+  if (index < 0) handleBack()
 
   return (
     <>
@@ -55,7 +54,6 @@ const Steps: FC<Props> = ({
         ) : (
           <>
             <Button
-              disabled={index === 0}
               onClick={() => setIndex(index - 1)}
               type="black"
               size="large"
