@@ -45,6 +45,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
 	"sigs.k8s.io/cluster-api/util/kubeconfig"
@@ -241,7 +242,7 @@ func (o *InstallOptions) installChart(ctx context.Context, c client.Client, rest
 }
 
 func (o *InstallOptions) checkEnabledList(cfg map[string]interface{}) []string {
-	p := []string{"cert-manager", "cluster-api", "undistro", "ingress-nginx"} // force core order installations
+	p := sets.NewString("cert-manager", "cluster-api", "undistro", "ingress-nginx") // force core order installations
 	for k := range cfg {
 		_, ok := providersInfo[k]
 		if !ok {
@@ -262,9 +263,9 @@ func (o *InstallOptions) checkEnabledList(cfg map[string]interface{}) []string {
 		if !enabled {
 			continue
 		}
-		p = append(p, k)
+		p = p.Insert(k)
 	}
-	return p
+	return p.List()
 }
 
 func (o *InstallOptions) applyMetadata(ctx context.Context, c client.Client, providers ...string) error {
