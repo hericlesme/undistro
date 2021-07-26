@@ -396,13 +396,15 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		}
 	}
 	cfg := make(map[string]interface{})
-	byt, err := os.ReadFile(o.ConfigPath)
-	if err != nil {
-		return err
-	}
-	err = yaml.Unmarshal(byt, &cfg)
-	if err != nil {
-		return err
+	if o.ConfigPath != "" {
+		byt, err := os.ReadFile(o.ConfigPath)
+		if err != nil {
+			return err
+		}
+		err = yaml.Unmarshal(byt, &cfg)
+		if err != nil {
+			return err
+		}
 	}
 	providers := o.checkEnabledList(cfg)
 	hrs, err := o.installCore(cmd.Context(), c, restGetter, cfg, providers...)

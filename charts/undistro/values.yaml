@@ -24,5 +24,5 @@ image:
   pullPolicy: IfNotPresent
   pullSecrets: []
 global:
-  undistroVersion: v0.32.2
+  undistroVersion: v0.32.3
   undistroRepository: registry.undistro.io/library
