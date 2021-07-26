@@ -309,6 +309,19 @@ func (o *InstallOptions) installCore(ctx context.Context, c client.Client, restG
 	}
 	globalValue, hasGlobal := cfg["global"]
 	hrs := make([]appv1alpha1.HelmRelease, len(charts))
+	n := corev1.Namespace{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Namespace",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: ns,
+		},
+	}
+	_, err := util.CreateOrUpdate(ctx, c, &n)
+	if err != nil {
+		return nil, err
+	}
 	for i, chart := range charts {
 		values := defaultValues(ctx, c, chart)
 		cfgValues, ok := cfg[chart]
