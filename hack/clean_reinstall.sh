@@ -19,6 +19,6 @@ set -o pipefail
 
 kind delete cluster
 
-bash -x hack/kind.sh
+bash -x hack/cluster.sh -k
 
 undistro install --config hack/undistro-config.yaml --v 4

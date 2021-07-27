@@ -1,8 +1,11 @@
-
 # Image URL to use all building/pushing image targets
 IMG ?= registry.undistro.io/library/undistro
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
+
+REG_HOST ?= localhost
+UND_IMG_TAG ?= latest
+UND_CONF ?= undistro.yaml
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -105,6 +108,18 @@ manager: generate fmt vet
 
 aws-init: generate fmt vet
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -o bin/aws-init ./cmd/aws-init/main.go
+
+setup_kind:
+	./hack/cluster.sh -k -b "${UND_IMG_TAG}:${REG_HOST}"
+
+setup_minikube:
+	./hack/cluster.sh -m "${MINIK_IP}" -b "${UND_IMG_TAG}:${REG_HOST}"
+
+cli-kind_install: cli setup_kind
+	./bin/undistro --config "${UND_CONF}" install
+
+cli-minikube_install: cli setup_minikube
+	./bin/undistro --config "${UND_CONF}" install
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))

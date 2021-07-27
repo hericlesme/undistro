@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 #  Copyright 2021 The UnDistro Authors.
 #
@@ -17,12 +17,52 @@
 set -o errexit
 set -o pipefail
 
-cd ../;
-make manager;
-mv ./bin/manager .;
-docker build -t localhost:5000/undistro:$1 .;
-docker push localhost:5000/undistro:$1;
-make aws-init;
-mv ./bin/aws-init .;
-docker build -t localhost:5000/aws-init:$1 -f aws-init.docker .;
-docker push localhost:5000/aws-init:$1;
+function exit_and_inform {
+	err_n=$1
+	case $err_n in
+		0)
+			echo "Error: No git project." 1>&2
+			;;
+		1)
+			echo "Error: No tag provided." 1>&2
+			;;
+		2)
+			echo "Error: No host provided." 1>&2
+			;;
+		*)
+			echo "Usage: $(basename $0) <docker_tag> <registry_host>" 1>&2
+			;;
+	esac
+	exit 1
+}
+
+function make_and_push {
+	make manager;
+	mv ./bin/manager .;
+	docker build -t $host:5000/undistro:$tag .;
+	docker push $host:5000/undistro:$tag;
+	make aws-init;
+	mv ./bin/aws-init .;
+	docker build -t $host:5000/aws-init:$tag -f aws-init.docker .;
+	docker push $host:5000/aws-init:$tag;
+}
+
+
+if test $# -ne 2; then
+	exit_and_inform
+fi
+tag=$1
+host=$2
+proj_root=$(git rev-parse --show-toplevel)
+
+if test -n "$proj_root"; then
+	if test -z "$tag"; then
+		exit_and_inform 1
+	elif test -z "$host"; then
+		exit_and_inform 2
+	fi
+	cd "$proj_root"
+	make_and_push
+else
+	exit_and_inform 0
+fi

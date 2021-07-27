@@ -56,9 +56,15 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 	fmt.Println("Build docker image and push")
 	sha := os.Getenv("GITHUB_SHA")
+
+	regHost, ok := os.LookupEnv("REG_HOST")
+	if !ok {
+		fmt.Println("Environment variable <REG_HOST> not found.")
+		os.Exit(1)
+	}
 	cmd := exec.NewCommand(
 		exec.WithCommand("bash"),
-		exec.WithArgs("-c", fmt.Sprintf("../testbin/docker-build-e2e.sh %s", sha)),
+		exec.WithArgs("-c", fmt.Sprintf("../testbin/docker-build-e2e.sh %s %s", sha, regHost)),
 	)
 	stout, stderr, err := cmd.Run(ctx)
 	if err != nil {
