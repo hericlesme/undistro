@@ -3,8 +3,15 @@ IMG ?= registry.undistro.io/library/undistro
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
+## Port for the Undistro's image registry.
+REG_PORT ?= 5000
+## Host for the Undistro's image registry.
 REG_HOST ?= localhost
+## Address for the Undistro's image registry.
+REG_ADDR ?= ${REG_HOST}:${REG_PORT}
+## Tag used in the Undistro Docker image.
 UND_IMG_TAG ?= latest
+## Undistro's configuration file used during installation.
 UND_CONF ?= undistro.yaml
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -109,16 +116,18 @@ manager: generate fmt vet
 aws-init: generate fmt vet
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -o bin/aws-init ./cmd/aws-init/main.go
 
-setup_kind:
-	./hack/cluster.sh -k -b "${UND_IMG_TAG}:${REG_HOST}"
 
-setup_minikube:
-	./hack/cluster.sh -m "${MINIK_IP}" -b "${UND_IMG_TAG}:${REG_HOST}"
+##@ Compound operations
+setup_kind: ## Creates a KinD cluster, a Docker registry and pushes Undistro's images to it.
+	./hack/cluster.sh -k -b "${REG_ADDR}:${UND_IMG_TAG}"
 
-cli-kind_install: cli setup_kind
+setup_minikube: ## Creates a Minikube cluster with an inner Docker registry and pushes Undistro's images to it.
+	./hack/cluster.sh -m "${MINIK_IP}" -b "${REG_ADDR}:${UND_IMG_TAG}"
+
+cli-kind_install: cli setup_kind ## Prepares a KinD cluster and a registry, then installs Undistro in it.
 	./bin/undistro --config "${UND_CONF}" install
 
-cli-minikube_install: cli setup_minikube
+cli-minikube_install: cli setup_minikube ## Prepares a Minikube cluster and a registry, then installs Undistro in it.
 	./bin/undistro --config "${UND_CONF}" install
 
 # go-get-tool will 'go get' any package $2 and install it to $1.

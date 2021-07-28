@@ -22,7 +22,7 @@ function exit_and_inform {
 			exit 0
 			;;
 		*)
-			echo "Usage: $(basename $0) [-h] [-b <docker_tag>:<registry_host>] [-k | -m <minikube_ip>]"
+			echo "Usage: $(basename $0) [-h] [-b <registry_address>:<docker_tag>] [-k | -m <minikube_ip>]"
 			;;
 	esac
 	exit 1
@@ -33,10 +33,10 @@ function print_long_help {
 		Usage: $(basename $0) <OPTION>
 		The options are:
 	EOF
-	flags=("h" "b <docker_tag>:<registry_host>" "k" "m <minikube_ip>")
+	flags=("h" "b <registry_address>:<docker_tag>" "k" "m <minikube_ip>")
 	f_desc=(
 		"Print this help message."
-		"Calls the <docker-build-e2e.sh> build script and passes the Undistro Docker tag with the registry host to it."
+		"Calls the <docker-build-e2e.sh> build script and passes the registry address with the Undistro Docker tag to it."
 		"Creates a KinD cluster and a local Docker registry."
 		"Creates a Minikube cluster with an internal registry, receiving the IP of Minikube's runtime."
 	)
@@ -48,11 +48,11 @@ function print_long_help {
 
 ## Minikube only.
 function start_minikube {
-	minikube start --addons="registry,images,efk" \
+	minikube start --addons="registry" \
 		--install-addons=true \
 		--driver=docker \
 		--container-runtime=containerd \
-		--docker-opt="-p 80:80/tcp -p 443:443/tcp" \
+		--docker-opt="-p 80:80/tcp -p 443:443/tcp -p 6443:6443/tcp" \
 		--ports=6443 \
 		--insecure-registry="$mk_addr:$reg_port" \
 		--extra-config="kubelet.node-labels='ingress-ready=true'" \
@@ -62,11 +62,14 @@ function start_minikube {
 function call_build_script {
 	proj_root=$(git rev-parse --show-toplevel)
 	if test -n "$proj_root"; then
-		match_arg=$(echo $b_tag_and_addr | grep -Eo "[a-z0-9-]+:[a-z0-9.-]+")
+		match_arg=$(echo $b_addr_and_tag | grep -Eo "[a-z0-9.-]+:([0-9]+:)?[a-z0-9-]+")
+		echo $match_arg
 		if test -n "$match_arg"; then
-			tag=$(echo $b_tag_and_addr | sed "s/:.*//g")
-			host=$(echo $b_tag_and_addr | sed "s/.*://g")
-			. $proj_root/testbin/docker-build-e2e.sh $tag $host
+			addr=$(echo $b_addr_and_tag | sed -E "s/:[a-z0-9]+$//g")
+			tag=$(echo $b_addr_and_tag | sed "s/.*://g")
+			echo $addr
+			echo $tag
+			. $proj_root/testbin/docker-build-e2e.sh $addr $tag
 		else
 			exit_and_inform 3
 		fi
@@ -200,7 +203,7 @@ while getopts "hm:kb:" o; do
             ;;
         b)
 			(test $o_h -ne 0) && exit_and_inform 1
-			b_tag_and_addr=$OPTARG
+			b_addr_and_tag=$OPTARG
 			o_b=1
             ;;
         *)
