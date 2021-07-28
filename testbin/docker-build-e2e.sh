@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 #  Copyright 2021 The UnDistro Authors.
 #
@@ -15,7 +15,6 @@
 #  limitations under the License.
 
 set -o errexit
-set -o pipefail
 
 function exit_and_inform {
 	err_n=$1

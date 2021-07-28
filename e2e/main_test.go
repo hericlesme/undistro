@@ -59,8 +59,8 @@ func TestMain(m *testing.M) {
 
 	regHost, ok := os.LookupEnv("REG_HOST")
 	if !ok {
-		fmt.Println("Environment variable <REG_HOST> not found.")
-		os.Exit(1)
+		fmt.Println("Environment variable <REG_HOST> not found, using 'localhost'.")
+		regHost = "localhost"
 	}
 	cmd := exec.NewCommand(
 		exec.WithCommand("bash"),

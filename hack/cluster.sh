@@ -1,7 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -o errexit
-set -o pipefail
 
 function exit_and_inform {
 	err_n=$1
@@ -171,6 +170,7 @@ function setup_kind {
 	create_registry_container
 	print_registry_host
 	create_kind_cluster_and_enable_registry
+	apply_kube_config
 	connect_docker_to_kind_network
 }
 
