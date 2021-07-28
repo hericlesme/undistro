@@ -69,9 +69,9 @@ func (o *ClusterOptions) Complete(f cmdutil.Factory, cmd *cobra.Command, args []
 	if o.K8sVersion == "" {
 		switch o.Flavor {
 		case "ec2":
-			o.K8sVersion = "v1.20.6"
+			o.K8sVersion = "v1.21.3"
 		case "eks":
-			o.K8sVersion = "v1.19.8"
+			o.K8sVersion = "v1.20.4"
 		}
 	}
 	if len(args) != 1 {
