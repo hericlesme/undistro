@@ -54,7 +54,9 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
   handleActionProv,
   handleAction,
   subnet,
-  setSubnet
+  setSubnet,
+  infraNode,
+  setInfraNode
 }) => {
   const [showTaint, setShowTaint] = useState<boolean>(false)
   const [showLabel, setShowLabel] = useState<boolean>(false)
@@ -109,7 +111,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
 
       <div className='toggles'>
         <div className='infra-node-container'>
-          <Toggle value={autoScale} onChange={() => setAutoScale(!autoScale)} label='InfraNode' />
+          <Toggle value={infraNode} onChange={() => setInfraNode(!infraNode)} label='InfraNode' />
         </div>
         <div className='auto-scale-container'>
           <Toggle value={autoScale} onChange={() => setAutoScale(!autoScale)} label='enable auto scale' />
@@ -128,7 +130,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
             {(taints || []).map((elm: any, i) => {
               return (
                 <li key={i}>
-                  <p>taint-{i}</p>
+                  <p>{Object.keys(elm)[0]}: {Object.values(elm)[0]} = {elm.effect}</p>
                   <i onClick={() => deleteTaints?.(elm)} className='icon-close' />
                 </li>
               )
@@ -158,7 +160,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
             {(labels || []).map((elm: any, i) => {
               return (
                 <li key={i}>
-                  <p>label-{i}</p>
+                  <p>{Object.keys(elm)[0]}: {Object.values(elm)[0]}</p>
                   <i onClick={() => deleteLabels?.(elm)} className='icon-close' />
                 </li>
               )
@@ -185,7 +187,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
             {(providers || []).map((elm: any, i) => {
               return (
                 <li key={i}>
-                  <p>provTag-{i}</p>
+                  <p>{Object.keys(elm)[0]}: {Object.values(elm)[0]}</p>
                   <i onClick={() => deleteProviders?.(elm)} className='icon-close' />
                 </li>
               )

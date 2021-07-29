@@ -1,6 +1,7 @@
 import React, { FC } from 'react'
 import Input from '@components/input'
 import { TypeK8sNetwork } from '../../../types/cluster'
+import Toggle from '@components/toggle'
 import './index.scss'
 
 const k8sNetwork: FC<TypeK8sNetwork> = ({
@@ -11,11 +12,13 @@ const k8sNetwork: FC<TypeK8sNetwork> = ({
   podsRanges,
   setPodsRanges,
   serviceRanges,
-  setServiceRanges
+  setServiceRanges,
+  multiZone,
+  setMultiZone
 }) => {
 
   const formServer = (e: React.FormEvent<HTMLInputElement>) => {
-    setServerPort(e.currentTarget.value)
+    setServerPort(parseInt(e.currentTarget.value))
   }
 
   const formServiceDomain = (e: React.FormEvent<HTMLInputElement>) => {
@@ -42,6 +45,7 @@ const k8sNetwork: FC<TypeK8sNetwork> = ({
           <Input type='text' label='pods ranges' value={podsRanges} onChange={formPods} />
           <Input type='text' label='service ranges' value={serviceRanges} onChange={formServiceRanges} />
         </div>
+        <Toggle label='MultiZone' value={multiZone} onChange={() => setMultiZone(!multiZone)} />
       </div>
     </>
   )

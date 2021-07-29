@@ -4,9 +4,10 @@
   .box {
     .infra-network {
       .input-container {
-        .select {
-          margin-bottom: 10px;
-        }
+        display: grid;
+        grid-gap: 10px;
+        grid-template-columns: 278px 153px 190px;
+        justify-content: center;
       }
 
       .subnet {

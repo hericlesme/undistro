@@ -19,8 +19,8 @@ type TypeWorkers = {
   replicas: number
   machineType: string
   subnet: string
-  labels: {}[]
-  providerTags: {}[]
+  labels: any
+  providerTags: any
   taints: TypeTaints[]
   autoscaling: {
     enabled: boolean
@@ -47,9 +47,10 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [cidrBastion, setCidrBastion] = useState<string>('')
   const [cidrs, setCidrs] = useState<string[]>()
   const [cidrSubnet, setCidrSubnet] = useState<string>('')
-  const [serverPort, setServerPort] = useState<string>('')
+  const [zoneSubnet, setZoneSubnet] = useState<string>('')
+  const [serverPort, setServerPort] = useState<number | undefined>()
   const [serviceDomain, setServiceDomain] = useState<string>('')
-  const [podsRanges, setPodsRanges] = useState<string>('')
+  const [podsRanges, setPodsRanges] = useState<string | undefined>()
   const [serviceRanges, setServiceRanges] = useState<string>('')
   const [enabled, setEnabled] = useState<boolean>(false)
   const [ingress, setIngress] = useState<boolean>(false)
@@ -66,9 +67,9 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [valueProv, setValueProv] = useState<string>('')
   const [effect, setEffect] = useState<string>('')
   const effectOptions = [
-    { value: 'No_Schedule', label: 'No schedule'},
-    { value: 'Prefer_No_Schedule', label: 'Prefer no schedule'},
-    { value: 'No_Execute', label: 'No execute'}
+    { value: 'NoSchedule', label: 'No schedule'},
+    { value: 'PreferNoSchedule', label: 'Prefer no schedule'},
+    { value: 'NoExecute', label: 'No execute'}
   ]
   const [taints, setTaints] = useState<TypeTaints[]>()
   const [labels, setLabels] = useState<{}[]>()
@@ -77,7 +78,8 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [k8sOptions, setK8sOptions] = useState<TypeSelectOptions>()
   const [sshKey, setSshKey] = useState<string>('')
   const [subnets, SetSubnets] = useState<TypeSubnet[]>([])
-  const [subnetWorkers, SetSubnetWorkers] = useState<string>('')
+  const [subnetWorkers, SetSubnetWorkers] = useState<string | undefined>()
+  const [subnetControl, SetSubnetControl] = useState<string | undefined>()
   const providerOptions = [{ value: 'aws', label: 'aws' }]
   const [replicasWorkers, setReplicasWorkers] = useState<number>(0)
   const [memoryWorkers, setMemoryWorkers] = useState<string>('')
@@ -92,9 +94,12 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [effectWorkers, setEffectWorkers] = useState<string>('')
   const [taintsWorkers, setTaintsWorkers] = useState<TypeTaints[]>()
   const [autoScale, setAutoScale] = useState<boolean>(false)
+  const [multiZone, setMultiZone] = useState<boolean>(false)
   const [maxSize, setMaxSize] = useState<number>(0)
   const [minSize, setMinSize] = useState<number>(0)
   const [groupId, setGroupId] = useState<string>('')
+  const [session, setSession] = useState<string>('')
+  const [infraNode, setInfraNode] = useState<boolean>(false)
   const [providerTagsWorkers, setProviderTagsWorkers] = useState<{}[]>()
   const [labelsWorkers, setLabelsWorkers] = useState<{}[]>()
   const [groupIdOptions, setGroupIdOptions] = useState<TypeOption[]>()
@@ -103,7 +108,6 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [cpuOptions, setCpuOptions] = useState<TypeOption[]>()
   const [memOptions, setMemOptions] = useState<TypeOption[]>()
   const [MachineOptions, setMachineOptions] = useState<TypeOption[]>()
-  const [session, setSession] = useState<string>('')
 
 	const showModal = () => {
     Modals.show('create-cluster', {
@@ -114,7 +118,7 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
     })
   }
 
-  const handleAction = () => {
+  const handleAction = () => {  
     const data = {
       "apiVersion": "app.undistro.io/v1alpha1",
       "kind": "Cluster",
@@ -128,9 +132,9 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
           "internalLB": internalLB,
           "replicas": replicas,
           "machineType": machineTypes,
-          "subnet": subnetWorkers,
-          "labels": labels,
-          "providerTags": providerTags,
+          "subnet": subnetControl,
+          "labels": labels?.reduce((acc, cur) => Object.assign(acc, cur), {}),
+          "providerTags": providerTags?.reduce((acc, cur) => Object.assign(acc, cur), {}),
           "taints": taints
         },
         "workers": groups,
@@ -150,13 +154,13 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
           "apiServerPort": serverPort,
           "pods": podsRanges,
           "serviceDomain": serviceDomain,
-          "multiZone": isPublic,
+          "multiZone": multiZone,
           "vpc": {
             "id": id,
             "cidrBlock": cidr,
             "zone": zone
           },
-
+  
           "subnets": subnets
         }
       }
@@ -186,9 +190,9 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
     setGroups([...(groups || []), {
       replicas: replicasWorkers,
       machineType: machineTypesWorkers,
-      subnet: subnetWorkers,
-      labels: labelsWorkers!,
-      providerTags: providerTagsWorkers!,
+      subnet: subnetWorkers!,
+      labels: labelsWorkers?.reduce((acc, cur) => Object.assign(acc, cur), {}),
+      providerTags: providerTagsWorkers?.reduce((acc, cur) => Object.assign(acc, cur), {}),
       taints: taintsWorkers!,
       autoscaling: {
         enabled: autoScale,
@@ -223,16 +227,17 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   }
 
   const createTaints = (onChange: Function, data: TypeTaints[]) => {
-    onChange([...data, {
-      key: keyTaint,
-      value: valueTaint,
-      effect: effect
-    }])
+    let obj: any = {}
+    obj[keyTaint] = valueTaint
+    obj['effect'] = effect
+
+    onChange([...data, obj])
   }
 
   const createMap = (onChange: Function, data: {}[], keyValue: string, value: string) => {
     let obj: any = {}
     obj[keyValue] = value
+  
     onChange([...data, obj])
   }
 
@@ -360,11 +365,13 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setZone={setZone}
             cidr={cidr}
             setCidr={setCidr}
-            cidrSubnet={cidrSubnet}
+            cidrSubnet={cidrSubnet!}
             setCidrSubnet={setCidrSubnet}
             addSubnet={createSubnets}
             subnets={subnets}
             deleteSubnet={deleteSubnets}
+            zoneSubnet={zoneSubnet}
+            setZoneSubnet={setZoneSubnet}
           />
 
           <K8sNetwork 
@@ -372,10 +379,12 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setServerPort={setServerPort}
             serviceDomain={serviceDomain}
             setServiceDomain={setServiceDomain}
-            podsRanges={podsRanges}
+            podsRanges={podsRanges!}
             setPodsRanges={setPodsRanges}
             serviceRanges={serviceRanges}
             setServiceRanges={setServiceRanges}
+            multiZone={multiZone}
+            setMultiZone={setMultiZone}
           />
 
           <Bastion
@@ -433,6 +442,8 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             taints={taints}
             providers={providerTags}
             labels={labels}
+            subnet={subnetControl!}
+            setSubnet={SetSubnetControl}
             internalLB={internalLB}
             setInternalLB={setInternalLB}
             handleActionTaints={() => createTaints(setTaints, (taints || []))}
@@ -441,7 +452,7 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
           />
 
           <Workers
-            subnet={subnetWorkers}
+            subnet={subnetWorkers!}
             setSubnet={SetSubnetWorkers}
             handleAction={saveGroup}
             groupIdOptions={groupIdOptions}
@@ -460,6 +471,8 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             getMachineTypes={MachineOptions || []}
             autoScale={autoScale}
             setAutoScale={setAutoScale}
+            infraNode={infraNode}
+            setInfraNode={setInfraNode}
             maxSize={maxSize}
             setMaxSize={setMaxSize}
             minSize={minSize}

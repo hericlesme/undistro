@@ -59,7 +59,9 @@ const ControlPlane: FC<TypeControlPlane> = ({
   handleActionLabel,
   handleActionProv,
   internalLB,
-  setInternalLB
+  setInternalLB,
+  subnet,
+  setSubnet
 }) => {
   const [showTaint, setShowTaint] = useState<boolean>(false)
   const [showLabel, setShowLabel] = useState<boolean>(false)
@@ -71,6 +73,10 @@ const ControlPlane: FC<TypeControlPlane> = ({
 
   const formReplicaWorkers = (e: React.FormEvent<HTMLInputElement>) => {
     setReplicasWorkers?.(parseInt(e.currentTarget.value) || 0)
+  }
+
+  const formSubnet = (e: React.FormEvent<HTMLInputElement>) => {
+    setSubnet?.(e.currentTarget.value)
   }
 
   const formCpu = (option: TypeOption | null) => {
@@ -104,6 +110,7 @@ const ControlPlane: FC<TypeControlPlane> = ({
     <div className={!isAdvanced ? 'control-plane' : 'control-plane advanced'}>
       <div className='input-container'>
         <Input value={replicas} onChange={formReplica} type='text' label='replicas' />
+        {isAdvanced && <Input type='text' value={subnet} onChange={formSubnet} label='Subnet' />}
         <Select value={cpu} onChange={formCpu} options={getCpu} label='CPU' />
         <Select value={memory} onChange={formMem} options={getMem} label='mem' />
         <Select value={machineTypes} onChange={formMachineTypes} options={getMachineTypes} label='machineType' />
@@ -142,7 +149,7 @@ const ControlPlane: FC<TypeControlPlane> = ({
                 {(taints || []).map((elm: any, i) => {
                   return (
                     <li key={i}>
-                      <p>taint-{i}</p>
+                      <p>{Object.keys(elm)[0]}: {Object.values(elm)[0]} = {elm.effect}</p>
                       <i onClick={() => deleteTaints?.(elm)} className='icon-close' />
                     </li>
                   )
@@ -172,7 +179,7 @@ const ControlPlane: FC<TypeControlPlane> = ({
                 {(labels || []).map((elm: any, i) => {
                   return (
                     <li key={i}>
-                      <p>label-{i}</p>
+                      <p>{Object.keys(elm)[0]}: {Object.values(elm)[0]}</p>
                       <i onClick={() => deleteLabels?.(elm)} className='icon-close' />
                     </li>
                   )
@@ -199,7 +206,7 @@ const ControlPlane: FC<TypeControlPlane> = ({
                 {(providers || []).map((elm: any, i) => {
                   return (
                     <li key={i}>
-                      <p>provTag-{i}</p>
+                      <p>{Object.keys(elm)[0]}: {Object.values(elm)[0]}</p>
                       <i onClick={() => deleteProviders?.(elm)} className='icon-close' />
                     </li>
                   )

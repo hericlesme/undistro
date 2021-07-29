@@ -7,7 +7,7 @@ type Props = {
   type: string,
   label?: string,
   placeholder?: string,
-  value: string | number,
+  value: string | number | undefined,
   disabled?: boolean,
   validator?: {},
   onChange: FormEventHandler<HTMLInputElement>,

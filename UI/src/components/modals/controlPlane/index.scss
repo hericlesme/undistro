@@ -6,6 +6,13 @@
       &.advanced {
         margin: 37px 0 57px;
 
+        .input-container {
+          display: grid;
+          justify-content: center;
+          grid-template-columns: 80px 138px 90px 90px 216px;
+          grid-gap: 15px;
+        }
+
         .toggle-container {
           justify-content: center;
         }

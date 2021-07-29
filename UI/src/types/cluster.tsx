@@ -125,6 +125,8 @@ export type TypeControlPlane = {
   handleActionProv?: Function
   internalLB?: boolean
   setInternalLB?: Function
+  subnet?: string
+  setSubnet?: Function
 }
 
 export type TypeWorkersAdvanced = {
@@ -175,6 +177,8 @@ export type TypeWorkersAdvanced = {
   handleAction: Function
   subnet: string
   setSubnet: Function
+  infraNode: boolean
+  setInfraNode: Function
 }
 
 export type TypeNetwork = {
@@ -189,6 +193,8 @@ export type TypeNetwork = {
   cidr: string
   setCidr: Function
   cidrSubnet: string
+  zoneSubnet: string
+  setZoneSubnet: Function
   setCidrSubnet: Function
   addSubnet: Function
   subnets: TypeSubnet[]
@@ -196,7 +202,7 @@ export type TypeNetwork = {
 }
 
 export type TypeK8sNetwork = {
-  serverPort: string
+  serverPort: number | undefined
   setServerPort: Function
   serviceDomain: string
   setServiceDomain: Function
@@ -204,6 +210,8 @@ export type TypeK8sNetwork = {
   setPodsRanges: Function
   serviceRanges: string
   setServiceRanges: Function
+  multiZone: boolean
+  setMultiZone: Function
 }
 
 export type TypeBastion = {

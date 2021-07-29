@@ -18,6 +18,8 @@ const InfraNetwork: FC<TypeNetwork> = ({
   setCidr,
   cidrSubnet,
   setCidrSubnet,
+  zoneSubnet,
+  setZoneSubnet,
   addSubnet,
   subnets,
   deleteSubnet
@@ -34,6 +36,10 @@ const InfraNetwork: FC<TypeNetwork> = ({
   const formZone = (e: React.FormEvent<HTMLInputElement>) => {
     setZone(e.currentTarget.value)
   }
+
+  const formZoneSubnet = (e: React.FormEvent<HTMLInputElement>) => {
+    setZoneSubnet(e.currentTarget.value)
+  }
   
   const formCidr = (e: React.FormEvent<HTMLInputElement>) => {
     setCidr(e.currentTarget.value)
@@ -49,6 +55,7 @@ const InfraNetwork: FC<TypeNetwork> = ({
       <div className='infra-network'>
         <div className='input-container'>
           <Input type='text' value={id} onChange={formId} label='ID' />
+          <Input type='text' label='zone' value={zone} onChange={formZone} />
           <Input type='text' label='CIDR block' value={cidr} onChange={formCidr} />
         </div>
 
@@ -58,7 +65,7 @@ const InfraNetwork: FC<TypeNetwork> = ({
           <Toggle label='Is public' value={isPublic} onChange={() => setIsPublic(!isPublic)} />
           <div className='subnet-inputs'>
             <Input type='text' value={idSubnet} onChange={formIdSubnet} label='ID' />
-            <Input type='text' label='zone' value={zone} onChange={formZone} />
+            <Input type='text' label='zone' value={zoneSubnet} onChange={formZoneSubnet} />
             <Input type='text' label='CIDR block' value={cidrSubnet} onChange={formCidrSubnet} />
             <div className='button-container'>
               <Button onClick={() => addSubnet()} type='gray' size='small' children='Add' />
