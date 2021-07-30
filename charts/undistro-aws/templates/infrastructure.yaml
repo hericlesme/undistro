@@ -421,7 +421,7 @@ spec:
             - 
               name: AWS_SHARED_CREDENTIALS_FILE
               value: /home/.aws/credentials
-          image: "registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api-aws/cluster-api-aws-controller:v0.6.6"
+          image: "registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api-aws/cluster-api-aws-controller:v0.6.8"
           imagePullPolicy: IfNotPresent
           livenessProbe: 
             httpGet: 
@@ -493,7 +493,7 @@ spec:
             - "--metrics-addr=127.0.0.1:8080"
             - "--webhook-port=9443"
             - "--feature-gates=EKS=true,EKSEnableIAM=true,MachinePool=true,EventBridgeInstanceState=false,AutoControllerIdentityCreator=false"
-          image: "registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api-aws/cluster-api-aws-controller:v0.6.6"
+          image: "registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api-aws/cluster-api-aws-controller:v0.6.8"
           imagePullPolicy: IfNotPresent
           livenessProbe: 
             httpGet: 

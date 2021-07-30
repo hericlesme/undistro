@@ -352,7 +352,7 @@ func TestChartNameByFile(t *testing.T) {
 		{"cluster-api-0.3.22.tgz", "cluster-api"},
 		{"ingress-nginx-3.32.0.tgz", "ingress-nginx"},
 		{"undistro-v0.31.4-beta.tgz", "undistro"},
-		{"undistro-aws-0.6.6.tgz", "undistro-aws"},
+		{"undistro-aws-0.6.8.tgz", "undistro-aws"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
