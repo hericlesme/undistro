@@ -94,6 +94,7 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		cl.Namespace = "undistro-system"
 	}
 	if !p.DeletionTimestamp.IsZero() {
+		p = appv1alpha1.DefaultPoliciesDeleting(p)
 		return r.reconcileDelete(ctx, &p, cl)
 	}
 	p, result, err := r.reconcile(ctx, log, p, cl)

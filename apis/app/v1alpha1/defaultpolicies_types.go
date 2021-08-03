@@ -72,6 +72,11 @@ func DefaultPoliciesPaused(p DefaultPolicies) DefaultPolicies {
 	return p
 }
 
+func DefaultPoliciesDeleting(p DefaultPolicies) DefaultPolicies {
+	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionFalse, meta.ReconciliationDeletingReason, meta.ReconciliationDeletingReason)
+	return p
+}
+
 func DefaultPoliciesReady(p DefaultPolicies) DefaultPolicies {
 	msg := "Default policies reconciliation succeeded"
 	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationSucceededReason, msg)

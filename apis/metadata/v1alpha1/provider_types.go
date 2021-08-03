@@ -91,6 +91,11 @@ func ProviderReady(p Provider) Provider {
 	return p
 }
 
+func ProviderDeleting(p Provider) Provider {
+	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionFalse, meta.ReconciliationDeletingReason, meta.ReconciliationDeletingReason)
+	return p
+}
+
 //+kubebuilder:object:root=true
 
 // ProviderList contains a list of Provider

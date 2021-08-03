@@ -100,6 +100,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	if !cl.DeletionTimestamp.IsZero() {
 		log.Info("Deleting")
+		cl = appv1alpha1.ClusterDeleting(cl)
 		return r.reconcileDelete(ctx, cl)
 	}
 	cl, result, err := r.reconcile(ctx, log, cl, capiCluster)

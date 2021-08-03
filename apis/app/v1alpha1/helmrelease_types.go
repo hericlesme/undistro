@@ -266,6 +266,11 @@ func ResetHelmReleaseStatus(hr HelmRelease) HelmRelease {
 	return hr
 }
 
+func HelmReleaseDeleting(p HelmRelease) HelmRelease {
+	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionFalse, meta.ReconciliationDeletingReason, meta.ReconciliationDeletingReason)
+	return p
+}
+
 // +genclient
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=hr,scope=Namespaced

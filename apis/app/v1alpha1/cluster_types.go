@@ -280,6 +280,11 @@ func ClusterPaused(p Cluster) Cluster {
 	return p
 }
 
+func ClusterDeleting(p Cluster) Cluster {
+	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionFalse, meta.ReconciliationDeletingReason, meta.ReconciliationDeletingReason)
+	return p
+}
+
 // +kubebuilder:object:root=true
 
 // ClusterList contains a list of Cluster

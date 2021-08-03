@@ -84,6 +84,7 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	if !p.DeletionTimestamp.IsZero() {
 		log.Info("Deleting provider metadata")
+		p = metadatav1alpha1.ProviderDeleting(p)
 		return r.reconcileDelete(ctx, p)
 	}
 	p, result, err := r.reconcile(ctx, log, p)

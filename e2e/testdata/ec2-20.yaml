@@ -2,7 +2,7 @@
 apiVersion: app.undistro.io/v1alpha1
 kind: Cluster
 metadata:
-  name: undistro-ec2-e2e
+  name: ec2-20-e2e
   namespace: e2e
 spec:
   bastion:
@@ -29,3 +29,12 @@ spec:
     replicas: 2
     providerTags:
       e2e: e2e
+
+---
+apiVersion: app.undistro.io/v1alpha1
+kind: DefaultPolicies
+metadata:
+  name: defaultpolicies-ec2-20-e2e
+  namespace: e2e
+spec:
+  clusterName: ec2-20-e2e

@@ -108,6 +108,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, nil
 	}
 	if !hr.DeletionTimestamp.IsZero() {
+		hr = appv1alpha1.HelmReleaseDeleting(hr)
 		return r.reconcileDelete(ctx, log, hr)
 	}
 	if hr.Spec.ClusterName != "" {

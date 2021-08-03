@@ -145,7 +145,8 @@ spec:
     clusterConfiguration:
       imageRepository: registry.undistro.io/k8s
       dns:
-        imageRepository: registry.undistro.io/k8s
+        imageRepository: registry.undistro.io/k8s/coredns
+        imageTag: v1.8.0
       etcd:
         local:
           imageRepository: registry.undistro.io/k8s
@@ -301,7 +302,8 @@ spec:
   clusterConfiguration:
     imageRepository: registry.undistro.io/k8s
     dns:
-      imageRepository: registry.undistro.io/k8s
+      imageRepository: registry.undistro.io/k8s/coredns
+      imageTag: v1.8.0
     etcd:
       local:
         imageRepository: registry.undistro.io/k8s
