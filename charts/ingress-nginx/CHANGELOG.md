@@ -2,6 +2,14 @@
 
 This file documents all notable changes to [ingress-nginx](https://github.com/kubernetes/ingress-nginx) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 3.34.0
+
+- [7256] https://github.com/kubernetes/ingress-nginx/pull/7256 Add namespace field in the namespace scoped resource templates
+
+### 3.33.0
+
+- [7164] https://github.com/kubernetes/ingress-nginx/pull/7164 Update nginx to v1.20.1
+
 ### 3.32.0
 
 - [7117] https://github.com/kubernetes/ingress-nginx/pull/7117 Add annotations for HPA
@@ -196,7 +204,7 @@ This file documents all notable changes to [ingress-nginx](https://github.com/ku
 ### 2.13.0
 
 - [X] [#6093](https://github.com/kubernetes/ingress-nginx/pull/6093) Release v0.35.0
-- [X] [#6080](https://github.com/kubernetes/ingress-nginx/pull/6080) Switch images to registry.undistro.io/k8s after Vanity Domain Flip
+- [X] [#6080](https://github.com/kubernetes/ingress-nginx/pull/6080) Switch images to k8s.gcr.io after Vanity Domain Flip
 
 ### 2.12.1
 
