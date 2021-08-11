@@ -10,8 +10,9 @@
     "helm": "\\f109",
     "network": "\\f10a",
     "node": "\\f10b",
-    "plus": "\\f10c",
-    "settings": "\\f10d",
-    "stop": "\\f10e",
-    "workload": "\\f10f"
+    "play": "\\f10c",
+    "plus": "\\f10d",
+    "settings": "\\f10e",
+    "stop": "\\f10f",
+    "workload": "\\f110"
 }

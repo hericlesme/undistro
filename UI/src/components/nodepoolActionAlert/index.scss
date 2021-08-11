@@ -1,0 +1,59 @@
+@import "styles/theme";
+
+[data-reach-dialog-content] {
+  background-color: #000;
+  box-sizing: border-box;
+  color: $text;
+  display: flex;
+  flex-direction: column;
+  font-family: $font-base;
+  line-height: 1.25;
+  margin: calc(50vh - 10.625rem) auto;
+  min-height: 21.25rem; // 340px.
+  padding: 24px;
+  text-align: center;
+  width: 100%;
+
+  [data-reach-alert-dialog-label] {
+    font-size: 24px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+
+  svg {
+    display: block;
+    margin: 16px auto 0;
+  }
+
+  .action {
+    font-size: 32px;
+    font-weight: 700;
+    margin-top: 16px;
+    text-transform: uppercase;
+  }
+
+  alert-content {
+    margin-top: auto;
+  }
+
+  .danger-message {
+    color: $error;
+  }
+
+  .neutral-message {
+    color: $success;
+  }
+
+  .warning-message {
+    color: $warning;
+  }
+
+  footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: auto auto 0;
+    max-width: 21.25rem; // 340px.
+    width: 100%;
+  }
+}

@@ -16,14 +16,16 @@ function DefaultModal({ handleClose }: Props) {
   return (
     <>
       <header>
-        <h3 className="title"><span>{body.title}</span> {body.ndTitle}</h3>
+        <h3 className="title">
+          <span>{body.title}</span> {body.ndTitle}
+        </h3>
         <i onClick={handleClose} className="icon-close" />
       </header>
       <section>
         <p>testando</p>
       </section>
       <footer>
-        <Button type='primary' size='medium' onClick={handleAction} children='next' />
+        <Button variant="primary" size="medium" onClick={handleAction} children="next" />
       </footer>
     </>
   )

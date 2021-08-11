@@ -14,6 +14,7 @@ import Modals from 'util/modals'
 import Api from 'util/api'
 import { TypeOption, TypeSelectOptions, TypeSubnet, TypeTaints } from '../../types/cluster'
 import { TypeModal, apiResponse } from '../../types/generic'
+import { ClusterCreationError } from './createClusterError'
 
 type TypeWorkers = {
   replicas: number
@@ -28,6 +29,9 @@ type TypeWorkers = {
     maxSize: number
   }
 }
+
+const HOST = window.location.hostname
+const BASE_URL = `http://${HOST}/uapi/v1`
 
 const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const body = store.useState((s: any) => s.body)
@@ -67,9 +71,9 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [valueProv, setValueProv] = useState<string>('')
   const [effect, setEffect] = useState<string>('')
   const effectOptions = [
-    { value: 'NoSchedule', label: 'No schedule'},
-    { value: 'PreferNoSchedule', label: 'Prefer no schedule'},
-    { value: 'NoExecute', label: 'No execute'}
+    { value: 'NoSchedule', label: 'No schedule' },
+    { value: 'PreferNoSchedule', label: 'Prefer no schedule' },
+    { value: 'NoExecute', label: 'No execute' }
   ]
   const [taints, setTaints] = useState<TypeTaints[]>()
   const [labels, setLabels] = useState<{}[]>()
@@ -108,105 +112,178 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [cpuOptions, setCpuOptions] = useState<TypeOption[]>()
   const [memOptions, setMemOptions] = useState<TypeOption[]>()
   const [MachineOptions, setMachineOptions] = useState<TypeOption[]>()
+  const [messages, setMessages] = useState<string[]>([''])
+  const [newMessage, setNewMessage] = useState('')
+  const [error, setError] = useState<ClusterCreationError>()
 
-	const showModal = () => {
+  const showModal = () => {
     Modals.show('create-cluster', {
       title: 'Create',
-			ndTitle: 'Cluster',
+      ndTitle: 'Cluster',
       width: '720',
       height: '600'
     })
   }
 
-  const handleAction = () => {  
+  const streamUpdates = () => {
+    fetch(
+      `${BASE_URL}/namespaces/undistro-system/clusters/management/proxy/api/v1/namespaces/${namespace}/events?watch=1`
+    )
+      .then((response: any) => {
+        const stream = response.body.getReader()
+        const utf8Decoder = new TextDecoder('utf-8')
+
+        let buffer = ''
+
+        return stream.read().then(function processText({ value }: any): any {
+          buffer += utf8Decoder.decode(value)
+
+          buffer = onNewLine(buffer, (chunk: any) => {
+            if (chunk.trim().length === 0) return
+
+            try {
+              const event = JSON.parse(chunk)
+              const { object } = event
+              const { involvedObject, message, reason } = object
+
+              if (involvedObject.name.includes(clusterName)) {
+                const newMessage = `Reason: ${reason} Message: ${message}`
+
+                setNewMessage(newMessage)
+              }
+            } catch (error: any) {
+              setError({ code: error.code, message: error.message || 'Unknown error' })
+
+              console.log('Error while parsing', chunk, '\n', error)
+            }
+          })
+
+          return stream.read().then(processText)
+        })
+      })
+      .catch(() => {
+        console.log('Error! Retrying in 5 seconds...')
+
+        setTimeout(() => streamUpdates(), 5000)
+      })
+
+    const onNewLine = (buffer: any, fn: any): any => {
+      const newLineIndex = buffer.indexOf('\n')
+
+      if (newLineIndex === -1) return buffer
+
+      const chunk = buffer.slice(0, buffer.indexOf('\n'))
+      const newBuffer = buffer.slice(buffer.indexOf('\n') + 1)
+
+      fn(chunk)
+
+      return onNewLine(newBuffer, fn)
+    }
+  }
+
+  useEffect(() => {
+    setMessages(messages => {
+      if (!newMessage) return messages
+
+      const newMessages = [...messages, newMessage]
+
+      return newMessages
+    })
+  }, [newMessage])
+
+  const handleAction = () => {
     const data = {
-      "apiVersion": "app.undistro.io/v1alpha1",
-      "kind": "Cluster",
-      "metadata": {
-        "name": clusterName,
-        "namespace": namespace
+      apiVersion: 'app.undistro.io/v1alpha1',
+      kind: 'Cluster',
+      metadata: {
+        name: clusterName,
+        namespace: namespace
       },
-      "spec": {
-        "kubernetesVersion": k8sVersion,
-        "controlPlane": {
-          "internalLB": internalLB,
-          "replicas": replicas,
-          "machineType": machineTypes,
-          "subnet": subnetControl,
-          "labels": labels?.reduce((acc, cur) => Object.assign(acc, cur), {}),
-          "providerTags": providerTags?.reduce((acc, cur) => Object.assign(acc, cur), {}),
-          "taints": taints
+      spec: {
+        kubernetesVersion: k8sVersion,
+        controlPlane: {
+          internalLB: internalLB,
+          replicas: replicas,
+          machineType: machineTypes,
+          subnet: subnetControl,
+          labels: labels?.reduce((acc, cur) => Object.assign(acc, cur), {}),
+          providerTags: providerTags?.reduce((acc, cur) => Object.assign(acc, cur), {}),
+          taints: taints
         },
-        "workers": groups,
-        "bastion": {
-          "enabled": enabled,
-          "ingress": ingress,
-          "instanceType": machineTypes,
-          "allowedCIDRBlocks": cidrs
+        workers: groups,
+        bastion: {
+          enabled: enabled,
+          ingress: ingress,
+          instanceType: machineTypes,
+          allowedCIDRBlocks: cidrs
         },
-        "infrastructureProvider": {
-          "name": provider,
-          "sshKey": sshKey,
-          "flavor": flavor,
-          "region": region
+        infrastructureProvider: {
+          name: provider,
+          sshKey: sshKey,
+          flavor: flavor,
+          region: region
         },
-        "network": {
-          "apiServerPort": serverPort,
-          "pods": podsRanges,
-          "serviceDomain": serviceDomain,
-          "multiZone": multiZone,
-          "vpc": {
-            "id": id,
-            "cidrBlock": cidr,
-            "zone": zone
+        network: {
+          apiServerPort: serverPort,
+          pods: podsRanges,
+          serviceDomain: serviceDomain,
+          multiZone: multiZone,
+          vpc: {
+            id: id,
+            cidrBlock: cidr,
+            zone: zone
           },
-  
-          "subnets": subnets
+          subnets: subnets
         }
       }
     }
 
     const dataPolicies = {
-      "apiVersion": "app.undistro.io/v1alpha1",
-      "kind": "DefaultPolicies",
-      "metadata": {
-        "name": "defaultpolicies-undistro",
-        "namespace": namespace
+      apiVersion: 'app.undistro.io/v1alpha1',
+      kind: 'DefaultPolicies',
+      metadata: {
+        name: 'defaultpolicies-undistro',
+        namespace: namespace
       },
-      "spec": {
-        "clusterName": clusterName
+      spec: {
+        clusterName: clusterName
       }
     }
 
-    Api.Cluster.post(data, namespace)
-      .then(_ => console.log('success'))
-    
+    Api.Cluster.post(data, namespace).catch(error => {
+      setError({ code: error.code, message: error.message || 'Unknown error' })
+    })
+
     setTimeout(() => {
       Api.Cluster.postPolicies(dataPolicies, namespace)
-    }, 600)
+    }, 1000)
+
+    streamUpdates()
   }
 
   const saveGroup = () => {
-    setGroups([...(groups || []), {
-      replicas: replicasWorkers,
-      machineType: machineTypesWorkers,
-      subnet: subnetWorkers!,
-      labels: labelsWorkers?.reduce((acc, cur) => Object.assign(acc, cur), {}),
-      providerTags: providerTagsWorkers?.reduce((acc, cur) => Object.assign(acc, cur), {}),
-      taints: taintsWorkers!,
-      autoscaling: {
-        enabled: autoScale,
-        minSize: minSize,
-        maxSize: maxSize
+    setGroups([
+      ...(groups || []),
+      {
+        replicas: replicasWorkers,
+        machineType: machineTypesWorkers,
+        subnet: subnetWorkers!,
+        labels: labelsWorkers?.reduce((acc, cur) => Object.assign(acc, cur), {}),
+        providerTags: providerTagsWorkers?.reduce((acc, cur) => Object.assign(acc, cur), {}),
+        taints: taintsWorkers!,
+        autoscaling: {
+          enabled: autoScale,
+          minSize: minSize,
+          maxSize: maxSize
+        }
       }
-    }])
+    ])
   }
 
   const generateGroups = () => {
     const allGroups = (groups || []).map((elm: any, i = 0) => ({ value: elm, label: `${clusterName}-mp-${i}` }))
     setGroupIdOptions(allGroups)
   }
-
 
   const createCidrs = () => {
     setCidrs([...(cidrs || []), cidrBastion])
@@ -218,12 +295,15 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   }
 
   const createSubnets = () => {
-    SetSubnets([...subnets, {
-      id: idSubnet,
-      cidrBlock: cidrSubnet,
-      zone: zone,
-      isPublic: isPublic
-    }])
+    SetSubnets([
+      ...subnets,
+      {
+        id: idSubnet,
+        cidrBlock: cidrSubnet,
+        zone: zone,
+        isPublic: isPublic
+      }
+    ])
   }
 
   const createTaints = (onChange: Function, data: TypeTaints[]) => {
@@ -237,7 +317,7 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const createMap = (onChange: Function, data: {}[], keyValue: string, value: string) => {
     let obj: any = {}
     obj[keyValue] = value
-  
+
     onChange([...data, obj])
   }
 
@@ -255,27 +335,27 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   }
 
   const getMachines = () => {
-    Api.Provider.list('awsmachines')
-      .then(res => {
-        const name = res.items.map((elm: any) => ({ label: elm.metadata.name, value: elm.metadata.name }))
-        const cpu = res.items.map((elm: any) => ({ label: elm.spec.vcpus, value: elm.spec.vcpus }))
-        const mem = res.items.map((elm: any) => ({ label: elm.spec.memory, value: elm.spec.memory }))
+    Api.Provider.list('awsmachines').then(res => {
+      const name = res.items.map((elm: any) => ({ label: elm.metadata.name, value: elm.metadata.name }))
+      const cpu = res.items.map((elm: any) => ({ label: elm.spec.vcpus, value: elm.spec.vcpus }))
+      const mem = res.items.map((elm: any) => ({ label: elm.spec.memory, value: elm.spec.memory }))
 
-        setMachineOptions(name)
-        setMemOptions(mem)
-        setCpuOptions(cpu)
-      })
+      setMachineOptions(name)
+      setMemOptions(mem)
+      setCpuOptions(cpu)
+    })
   }
 
   const getProviders = () => {
-    Api.Provider.list('providers')
-      .then(res => {
-        const newArray = res.items.filter((elm: any) => { return elm.spec.category.includes('infra') })
-        setProvider(newArray[0].metadata.name)
-        setRegionOptions(newArray[0].status.regionNames.map((elm: string) => ({ value: elm, label: elm })))
-        getSecrets(newArray[0].spec.secretRef.name)
-        return newArray
+    Api.Provider.list('providers').then(res => {
+      const newArray = res.items.filter((elm: any) => {
+        return elm.spec.category.includes('infra')
       })
+      setProvider(newArray[0].metadata.name)
+      setRegionOptions(newArray[0].status.regionNames.map((elm: string) => ({ value: elm, label: elm })))
+      getSecrets(newArray[0].spec.secretRef.name)
+      return newArray
+    })
   }
 
   const getFlavors = async () => {
@@ -284,14 +364,14 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
     const parse = (data: apiResponse): TypeSelectOptions => {
       return data.reduce<TypeSelectOptions>((acc, curr) => {
         acc[curr.metadata.name] = {
-          selectOptions: curr.spec.supportedK8SVersions.map(elm => ({ label: elm, value: elm}))
-      }
+          selectOptions: curr.spec.supportedK8SVersions.map(elm => ({ label: elm, value: elm }))
+        }
 
         return acc
       }, {})
     }
 
-    const parseData = parse(res.items)  
+    const parseData = parse(res.items)
     setK8sOptions(parseData)
     setFlavorOptions(names)
   }
@@ -308,17 +388,21 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
 
   return (
     <>
-    <header>
-      <h3 className="title"><span>{body.title}</span> {body.ndTitle}</h3>
-      <i onClick={handleClose} className="icon-close" />
-    </header>
-      <div className='box'>
-        <Steps 
-          handleClose={handleClose} 
+      <header>
+        <h3 className="title">
+          <span>{body.title}</span> {body.ndTitle}
+        </h3>
+        <i onClick={handleClose} className="icon-close" />
+      </header>
+      <div className="box">
+        <Steps
+          handleClose={handleClose}
           handleAction={() => handleAction()}
-          handleBack={() => showModal()} 
+          handleBack={() => showModal()}
+          messages={messages}
+          error={error}
         >
-          <CreateCluster 
+          <CreateCluster
             clusterName={clusterName}
             setClusterName={setClusterName}
             namespace={namespace}
@@ -337,7 +421,7 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setSession={setSession}
           />
 
-          <Infra 
+          <Infra
             provider={provider}
             setProvider={setProvider}
             providerOptions={providerOptions}
@@ -354,7 +438,7 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setSshKey={setSshKey}
           />
 
-          <InfraNetwork 
+          <InfraNetwork
             id={id}
             setId={setId}
             idSubnet={idSubnet}
@@ -374,7 +458,7 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setZoneSubnet={setZoneSubnet}
           />
 
-          <K8sNetwork 
+          <K8sNetwork
             serverPort={serverPort}
             setServerPort={setServerPort}
             serviceDomain={serviceDomain}
@@ -405,7 +489,7 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             getMachineTypes={MachineOptions || []}
             cidr={cidrBastion}
             setCidr={setCidrBastion}
-            cidrs={(cidrs || [])}
+            cidrs={cidrs || []}
             handleEvent={() => createCidrs()}
             deleteCidr={() => deleteCidrs()}
           />
@@ -446,9 +530,9 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             setSubnet={SetSubnetControl}
             internalLB={internalLB}
             setInternalLB={setInternalLB}
-            handleActionTaints={() => createTaints(setTaints, (taints || []))}
-            handleActionLabel={() => createMap(setLabels, (labels || []), keyLabel, valueLabel)}
-            handleActionProv={() => createMap(setProviderTags, (providerTags || []), keyProv, valueProv)}
+            handleActionTaints={() => createTaints(setTaints, taints || [])}
+            handleActionLabel={() => createMap(setLabels, labels || [], keyLabel, valueLabel)}
+            handleActionProv={() => createMap(setProviderTags, providerTags || [], keyProv, valueProv)}
           />
 
           <Workers
@@ -495,9 +579,13 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             taints={taintsWorkers}
             providers={providerTagsWorkers}
             labels={labelsWorkers}
-            handleActionTaints={() => createTaints(setTaintsWorkers, (taintsWorkers || []))}
-            handleActionLabel={() => createMap(setLabelsWorkers, (labelsWorkers || []), keyLabelWorkers, valueLabelWorkers)}
-            handleActionProv={() => createMap(setProviderTagsWorkers, (providerTagsWorkers || []), keyProvWorkers, valueProvWorkers)}
+            handleActionTaints={() => createTaints(setTaintsWorkers, taintsWorkers || [])}
+            handleActionLabel={() =>
+              createMap(setLabelsWorkers, labelsWorkers || [], keyLabelWorkers, valueLabelWorkers)
+            }
+            handleActionProv={() =>
+              createMap(setProviderTagsWorkers, providerTagsWorkers || [], keyProvWorkers, valueProvWorkers)
+            }
           />
         </Steps>
       </div>

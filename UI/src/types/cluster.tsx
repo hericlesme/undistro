@@ -1,5 +1,6 @@
 export type TypeWorker = {
   id: string
+  name: string
   machineType: string
   replicas: number
   infraNode: boolean
@@ -19,9 +20,9 @@ export type TypeOption = {
 
 export type TypeSelectOptions = {
   [instanceType: string]: {
-    selectOptions: TypeOption[];
-  };
-};
+    selectOptions: TypeOption[]
+  }
+}
 
 export type TypeAsyncSelect = {
   label?: string
@@ -36,7 +37,7 @@ export type TypeCluster = {
   namespace: string
   setNamespace: Function
   provider: string
-  setProvider: Function,
+  setProvider: Function
   providerOptions: any
   regionOptions: TypeOption[]
   region: string
@@ -84,7 +85,7 @@ export type TypeControlPlane = {
   machineTypes: string
   setMachineTypes: Function
   getMachineTypes: TypeOption[] | undefined
-  infraNode?: boolean | any 
+  infraNode?: boolean | any
   setInfraNode?: Function
   replicasWorkers?: number | any
   setReplicasWorkers?: Function
@@ -125,7 +126,7 @@ export type TypeControlPlane = {
   handleActionProv?: Function
   internalLB?: boolean
   setInternalLB?: Function
-  subnet?: string
+  subnet?: string | undefined
   setSubnet?: Function
 }
 
@@ -236,4 +237,3 @@ export type TypeBastion = {
   handleEvent: Function
   deleteCidr: Function
 }
-

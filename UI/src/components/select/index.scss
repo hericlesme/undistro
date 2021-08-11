@@ -42,9 +42,9 @@
 
     &__placeholder {
       margin: 0;
-      padding: 5px;
+      padding: 5px 0;
       font-size: 14px;
-      color: var(--text, $text);
+      color: #6c6c6c;
     }
 
     &__single-value {
@@ -62,7 +62,7 @@
     &__Input {
       margin: 0;
       padding: 0;
-    } 
+    }
 
     &__indicator-separator {
       display: none;
@@ -97,7 +97,6 @@
       color: var(--text, $text);
       font-size: 14px;
       background-color: var(--background, $blackground);
-
 
       &:hover {
         background-color: var(--menu-left, $menu-left);

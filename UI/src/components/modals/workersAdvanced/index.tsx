@@ -54,9 +54,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
   handleActionProv,
   handleAction,
   subnet,
-  setSubnet,
-  infraNode,
-  setInfraNode
+  setSubnet
 }) => {
   const [showTaint, setShowTaint] = useState<boolean>(false)
   const [showLabel, setShowLabel] = useState<boolean>(false)
@@ -111,7 +109,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
 
       <div className='toggles'>
         <div className='infra-node-container'>
-          <Toggle value={infraNode} onChange={() => setInfraNode(!infraNode)} label='InfraNode' />
+          <Toggle value={autoScale} onChange={() => setAutoScale(!autoScale)} label='InfraNode' />
         </div>
         <div className='auto-scale-container'>
           <Toggle value={autoScale} onChange={() => setAutoScale(!autoScale)} label='enable auto scale' />
@@ -130,7 +128,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
             {(taints || []).map((elm: any, i) => {
               return (
                 <li key={i}>
-                  <p>{Object.keys(elm)[0]}: {Object.values(elm)[0]} = {elm.effect}</p>
+                  <p>taint-{i}</p>
                   <i onClick={() => deleteTaints?.(elm)} className='icon-close' />
                 </li>
               )
@@ -160,7 +158,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
             {(labels || []).map((elm: any, i) => {
               return (
                 <li key={i}>
-                  <p>{Object.keys(elm)[0]}: {Object.values(elm)[0]}</p>
+                  <p>label-{i}</p>
                   <i onClick={() => deleteLabels?.(elm)} className='icon-close' />
                 </li>
               )
@@ -187,7 +185,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
             {(providers || []).map((elm: any, i) => {
               return (
                 <li key={i}>
-                  <p>{Object.keys(elm)[0]}: {Object.values(elm)[0]}</p>
+                  <p>provTag-{i}</p>
                   <i onClick={() => deleteProviders?.(elm)} className='icon-close' />
                 </li>
               )
@@ -208,7 +206,7 @@ const WorkersAdvanced: FC<TypeWorkersAdvanced> = ({
             />}
         </div>
       </div>
-      <Button size='small' type='gray' children='Save group' onClick={() => handleAction()} />
+      <Button size='small' variant='gray' children='Save group' onClick={() => handleAction()} />
     </div>
   )
 }

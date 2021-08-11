@@ -1,0 +1,25 @@
+@import 'styles/theme';
+
+.nodepool-alert-button {
+  background: transparent;
+  border: 0;
+  font-family: $font-base;
+  font-weight: 600;
+  height: 2.125rem;
+  line-height: 1;
+}
+
+.nodepool-alert-button[disabled] {
+  cursor: not-allowed;
+}
+
+.nodepool-alert-button-primary {
+  color: $text;
+  font-size: 1.75rem;
+}
+
+.nodepool-alert-button[disabled],
+.nodepool-alert-button-secondary {
+  color: $text-gray-middle;
+  font-size: 1.5rem;
+}

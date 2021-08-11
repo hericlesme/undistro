@@ -27,6 +27,10 @@
     justify-content: center;
   }
 
+  .disabled-label {
+    color: #6c6c6c;
+  }
+
   input {
     border-radius: 2px;
     box-sizing: border-box;
@@ -39,7 +43,12 @@
     color: var(--off-white, $off-white);
   }
 
-  input[type="text"] {
+  input[disabled] {
+    border-color: #6c6c6c;
+    color: #6c6c6c;
+  }
+
+  input[type='text'] {
     box-sizing: border-box;
     padding-left: 10px;
   }

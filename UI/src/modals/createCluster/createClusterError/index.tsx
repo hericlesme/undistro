@@ -3,8 +3,8 @@ import { ReactComponent as CreateClusterErrorIcon } from '@assets/images/createC
 import './createClusterError.scss'
 
 export type ClusterCreationError = {
-  code: number | string
-  message: string
+  code?: number | string
+  message?: string
 }
 
 type CreateClusterErrorProps = ClusterCreationError & {
@@ -12,12 +12,7 @@ type CreateClusterErrorProps = ClusterCreationError & {
   heading: string
 }
 
-export const CreateClusterError = ({
-  code,
-  description,
-  heading,
-  message
-}: CreateClusterErrorProps) => {
+export const CreateClusterError = ({ code = '', description, heading, message }: CreateClusterErrorProps) => {
   return (
     <>
       <h2 className="title-box">process</h2>
@@ -26,7 +21,8 @@ export const CreateClusterError = ({
         <CreateClusterErrorIcon className="cluster-error-icon" />
         <p className="cluster-error-description">{description}</p>
         <p className="cluster-error-message">
-          {code} - {message}
+          {code ? `${code} - ` : ''}
+          {message}
         </p>
       </div>
     </>

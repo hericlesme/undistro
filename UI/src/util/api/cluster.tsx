@@ -5,8 +5,14 @@ class Cluster {
     this.http = httpWrapper
   }
 
-  async list (namespace: string) {
-    const url = `namespaces/undistro-system/clusters/management/proxy/apis/app.undistro.io/v1alpha1/namespaces/${namespace}/clusters`
+  async list () {
+    const url = `namespaces/undistro-system/clusters/management/proxy/apis/app.undistro.io/v1alpha1/clusters`
+    const res = await this.http.get(url)
+    return res.data
+  }
+
+  async get (namespace: string, clusterName: string) {
+    const url = `namespaces/undistro-system/clusters/management/proxy/apis/app.undistro.io/v1alpha1/namespaces/${namespace}/clusters/${clusterName}`
     const res = await this.http.get(url)
     return res.data
   }

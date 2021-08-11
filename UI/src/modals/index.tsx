@@ -10,6 +10,8 @@ import WizardCluster from './createCluster/clusterWizard'
 function RenderModal() {
   const id = store.useState((s: any) => s.id)
 
+
+  //utilizar useCallback aqui.
   const handleClose = () => {
     store.update((s: any) => {
       s.show = false

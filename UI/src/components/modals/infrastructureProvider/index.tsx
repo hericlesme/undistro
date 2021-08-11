@@ -19,7 +19,6 @@ const InfrastructureProvider: FC<TypeInfra> = ({
   sshKey,
   setSshKey
 }) => {
-
   const formProvider = (value: string) => {
     setProvider(value)
   }
@@ -43,12 +42,25 @@ const InfrastructureProvider: FC<TypeInfra> = ({
   return (
     <>
       <h3 className="title-box">Infrastructure provider</h3>
-      <form className='infra-provider'>
-        <Select value={provider} onChange={formProvider} options={providerOptions} label='provider' />
-        <Select value={flavor} onChange={formFlavor} options={flavorOptions} label='flavor' />
-        <Select options={regionOptions} value={region} onChange={formRegion} label='region' />
-        <Select value={k8sVersion} onChange={formK8s} options={k8sOptions?.[flavor]?.selectOptions ?? []} label='kubernetes version' />
-        <Input type='text' value={sshKey} onChange={formSshKey} label='sshKey' />
+      <form className="infra-provider">
+        <Select value={provider} onChange={formProvider} options={providerOptions} label="provider" />
+        <Select
+          value={flavor}
+          onChange={(v: string) => {
+            formK8s('')
+            formFlavor(v)
+          }}
+          options={flavorOptions}
+          label="flavor"
+        />
+        <Select options={regionOptions} value={region} onChange={formRegion} label="region" />
+        <Select
+          value={k8sVersion}
+          onChange={formK8s}
+          options={k8sOptions?.[flavor]?.selectOptions ?? []}
+          label="kubernetes version"
+        />
+        <Input type="text" value={sshKey} onChange={formSshKey} label="sshKey" />
       </form>
     </>
   )

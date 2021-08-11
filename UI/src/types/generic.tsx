@@ -8,12 +8,13 @@ export type TypeSubItem = {
 
 export type TypeItem = {
   name: string
-  icon: string
+  icon: string | any
   subItens: TypeSubItem[]
+  url: string
 }
 
 export type TypeMenu = {
-	itens: TypeItem[]
+  itens: TypeItem[]
 }
 
 export type apiOption = {
@@ -25,4 +26,4 @@ export type apiOption = {
   }
 }
 
-export type apiResponse = apiOption[];
+export type apiResponse = apiOption[]

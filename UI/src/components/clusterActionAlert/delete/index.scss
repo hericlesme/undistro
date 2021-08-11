@@ -1,0 +1,33 @@
+@import "styles/theme";
+
+.form {
+  align-items: center;
+  font-family: $font-base;
+  justify-content: center;
+  display: flex;
+  margin-top: auto;
+
+  label {
+    margin-right: 1rem;
+  }
+
+  div {
+    position: relative;
+
+    &::after {
+      content: attr(data-placeholder);
+      font-size: 1.125rem;
+      font-weight: 500;
+      left: 1rem;
+      line-height: 1.375;
+      opacity: 0.5;
+      pointer-events: none;
+      position: absolute;
+      top: 0.5rem;
+    }
+
+    input {
+      width: 3.75rem;
+    }
+  }
+}

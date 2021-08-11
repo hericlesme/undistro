@@ -1,5 +1,5 @@
 import axios from 'axios'
-import Node from './node'
+import Nodepool from './nodepool'
 import Cluster from './cluster'
 import Provider from './provider'
 import Secret from './secret'
@@ -14,7 +14,7 @@ const httpWrapper = axios.create({
 })
 
 const Api = {
-  Node: new Node(httpWrapper),
+  Nodepool: new Nodepool(httpWrapper),
   Cluster: new Cluster(httpWrapper),
   Provider: new Provider(httpWrapper),
   Secret: new Secret(httpWrapper)

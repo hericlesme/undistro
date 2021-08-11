@@ -3,7 +3,7 @@
 .menu-side-container {
   width: 220px;
   background-color: var(--menu-top, $menu-top);
-  height: 95%;
+  height: calc(100% - 48px);
 
   .side-itens {
     font-size: 14px;
@@ -62,8 +62,10 @@
     }
 
     p,
-    i {
+    i,
+    svg {
       color: var(--menu-top, $menu-top);
+      fill: var(--menu-top, $menu-top);
       font-weight: 700;
     }
   }

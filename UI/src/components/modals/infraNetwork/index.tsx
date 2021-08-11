@@ -18,11 +18,11 @@ const InfraNetwork: FC<TypeNetwork> = ({
   setCidr,
   cidrSubnet,
   setCidrSubnet,
-  zoneSubnet,
-  setZoneSubnet,
   addSubnet,
   subnets,
-  deleteSubnet
+  deleteSubnet,
+  zoneSubnet,
+  setZoneSubnet
 }) => {
 
   const formId = (e: React.FormEvent<HTMLInputElement>) => {
@@ -68,7 +68,7 @@ const InfraNetwork: FC<TypeNetwork> = ({
             <Input type='text' label='zone' value={zoneSubnet} onChange={formZoneSubnet} />
             <Input type='text' label='CIDR block' value={cidrSubnet} onChange={formCidrSubnet} />
             <div className='button-container'>
-              <Button onClick={() => addSubnet()} type='gray' size='small' children='Add' />
+              <Button onClick={() => addSubnet()} variant='gray' size='small' children='Add' />
             </div>
           </div>
 

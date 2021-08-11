@@ -35,9 +35,7 @@ const FormSlider: FC<TypeSlider> = ({
   options,
   direction
 }) => {
-  const style = cn('form-slider-container',
-    `form-slider-container--${direction}`
-  )
+  const style = cn('form-slider-container', `form-slider-container--${direction}`)
 
   const formKey = (e: React.FormEvent<HTMLInputElement>) => {
     setKeyValue(e.currentTarget.value)
@@ -53,16 +51,16 @@ const FormSlider: FC<TypeSlider> = ({
 
   return (
     <div className={style}>
-      <p className='title-slider'>{title}</p>
-      
-      <div className='form-slider-content'>
-        <Input type='text' label='key' value={keyValue} onChange={formKey} />
-        <Input type='text' label='value' value={value} onChange={formValue} />
-        {select && <Select label='taint effect' value={taint} options={options} onChange={formTaint} />}
-        <Button size='small' type='gray' children='add' onClick={() => handleAction()} />
+      <p className="title-slider">{title}</p>
+
+      <div className="form-slider-content">
+        <Input type="text" label="key" value={keyValue} onChange={formKey} />
+        <Input type="text" label="value" value={value} onChange={formValue} />
+        {select && <Select label="taint effect" value={taint} options={options} onChange={formTaint} />}
+        <Button size="small" variant="gray" children="add" onClick={() => handleAction()} />
       </div>
 
-      <Button size='small' type='gray' children='close' onClick={() => handleClose()} />
+      <Button size="small" variant="gray" children="close" onClick={() => handleClose()} />
     </div>
   )
 }

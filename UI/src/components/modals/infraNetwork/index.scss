@@ -14,18 +14,18 @@
         margin-top: 39px;
         position: relative;
         z-index: 1;
-    
+
         .toggle-container {
           margin: 0 18px;
         }
-    
+
         .title-box {
           margin-bottom: 27px;
           background-color: var(--gray-blue-2, $gray-blue-2);
           width: fit-content;
           margin: auto;
           padding: 0 4px;
-    
+
           &::before {
             content: '';
             border: 1px solid var(--gray-blue-4, $gray-blue-4);
@@ -37,11 +37,11 @@
             top: 8px;
           }
         }
-    
+
         .input-container {
           margin-top: 28px;
         }
-    
+
         .subnet-inputs {
           display: grid;
           grid-template-columns: 278px 153px 190px;
@@ -49,7 +49,7 @@
           justify-content: center;
           margin-top: 10px;
         }
-    
+
         ul {
           width: 436px;
           height: 84px;
@@ -59,26 +59,26 @@
           border-radius: 2px;
           padding: 2px;
           overflow: auto;
-    
+
           li {
             padding: 2px 6px;
             font-size: 12px;
             display: flex;
             align-items: center;
-    
+
             &:hover {
               background-color: var(--gray-blue-3, $gray-blue-3);
             }
-    
+
             p {
               flex: 1;
             }
-    
+
             i {
               font-size: 8px;
               display: flex;
               cursor: pointer;
-    
+
               &:hover {
                 color: var(--error, $error);
               }

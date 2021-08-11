@@ -3,43 +3,43 @@ import Select from 'react-select'
 
 import './index.scss'
 
-type OptionType = { value: any, label: string }
+type OptionType = { value: any; label: string }
 
 type Props = {
-  label?: string,
-  options: any,
-  onChange: Function,
-  value?: string,
+  className?: string
+  label?: string
+  options: any
+  onChange?: Function
+  value?: string
+  placeholder?: string
 }
 
-const SelectUndistro: FC<Props> = ({ 
-  label,
-  options,
-  onChange,
-  value,
-}) => {
-
+const SelectUndistro: FC<Props> = ({ className, label, options, onChange, value, placeholder = 'Select...' }) => {
   const handleChange = (option: any) => {
-    onChange(option.value)
+    if (onChange) {
+      onChange(option.value)
+    }
   }
 
-  const getCorrectValue = ():OptionType => {
+  const getCorrectValue = (): OptionType => {
     return options.filter((elm: OptionType) => elm.value === value)[0]
   }
 
   return (
-    <div className='select'>
-    <div className='title-section'>
-      <label>{label}</label>
-    </div>
+    <div className={`select ${className}`}>
+      <div className="title-section">
+        <label>{label}</label>
+      </div>
 
-    <Select
-      options={options}
-      onChange={(e) => handleChange(e)}
-      value={getCorrectValue()}
-      classNamePrefix="select-container"
-    />
-  </div>
+      <Select
+        placeholder={placeholder}
+        placeholderCSS="react-select-custom-placeholder"
+        options={options}
+        onChange={handleChange}
+        value={value ? getCorrectValue() : (value as any)}
+        classNamePrefix="select-container"
+      />
+    </div>
   )
 }
 

@@ -2,21 +2,22 @@ import React, { FC, FormEventHandler } from 'react'
 import Classnames from 'classnames'
 import './index.scss'
 
-
 type Props = {
-  type: string,
-  label?: string,
-  placeholder?: string,
-  value: string | number | undefined,
-  disabled?: boolean,
-  validator?: {},
-  onChange: FormEventHandler<HTMLInputElement>,
+  className?: string
+  type?: string
+  label?: string
+  placeholder?: string
+  value?: string | number | undefined
+  disabled?: boolean
+  validator?: {}
+  onChange?: FormEventHandler<HTMLInputElement>
   addButton?: boolean
   handleEvent?: Function
 }
 
 const Input: FC<Props> = ({
-  type,
+  className,
+  type = 'text',
   label,
   placeholder,
   value,
@@ -26,21 +27,15 @@ const Input: FC<Props> = ({
   addButton,
   handleEvent
 }) => {
-  const style = Classnames('input', {
+  const style = Classnames(className, 'input', {
     'input--error': validator
   })
 
   return (
     <div className={style}>
-      {label && <label>{label}</label>}
-      <input
-        type={type}
-        value={value}
-        placeholder={placeholder}
-        disabled={disabled}
-        onChange={onChange}
-      />
-      {addButton && <i onClick={() => handleEvent?.()} className='icon-plus' />}
+      {label && <label className={disabled ? 'disabled-label' : ''}>{label}</label>}
+      <input type={type} value={value} placeholder={placeholder} disabled={disabled} onChange={onChange} />
+      {addButton && <i onClick={() => handleEvent?.()} className="icon-plus" />}
     </div>
   )
 }
