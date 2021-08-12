@@ -81,14 +81,14 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if err := r.Get(ctx, req.NamespacedName, &hr); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	log := r.Log.WithValues("helmrelease", req.NamespacedName)
+	log := r.Log.WithValues("helmrelease", req.NamespacedName, "chart repo", hr.Spec.Chart.RepoURL, "chart name", hr.Spec.Chart.Name, "chart version", hr.Spec.Chart.Version)
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&hr, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 	defer func() {
-		patchOpts := []patch.Option{}
+		patchOpts := []patch.Option{} 
 		if err == nil {
 			patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
 		}
