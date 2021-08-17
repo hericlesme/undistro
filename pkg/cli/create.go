@@ -212,9 +212,8 @@ func (o *ClusterOptions) AddFlags(flags *pflag.FlagSet) {
 	flags.BoolVar(&o.GenerateFile, "generate-file", o.GenerateFile, "Generate cluster YAML file")
 }
 
-func NewCmdCluster(f cmdutil.Factory, flags *pflag.FlagSet, streams genericclioptions.IOStreams) *cobra.Command {
+func NewCmdCluster(f cmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {
 	o := NewClusterOptions(streams)
-	o.AddFlags(flags)
 	cmd := &cobra.Command{
 		Use:                   "cluster [cluster name]",
 		DisableFlagsInUseLine: true,
@@ -228,11 +227,12 @@ func NewCmdCluster(f cmdutil.Factory, flags *pflag.FlagSet, streams genericcliop
 			cmdutil.CheckErr(o.RunCreateCluster(f, cmd))
 		},
 	}
+	o.AddFlags(cmd.Flags())
 	return cmd
 }
 
-func NewCmdCreate(f cmdutil.Factory, flags *pflag.FlagSet, streams genericclioptions.IOStreams) *cobra.Command {
+func NewCmdCreate(f cmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {
 	cmd := create.NewCmdCreate(f, streams)
-	cmd.AddCommand(NewCmdCluster(f, flags, streams))
+	cmd.AddCommand(NewCmdCluster(f, streams))
 	return cmd
 }

@@ -92,6 +92,8 @@ func NewUndistroCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	cfgFlags := NewConfigFlags()
 	cfgFlags.AddFlags(flags, flag.CommandLine)
 	ioStreams := genericclioptions.IOStreams{In: in, Out: out, ErrOut: err}
+	cmd.AddCommand(NewCmdSetup(ioStreams))
+	cmd.AddCommand(NewCmdDestroy(ioStreams))
 	f := cmdutil.NewFactory(cfgFlags)
 	cmd.AddCommand(delete.NewCmdDelete(f, ioStreams))
 	cmd.AddCommand(patch.NewCmdPatch(f, ioStreams))
@@ -100,7 +102,7 @@ func NewUndistroCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	cmd.AddCommand(apiresources.NewCmdAPIVersions(f, ioStreams))
 	cmd.AddCommand(apiresources.NewCmdAPIResources(f, ioStreams))
 	cmd.AddCommand(NewCmdGet(f, ioStreams))
-	cmd.AddCommand(NewCmdCreate(f, flags, ioStreams))
+	cmd.AddCommand(NewCmdCreate(f, ioStreams))
 	cmd.AddCommand(NewCmdInstall(cfgFlags, ioStreams))
 	cmd.AddCommand(NewCmdMove(cfgFlags, ioStreams))
 	cmd.AddCommand(NewCmdShowProgress(f, ioStreams))

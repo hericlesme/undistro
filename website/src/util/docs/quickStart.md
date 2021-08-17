@@ -28,7 +28,7 @@ brew install getupio-undistro/tap/undistro
 To get started we will create a Kind cluster, open your terminal and type:
 
 ```bash
-kind create cluster
+undistro setup kind
 ```
 
 ## Step 2
@@ -112,5 +112,5 @@ undistro get kubeconfig yourclustername -n yourclusternamespace
 To delete all resources created by undistro, run the command line below
 
 ```bash
-undistro delete -f yourclustername.yaml
+undistro delete -f yourclustername.yaml && undistro destroy kind
 ```
