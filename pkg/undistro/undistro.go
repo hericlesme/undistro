@@ -15,7 +15,10 @@ limitations under the License.
 */
 package undistro
 
-const Namespace = "undistro-system"
+const (
+	Namespace   = "undistro-system"
+	DefaultRepo = "https://registry.undistro.io/chartrepo/library"
+)
 
 const LocalCluster = "undistro"
 

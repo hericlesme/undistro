@@ -18,6 +18,7 @@ package cli
 import (
 	"context"
 	"flag"
+	knet "k8s.io/apimachinery/pkg/util/net"
 
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
@@ -59,22 +60,36 @@ func stringptr(s string) *string {
 
 func defaultValues(ctx context.Context, c client.Client, name string) map[string]interface{} {
 	isKind, _ := util.IsLocalCluster(ctx, c)
+	ip, _ := knet.ChooseHostInterface()
 	switch name {
 	case "undistro":
-		if isKind {
-			return map[string]interface{}{
+		undistroCfg := make(map[string]interface{})
+		if ip.String() != "" {
+			undistroCfg = map[string]interface{}{
+				"local": true,
+				"ingress": map[string]interface{}{
+					"ipAddresses": []string{
+						ip.String(),
+					},
+				},
+			}
+		} else {
+			undistroCfg = map[string]interface{}{
 				"local": true,
 			}
+		}
+		if isKind {
+			return undistroCfg
 		}
 	case "ingress-nginx":
 		if isKind {
 			return map[string]interface{}{
 				"controller": map[string]interface{}{
-					"hostPort": map[string]interface{}{
-						"enabled": true,
-					},
 					"service": map[string]interface{}{
-						"type": "NodePort",
+						"annotations": map[string]interface{}{
+							"metallb.universe.tf/address-pool": "default",
+						},
+						"externalTrafficPolicy": "Local",
 					},
 					"tolerations": []map[string]interface{}{
 						{
@@ -86,9 +101,20 @@ func defaultValues(ctx context.Context, c client.Client, name string) map[string
 					"extraArgs": map[string]interface{}{
 						"default-ssl-certificate": undistro.Namespace + "/undistro-ingress-cert",
 					},
+					"admissionWebhooks": map[string]interface{}{
+						"enabled": false,
+					},
 				},
 			}
 		}
+		return map[string]interface{}{
+			"controller": map[string]interface{}{
+				"admissionWebhooks": map[string]interface{}{
+					"enabled": false,
+				},
+			},
+		}
+
 	}
 	return make(map[string]interface{})
 }

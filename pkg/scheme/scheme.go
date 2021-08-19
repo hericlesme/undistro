@@ -18,6 +18,9 @@ package scheme
 import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
+	v1alpha1conciergeauth "go.pinniped.dev/generated/latest/apis/concierge/authentication/v1alpha1"
+	v1alpha1supervisorconf "go.pinniped.dev/generated/latest/apis/supervisor/config/v1alpha1"
+	v1alpha1supervisoridp "go.pinniped.dev/generated/latest/apis/supervisor/idp/v1alpha1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -39,5 +42,8 @@ func init() {
 	utilruntime.Must(capicp.AddToScheme(Scheme))
 	utilruntime.Must(apiextensionsv1.AddToScheme(Scheme))
 	utilruntime.Must(capiexp.AddToScheme(Scheme))
+	utilruntime.Must(v1alpha1supervisoridp.AddToScheme(Scheme))
+	utilruntime.Must(v1alpha1supervisorconf.AddToScheme(Scheme))
+	utilruntime.Must(v1alpha1conciergeauth.AddToScheme(Scheme))
 	// +kubebuilder:scaffold:scheme
 }

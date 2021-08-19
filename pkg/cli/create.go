@@ -49,6 +49,7 @@ type ClusterOptions struct {
 	GenerateFile bool
 	K8sVersion   string
 	Region       string
+	AuthEnabled  bool
 }
 
 func NewClusterOptions(streams genericclioptions.IOStreams) *ClusterOptions {
@@ -150,12 +151,13 @@ func (o *ClusterOptions) RunCreateCluster(f cmdutil.Factory, cmd *cobra.Command)
 		}
 	}
 	vars := map[string]interface{}{
-		"Flavor":     o.Flavor,
-		"SSHKey":     o.SshKeyName,
-		"Namespace":  o.Namespace,
-		"Name":       o.ClusterName,
-		"K8sVersion": o.K8sVersion,
-		"Region":     o.Region,
+		"Flavor":      o.Flavor,
+		"SSHKey":      o.SshKeyName,
+		"Namespace":   o.Namespace,
+		"Name":        o.ClusterName,
+		"K8sVersion":  o.K8sVersion,
+		"Region":      o.Region,
+		"AuthEnabled": o.AuthEnabled,
 	}
 	objs, err := template.GetObjs(fs.DefaultArchFS, "defaultarch", o.Infra, vars)
 	if err != nil {
@@ -210,6 +212,7 @@ func (o *ClusterOptions) AddFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.K8sVersion, "k8s-version", o.K8sVersion, "the Kubernetes version (default v1.19.8)")
 	flags.StringVar(&o.Region, "region", o.Region, "the region where cluster will be created")
 	flags.BoolVar(&o.GenerateFile, "generate-file", o.GenerateFile, "Generate cluster YAML file")
+	flags.BoolVar(&o.AuthEnabled, "enable-auth", o.AuthEnabled, "Activate the Authnz management feature")
 }
 
 func NewCmdCluster(f cmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {

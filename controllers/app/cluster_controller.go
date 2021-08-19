@@ -29,6 +29,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/template"
+	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -262,7 +263,6 @@ func (r *ClusterReconciler) hasDiff(cl *appv1alpha1.Cluster) bool {
 func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cluster) error {
 	const (
 		cniCalicoName = "calico"
-		chartRepo     = "https://registry.undistro.io/chartrepo/library"
 		calicoVersion = "3.19.1"
 	)
 
@@ -296,7 +296,7 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 				ClusterName:     fmt.Sprintf("%s/%s", cl.GetNamespace(), cl.Name),
 				Chart: appv1alpha1.ChartSource{
 					RepoChartSource: appv1alpha1.RepoChartSource{
-						RepoURL: chartRepo,
+						RepoURL: undistro.DefaultRepo,
 						Name:    cniCalicoName,
 						Version: calicoVersion,
 					},

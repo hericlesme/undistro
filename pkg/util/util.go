@@ -21,11 +21,14 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
+	"github.com/getupio-undistro/undistro/pkg/retry"
 	"io"
 	"math"
+	"math/rand"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
@@ -259,7 +262,48 @@ func IsLocalCluster(ctx context.Context, c client.Client) (bool, error) {
 }
 
 func ChartNameByFile(name string) string {
-	// just support chart-name format
-	// chart-name-test this format will fail
+	// just support `chart-name` format
+	// `chart-name-test` format will fail
 	return chartNameRegex.FindString(name)
+}
+
+const charset = "abcdefghijklmnopqrstuvwxyz" +
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+var seededRand = rand.New(
+	rand.NewSource(time.Now().UnixNano()))
+
+func stringWithCharset(length int, charset string) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
+func RandomString(length int) string {
+	return stringWithCharset(length, charset)
+}
+
+func GetCaFromSecret(ctx context.Context, c client.Client, secretName, dataField, ns string) (crt []byte, err error) {
+	objKey := client.ObjectKey{
+		Namespace: ns,
+		Name:      secretName,
+	}
+	secret := corev1.Secret{}
+	err = retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
+		err = c.Get(ctx, objKey, &secret)
+		if err != nil {
+			return errors.Errorf("unable to get CA secret %s: %v", secretName, err)
+		}
+		return nil
+	})
+	if err != nil {
+		return
+	}
+	return secret.Data[dataField], nil
+}
+
+func IsMgmtCluster(clusterName string) bool {
+	return clusterName == ""
 }

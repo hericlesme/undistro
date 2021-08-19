@@ -73,6 +73,7 @@ func (r *Cluster) Default() {
 			DisableIngressRules: true,
 		}
 	}
+	// check if the bastion is already created
 	if r.Spec.InfrastructureProvider.SSHKey != "" {
 		if r.Spec.Bastion.Enabled == nil {
 			r.Spec.Bastion.Enabled = &bastionEnabled
