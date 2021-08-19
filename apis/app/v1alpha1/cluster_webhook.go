@@ -30,7 +30,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -119,6 +119,12 @@ func (r *Cluster) validate(old *Cluster) error {
 			"must to be populated",
 		))
 	}
+	if !r.Spec.InfrastructureProvider.IsManaged() && reflect.DeepEqual(*r.Spec.ControlPlane, ControlPlaneNode{}) {
+		allErrs = append(allErrs, field.Required(
+			field.NewPath("spec", "controlPlane"),
+			"must to be populated",
+		))
+	}
 	if !util.ContainsStringInSlice(r.Spec.InfrastructureProvider.Flavors(), r.Spec.InfrastructureProvider.Flavor) {
 		allErrs = append(allErrs, field.Invalid(
 			field.NewPath("spec", "infrastructureProvider", "flavor"),
@@ -141,16 +147,6 @@ func (r *Cluster) validate(old *Cluster) error {
 		))
 	}
 	const immutableMsg = "field is immutable"
-	if old != nil && r.Spec.ControlPlane != nil && !r.Spec.InfrastructureProvider.IsManaged() {
-		if !reflect.DeepEqual(old.Spec.ControlPlane.Endpoint, capi.APIEndpoint{}) &&
-			!reflect.DeepEqual(r.Spec.ControlPlane.Endpoint, old.Spec.ControlPlane.Endpoint) {
-			allErrs = append(allErrs, field.Invalid(
-				field.NewPath("spec", "controlPlane", "endpoint"),
-				r.Spec.ControlPlane.Endpoint,
-				immutableMsg,
-			))
-		}
-	}
 	if old != nil {
 		if !reflect.DeepEqual(old.Spec.ControlPlane.Endpoint, capi.APIEndpoint{}) && !reflect.DeepEqual(old.Spec.Network.ClusterNetwork, capi.ClusterNetwork{}) {
 			if !meta.InReadyCondition(r.Status.Conditions) {

@@ -56,7 +56,6 @@ func InstallLocalCert(ctx context.Context, c client.Client) (err error) {
 
 	if !trusted(rootCert) {
 		err = truststore.Install(rootCert,
-			truststore.WithDebug(),
 			truststore.WithFirefox(),
 			truststore.WithJava(),
 		)

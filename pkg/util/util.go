@@ -36,7 +36,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	apiyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/klog/v2"
-	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -202,35 +201,6 @@ func Ordinalize(n int) string {
 		return fmt.Sprintf("%d%s", n, m[an])
 	}
 	return fmt.Sprintf("%d%s", n, m[an%10])
-}
-
-func GetMachinesForCluster(ctx context.Context, c client.Client, cluster *capi.Cluster) (cp *capi.MachineList, w *capi.MachineList, err error) {
-	var machines capi.MachineList
-	var machinesCP capi.MachineList
-	var machinesW capi.MachineList
-	if err := c.List(
-		ctx,
-		&machines,
-		client.InNamespace(cluster.Namespace),
-		client.MatchingLabels{
-			capi.ClusterLabelName: cluster.Name,
-		},
-	); err != nil {
-		return nil, nil, err
-	}
-	for _, m := range machines.Items {
-		if IsControlPlaneMachine(&m) {
-			machinesCP.Items = append(machinesCP.Items, m)
-			continue
-		}
-		machinesW.Items = append(machinesW.Items, m)
-	}
-	return &machinesCP, &machinesW, nil
-}
-
-func IsControlPlaneMachine(machine *capi.Machine) bool {
-	_, ok := machine.ObjectMeta.Labels[capi.MachineControlPlaneLabelName]
-	return ok
 }
 
 func ContainsStringInSlice(ss []string, str string) bool {

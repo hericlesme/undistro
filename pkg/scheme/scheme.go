@@ -22,9 +22,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
-	capicp "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha3"
-	capiexp "sigs.k8s.io/cluster-api/exp/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
+	capicp "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha4"
+	capiexp "sigs.k8s.io/cluster-api/exp/api/v1alpha4"
 )
 
 var (
