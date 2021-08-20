@@ -1,33 +1,11 @@
 ---
-identity:
-  enabled: false
-  name: undistro-identity
-  namespace: undistro-system
-  paused: false
-  oidc:
-    federationDomain:
-      issuer: https://example.supervisor.com
-      tlsSecretName: undistro-ingress-cert
-    provider:
-      issuer:
-        name: ""
-        # optional
-        url: ""
-        # optional
-        aditionalScopes: []
-        # optional
-        tlsSecretName: ""
-      claims: {}
-  credentials:
-    clientID: some-cool-id
-    clientSecret: super-secret-client-secret
 charts: {}
 dev: false
 image:
   pullPolicy: IfNotPresent
   pullSecrets: []
 global:
-  undistroVersion: v0.34.1
+  undistroVersion: v0.34.2
   undistroRepository: registry.undistro.io/library
 ingress:
   annotations: {}
@@ -51,3 +29,25 @@ resources:
   requests:
     cpu: "0.5"
     memory: 256Mi
+identity:
+  enabled: false
+  name: undistro-identity
+  namespace: undistro-system
+  paused: false
+  oidc:
+    federationDomain:
+      issuer: https://example.supervisor.com
+      tlsSecretName: undistro-ingress-cert
+    provider:
+      issuer:
+        name: ""
+        # optional
+        url: ""
+        # optional
+        aditionalScopes: []
+        # optional
+        tlsSecretName: ""
+      claims: {}
+  credentials:
+    clientID: some-cool-id
+    clientSecret: super-secret-client-secret
