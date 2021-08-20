@@ -403,7 +403,7 @@ func validateSupervisorConfig(ctx context.Context, c client.Client, out io.Write
 		return err
 	}
 	// edit configmap issuer address
-	f, _ := cm.Data["federationdomain.yaml"]
+	f := cm.Data["federationdomain.yaml"]
 	fede := strings.ReplaceAll(f, "|", "")
 	fedeDomain := make(map[string]interface{})
 	byt := []byte(fede)
@@ -457,7 +457,7 @@ func validateKindConfig(ctx context.Context, c client.Client, out io.Writer) err
 	}
 
 	// get the address-pools field and unmarshal it
-	metallbConfig, _ := cm.Data["config"]
+	metallbConfig := cm.Data["config"]
 	byt := []byte(metallbConfig)
 	type AddressPools struct {
 		Name      string   `json:"name,omitempty"`
@@ -495,7 +495,7 @@ func validateKindConfig(ctx context.Context, c client.Client, out io.Writer) err
 	)
 	err = cmd.Run()
 	if err != nil {
-		fmt.Fprintln(out, "error getting kind container IP", err.Error())
+		return err
 	}
 	// call undistro rollout to update metallb config
 	return nil

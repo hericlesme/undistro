@@ -16,11 +16,9 @@ limitations under the License.
 package cli
 
 import (
-	pinnipedcmd "github.com/getupio-undistro/undistro/third_party/pinniped/pinniped/cmd"
-
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
-
+	pinnipedcmd "github.com/getupio-undistro/undistro/third_party/pinniped/pinniped/cmd"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -56,7 +54,7 @@ func (o *KubeconfigOptions) Complete(f cmdutil.Factory, cmd *cobra.Command, args
 	if err != nil {
 		return err
 	}
-	if len(args) != 1 {
+	if len(args) != 1 && o.Admin {
 		return errors.New("required 1 argument")
 	}
 	o.ClusterName = args[0]

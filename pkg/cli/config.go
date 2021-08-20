@@ -18,6 +18,7 @@ package cli
 import (
 	"context"
 	"flag"
+
 	knet "k8s.io/apimachinery/pkg/util/net"
 
 	"github.com/getupio-undistro/undistro/pkg/meta"
@@ -63,9 +64,8 @@ func defaultValues(ctx context.Context, c client.Client, name string) map[string
 	ip, _ := knet.ChooseHostInterface()
 	switch name {
 	case "undistro":
-		undistroCfg := make(map[string]interface{})
-		if ip.String() != "" {
-			undistroCfg = map[string]interface{}{
+		if ip.String() != "" && isKind {
+			return map[string]interface{}{
 				"local": true,
 				"ingress": map[string]interface{}{
 					"ipAddresses": []string{
@@ -73,13 +73,11 @@ func defaultValues(ctx context.Context, c client.Client, name string) map[string
 					},
 				},
 			}
-		} else {
-			undistroCfg = map[string]interface{}{
+		}
+		if ip.String() == "" && isKind {
+			return map[string]interface{}{
 				"local": true,
 			}
-		}
-		if isKind {
-			return undistroCfg
 		}
 	case "ingress-nginx":
 		if isKind {

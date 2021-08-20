@@ -102,7 +102,7 @@ undistro get clusters yourclustername -n yourclusternamespace
 Once you have finished the installation retrieve the kubeconfig to access the created cluster:
 
 ```bash
-undistro get kubeconfig yourclustername -n yourclusternamespace
+undistro get kubeconfig yourclustername -n yourclusternamespace --admin
 ```
 
 - _For more information about UnDistro, please refer to the next topics of this document._
