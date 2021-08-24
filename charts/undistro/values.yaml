@@ -5,7 +5,7 @@ image:
   pullPolicy: IfNotPresent
   pullSecrets: []
 global:
-  undistroVersion: v0.34.2
+  undistroVersion: v0.34.3
   undistroRepository: registry.undistro.io/library
 ingress:
   annotations: {}
