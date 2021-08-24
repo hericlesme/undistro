@@ -238,32 +238,78 @@ const titleNavigation = [
 		id: '#10---community'
 	},
 	{
-		title: 'Glossary',
+		title: 'Development',
 		number: '11',
 		subtitle: [
 			{
-				title: 'Management Cluster',
+				title: 'How to setup the development environment',
 				number: '11.1',
+				subtitle: [
+					{
+						title: 'Backend',
+						number: '11.1.1',
+						id: '#backend'
+					},
+					{
+						title: 'Frontend',
+						number: '11.1.2',
+						id: '#frontend'
+					}
+				],
+				id: '#how-to-setup-the-development-environment'
+			},
+			{
+				title: 'How to add a new provider',
+				number: '11.2',
+				id: '#how-to-add-a-new-provider'
+			},
+			{
+				title: 'How to update the documentation',
+				number: '11.3',
+				id: '#how-to-update-the-documentation'
+			},
+			{
+				title: 'How all components communicate',
+				number: '11.4',
+				id: '#how-all-components-communicate',
+				subtitle: [
+					{
+						title: 'Connectivity',
+						number: '11.4.1',
+						id: '#connectivity'
+					}
+				]
+			}
+		],
+		id: '#11---development'
+	},
+	{
+		title: 'Glossary',
+		number: '12',
+		subtitle: [
+			{
+				title: 'Management Cluster',
+				number: '12.1',
 				id: '#management-cluster'
 			},
 			{
 				title: 'Provider Components',
-				number: '11.2',
+				number: '12.2',
 				id: '#provider-components'
 			},
 			{
 				title: 'Infrastructure Provider',
-				number: '11.3',
+				number: '12.3',
 				id: '#infrastructure-provider'
 			},
 			{
 				title: 'Core Provider',
-				number: '11.4',
+				number: '12.4',
 				id: '#core-provider'
 			}
 		],
-		id: '#11---glossary'
-	},
+		id: '#12---glossary'
+	}
 ]
 
 export default titleNavigation
