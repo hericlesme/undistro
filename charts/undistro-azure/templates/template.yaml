@@ -1,0 +1,1001 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: capz-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: capz-manager
+  namespace: undistro-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/port: "8443"
+    prometheus.io/scheme: https
+    prometheus.io/scrape: "true"
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+    control-plane: undistro-azure-config
+  name: undistro-azure-config-metrics-service
+  namespace: undistro-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    targetPort: https
+  selector:
+    cluster.x-k8s.io/provider: infrastructure-azure
+    control-plane: undistro-azure-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-webhook-service
+  namespace: undistro-system
+spec:
+  ports:
+  - port: 443
+    targetPort: webhook-server
+  selector:
+    cluster.x-k8s.io/provider: infrastructure-azure
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    aadpodidbinding: capz-controller-aadpodidentity-selector
+    cluster.x-k8s.io/provider: infrastructure-azure
+    control-plane: undistro-azure-config
+  name: undistro-azure-config
+  namespace: undistro-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/provider: infrastructure-azure
+      control-plane: undistro-azure-config
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-logs-container: manager
+      labels:
+        aadpodidbinding: capz-controller-aadpodidentity-selector
+        cluster.x-k8s.io/provider: infrastructure-azure
+        control-plane: undistro-azure-config
+    spec:
+      containers:
+      - args:
+        - --leader-elect
+        - --metrics-bind-addr=127.0.0.1:8080
+        - --feature-gates=MachinePool=true,AKS=true
+        - --v=0
+        env:
+        - name: AZURE_SUBSCRIPTION_ID
+          valueFrom:
+            secretKeyRef:
+              key: subscription-id
+              name: undistro-system
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              key: tenant-id
+              name: undistro-system
+        - name: AZURE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: client-id
+              name: undistro-system
+        - name: AZURE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: client-secret
+              name: undistro-system
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: registry.undistro.io/usgcr/k8s-artifacts-prod/cluster-api-azure/cluster-api-azure-controller:v0.5.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: healthz
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        name: manager
+        ports:
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
+        - containerPort: 9440
+          name: healthz
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: healthz
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
+      - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=10
+        image: registry.undistro.io/usgcr/kubebuilder/kube-rbac-proxy:v0.8.0
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
+      serviceAccountName: capz-manager
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: capz-webhook-service-cert
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+    component: nmi
+    k8s-app: aad-pod-id
+    tier: node
+  name: capz-nmi
+  namespace: undistro-system
+spec:
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/provider: infrastructure-azure
+      component: nmi
+      tier: node
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/provider: infrastructure-azure
+        component: nmi
+        tier: node
+    spec:
+      containers:
+      - args:
+        - --node=$(NODE_NAME)
+        - --operation-mode=managed
+        - --forceNamespaced
+        - --http-probe-port=8085
+        env:
+        - name: FORCENAMESPACED
+          value: "true"
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: LOG_LEVEL
+          value: DEBUG
+        image: registry.undistro.io/azure/oss/azure/aad-pod-identity/nmi:v1.8.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8085
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        name: nmi
+        resources:
+          limits:
+            cpu: 200m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        securityContext:
+          capabilities:
+            add:
+            - DAC_READ_SEARCH
+            - NET_ADMIN
+            - NET_RAW
+            drop:
+            - ALL
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /run/xtables.lock
+          name: iptableslock
+        - mountPath: /etc/default/kubelet
+          name: kubelet-config
+          readOnly: true
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      nodeSelector:
+        kubernetes.io/os: linux
+      serviceAccountName: capz-manager
+      volumes:
+      - hostPath:
+          path: /run/xtables.lock
+          type: FileOrCreate
+        name: iptableslock
+      - hostPath:
+          path: /etc/default/kubelet
+          type: FileOrCreate
+        name: kubelet-config
+  updateStrategy:
+    type: RollingUpdate
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-serving-cert
+  namespace: undistro-system
+spec:
+  dnsNames:
+  - capz-webhook-service.undistro-system.svc
+  - capz-webhook-service.undistro-system.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: capz-selfsigned-issuer
+  secretName: capz-webhook-service-cert
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-selfsigned-issuer
+  namespace: undistro-system
+spec:
+  selfSigned: {}
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: undistro-system/capz-serving-cert
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /mutate-infrastructure-cluster-x-k8s-io-v1alpha4-azurecluster
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: default.azurecluster.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azureclusters
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /mutate-infrastructure-cluster-x-k8s-io-v1alpha4-azuremachine
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: default.azuremachine.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azuremachines
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /mutate-infrastructure-cluster-x-k8s-io-v1alpha4-azuremachinetemplate
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: default.azuremachinetemplate.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azuremachinetemplates
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /mutate-infrastructure-cluster-x-k8s-io-v1alpha4-azuremachinepool
+  failurePolicy: Fail
+  name: default.azuremachinepool.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azuremachinepools
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /mutate-infrastructure-cluster-x-k8s-io-v1alpha4-azuremanagedcontrolplane
+  failurePolicy: Fail
+  name: default.azuremanagedcontrolplanes.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azuremanagedcontrolplanes
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /mutate-infrastructure-cluster-x-k8s-io-v1alpha4-azuremanagedmachinepool
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: default.azuremanagedmachinepools.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azuremanagedmachinepools
+  sideEffects: None
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: undistro-system/capz-serving-cert
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /validate-infrastructure-cluster-x-k8s-io-v1alpha4-azurecluster
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: validation.azurecluster.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azureclusters
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /validate-infrastructure-cluster-x-k8s-io-v1alpha4-azuremachine
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: validation.azuremachine.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azuremachines
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /validate-infrastructure-cluster-x-k8s-io-v1alpha4-azuremachinetemplate
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: validation.azuremachinetemplate.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azuremachinetemplates
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /validate-infrastructure-cluster-x-k8s-io-v1alpha4-azuremachinepool
+  failurePolicy: Fail
+  name: validation.azuremachinepool.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azuremachinepools
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /validate-infrastructure-cluster-x-k8s-io-v1alpha4-azuremachinepoolmachine
+  failurePolicy: Fail
+  name: azuremachinepoolmachine.kb.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azuremachinepoolmachines
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /validate-infrastructure-cluster-x-k8s-io-v1alpha4-azuremanagedcontrolplane
+  failurePolicy: Fail
+  name: validation.azuremanagedcontrolplanes.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - azuremanagedcontrolplanes
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: capz-webhook-service
+      namespace: undistro-system
+      path: /validate-infrastructure-cluster-x-k8s-io-v1alpha4-azuremanagedmachinepool
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: validation.azuremanagedmachinepools.infrastructure.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - infrastructure.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha4
+    operations:
+    - UPDATE
+    - DELETE
+    resources:
+    - azuremanagedmachinepools
+  sideEffects: None
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-manager
+  namespace: undistro-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-leader-election-role
+  namespace: undistro-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-aad-pod-id-nmi-role
+rules:
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - aadpodidentity.k8s.io
+  resources:
+  - azureidentitybindings
+  - azureidentities
+  - azurepodidentityexceptions
+  verbs:
+  - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - aadpodidentity.k8s.io
+  resources:
+  - azureidentities
+  - azureidentities/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - aadpodidentity.k8s.io
+  resources:
+  - azureidentitybindings
+  - azureidentitybindings/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cluster.x-k8s.io
+  resources:
+  - clusters
+  - clusters/status
+  verbs:
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - cluster.x-k8s.io
+  resources:
+  - machinepools
+  - machinepools/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cluster.x-k8s.io
+  resources:
+  - machines
+  - machines/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azureclusteridentities
+  - azureclusteridentities/status
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azureclusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azureclusters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremachinepoolmachines
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremachinepoolmachines/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremachinepools
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremachinepools/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremachines
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremachines/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremachinetemplates
+  - azuremachinetemplates/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremanagedclusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremanagedclusters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremanagedcontrolplanes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremanagedcontrolplanes/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremanagedmachinepools
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - azuremanagedmachinepools/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-leader-election-rolebinding
+  namespace: undistro-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: capz-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: capz-manager
+  namespace: undistro-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+    k8s-app: capz-aad-pod-id-nmi-binding
+  name: capz-aad-pod-id-nmi-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: capz-aad-pod-id-nmi-role
+subjects:
+- kind: ServiceAccount
+  name: capz-manager
+  namespace: undistro-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-azure
+  name: capz-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: capz-manager-role
+subjects:
+- kind: ServiceAccount
+  name: capz-manager
+  namespace: undistro-system
