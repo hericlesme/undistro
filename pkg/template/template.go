@@ -51,7 +51,8 @@ func New(options ...Options) (*Render, error) {
 	funcs := []template.FuncMap{
 		sprig.TxtFuncMap(),
 		{
-			"slugtaint": slugfyTaintEffect,
+			"slugtaint":   slugfyTaintEffect,
+			"credentials": credentials,
 		},
 	}
 	var o Options
@@ -136,6 +137,14 @@ func (r *Render) compileTemplates() error {
 
 func slugfyTaintEffect(taintEffect corev1.TaintEffect) string {
 	return util.Slugify(string(taintEffect))
+}
+
+func credentials(m map[string][]byte, key string) string {
+	v := m[key]
+	if v == nil {
+		return ""
+	}
+	return string(v)
 }
 
 // TemplateLookup is a wrapper around template.Lookup and returns

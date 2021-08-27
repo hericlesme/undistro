@@ -32,6 +32,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -118,6 +119,17 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 	if err != nil {
 		return nil, err
 	}
+	secretName := fmt.Sprintf("undistro-%s-config", cl.Spec.InfrastructureProvider.Name)
+	key := client.ObjectKey{
+		Name:      secretName,
+		Namespace: undistro.Namespace,
+	}
+	s := corev1.Secret{}
+	err = r.Get(ctx, key, &s)
+	if err != nil {
+		return nil, err
+	}
+	vars["Credentials"] = s.Data
 	vars["Cluster"] = cl
 	vars["ENV"] = v
 	acc, err := cloud.GetAccount(ctx, c, cl)
