@@ -181,7 +181,7 @@ func (o *InstallOptions) installChart(restGetter genericclioptions.RESTClientGet
 		fmt.Fprintf(o.IOStreams.Out, "Installing %s version %s\n", dep.Name(), dep.AppVersion())
 	}
 	wait := true
-	forceUpgrade := true
+	forceUpgrade := false
 	reset := false
 	history := 0
 	_, dev := os.LookupEnv("DEV_ENV")
@@ -489,7 +489,7 @@ func validateKindConfig(ctx context.Context, c client.Client, out io.Writer) err
 	}
 
 	cmd = exec.Command(
-		"undistro",
+		"kubectl",
 		"-n", "undistro-system",
 		"rollout", "restart", "deployment", "metallb-controller",
 	)

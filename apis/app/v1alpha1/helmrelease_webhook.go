@@ -96,7 +96,7 @@ func (r *HelmRelease) Default() {
 		r.Spec.MaxHistory = &h
 	}
 	if r.Spec.ForceUpgrade == nil {
-		force := true
+		force := false
 		r.Spec.ForceUpgrade = &force
 	}
 	for i := range r.Spec.ValuesFrom {
