@@ -91,6 +91,10 @@ func (r *HelmRelease) Default() {
 		reset := false
 		r.Spec.ResetValues = &reset
 	}
+	if r.Spec.ReuseValues == nil {
+		reuse := false
+		r.Spec.ReuseValues = &reuse
+	}
 	if r.Spec.MaxHistory == nil {
 		h := 10
 		r.Spec.MaxHistory = &h

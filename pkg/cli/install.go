@@ -183,6 +183,7 @@ func (o *InstallOptions) installChart(restGetter genericclioptions.RESTClientGet
 	wait := true
 	forceUpgrade := false
 	reset := false
+	reuse := false
 	history := 0
 	_, dev := os.LookupEnv("DEV_ENV")
 	label := strings.TrimPrefix(chartName, "undistro-")
@@ -213,6 +214,7 @@ func (o *InstallOptions) installChart(restGetter genericclioptions.RESTClientGet
 			Wait:            &wait,
 			MaxHistory:      &history,
 			ResetValues:     &reset,
+			ReuseValues:     &reuse,
 			ForceUpgrade:    &forceUpgrade,
 			Timeout: &metav1.Duration{
 				Duration: 5 * time.Minute,

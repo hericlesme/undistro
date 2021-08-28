@@ -86,6 +86,7 @@ func (r *Runner) Upgrade(hr appv1alpha1.HelmRelease, chart *chart.Chart, values 
 	upgrade := action.NewUpgrade(r.config)
 	upgrade.Namespace = hr.Spec.TargetNamespace
 	upgrade.ResetValues = *hr.Spec.ResetValues
+	upgrade.ReuseValues = *hr.Spec.ReuseValues
 	upgrade.MaxHistory = *hr.Spec.MaxHistory
 	upgrade.Timeout = hr.Spec.Timeout.Duration
 	upgrade.Wait = *hr.Spec.Wait
