@@ -42,7 +42,6 @@ spec:
     apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
     name: "{{.Cluster.Name}}"
     namespace: "{{.Cluster.Namespace}}"
-
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: AzureCluster
@@ -50,12 +49,12 @@ metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
 spec:
-  location:  "{{ .Cluster.Spec.InfrastructureProvider.Region}}"
+  location: "{{ .Cluster.Spec.InfrastructureProvider.Region}}"
   resourceGroup: "{{.Cluster.Name}}"
   subscriptionID: {{credentials .Credentials "subscriptionID"}}
   identityRef:
     kind: AzureClusterIdentity
-    name: default
+    name: "{{.Cluster.Namespace}}"
     namespace: undistro-system
   {{if .Cluster.Spec.ControlPlane.InternalLB}}
   controlPlaneLoadBalancer:
@@ -68,52 +67,45 @@ spec:
     port: {{.Cluster.Spec.ControlPlane.Endpoint.Port}}
   {{end}}
   {{end}}
-  {{if .Cluster.Spec.InfrastructureProvider.SSHKey}}
   {{if .Cluster.Spec.Bastion.Enabled}}
-  {{$lenBlocks := len .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
-  bastion:
-    enabled: {{ .Cluster.Spec.Bastion.Enabled}}
-    {{if eq $lenBlocks 0}}
-    disableIngressRules: {{.Cluster.Spec.Bastion.DisableIngressRules}}
-    {{end}}
-    instanceType: {{ .Cluster.Spec.Bastion.InstanceType}}
-    allowedCIDRBlocks:
-    {{- range  .Cluster.Spec.Bastion.AllowedCIDRBlocks}}
-      - {{.}}
-    {{- end}}
-  {{end}}
+  bastionSpec:
+    azureBastion: {}
   {{end}}
   {{if .Cluster.Spec.Network}}
-  network:
+  networkSpec:
     {{if .Cluster.Spec.Network.VPC}}
-    vpc:
+    vnet:
       {{if .Cluster.Spec.Network.VPC.ID}}
       id: {{ .Cluster.Spec.Network.VPC.ID}}
       {{end}}
-      {{if .Cluster.Spec.Network.MultiZone}}
-      availabilityZoneUsageLimit: 3
-      {{else}}
-      availabilityZoneUsageLimit: 1
-      {{end}}
       {{if .Cluster.Spec.Network.VPC.CIDRBlock}}
-      cidrBlock: {{ .Cluster.Spec.Network.VPC.CIDRBlock}}
+      cidrBlocks: 
+        {{- range    .Cluster.Spec.Network.CIDRBlocks}}
+          - {{.}}
+        {{- end}}
       {{end}}
-    {{end}}
+      resourceGroup: "{{.Cluster.Name}}"
+      name: "{{.Cluster.Name}}-vnet"
     subnets:
+    {{if .Cluster.Spec.Network.Subnets}}
     {{range .Cluster.Spec.Network.Subnets}}
     -
-     {{if .ID}}
-     id: {{.ID}}
-     {{end}}
-     {{if .CIDRBlock}}
-     cidrBlock: {{.CIDRBlock}}
-     {{end}}
-     {{if .Zone}}
-     availabilityZone: {{.Zone}}
-     {{end}}
-     {{if .IsPublic}}
-     isPublic: {{.IsPublic}}
-     {{end}}
+      {{if .ID}}
+      id: {{.ID}}
+      {{end}}
+      {{if .CIDRBlock}}
+      cidrBlocks: {{.CIDRBlock}}
+      {{end}}
+      name: "{{ .Cluster.Name }}-{{ .Cluster.Name.Spec.Network.Role }}"
+      role: {{ .Cluster.Name.Spec.Network.Role }}
+    {{end}}
+    {{else}}
+      - id: "{{ .Cluster.Name }}-control-plane"
+        name: "{{ .Cluster.Name }}-control-plane"
+        role: control-plane
+      - id:  "{{ .Cluster.Name }}-worker"
+        name: "{{ .Cluster.Name }}-worker"
+        role: node
     {{end}}
   {{end}}
 ---
@@ -121,12 +113,12 @@ kind: KubeadmControlPlane
 apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
 metadata:
   name: "{{.Cluster.Name}}"
-  namespace: "{{.Cluster.Namespace}}"
+namespace: "{{.Cluster.Namespace}}"
 spec:
   replicas: {{ .Cluster.Spec.ControlPlane.Replicas}}
   machineTemplate:
     infrastructureRef:
-      kind: AWSMachineTemplate
+      kind: AzureMachineTemplate
       apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
       name: "{{.Cluster.Name}}-cp-{{.Cluster.Status.LastUsedUID}}"
       namespace: "{{.Cluster.Namespace}}"
@@ -136,7 +128,9 @@ spec:
       nodeRegistration:
         name: {{"'{{ ds.meta_data.local_hostname }}'"}}
         kubeletExtraArgs:
-          cloud-provider: aws
+          azure-container-registry-config: /etc/kubernetes/azure.json
+          cloud-config: /etc/kubernetes/azure.json
+          cloud-provider: azure
           {{$taints := .Cluster.Spec.ControlPlane.TaintTmpl}}
           {{if $taints}}
           register-with-taints: "{{$taints}}"
@@ -153,20 +147,31 @@ spec:
       etcd:
         local:
           imageRepository: registry.undistro.io/k8s
+            dataDir: /var/lib/etcddisk/etcd  
+            extraArgs:
+              quota-backend-bytes: "8589934592"
       apiServer:
         extraArgs:
-          cloud-provider: aws
+          cloud-config: /etc/kubernetes/azure.json
+          cloud-provider: azure
+            extraVolumes:
+            - hostPath: /etc/kubernetes/azure.json
+              mountPath: /etc/kubernetes/azure.json
+              name: cloud-config
+              readOnly: true
+              timeoutForControlPlane: 20m
       controllerManager:
         extraArgs:
-          cloud-provider: aws
-          {{if .Cluster.Spec.Network.VPC.ID}}
-          configure-cloud-routes: 'false'
-          {{end}}
+          cloud-provider: azure
+            allocate-node-cidrs: "false"
+            cloud-config: /etc/kubernetes/azure.json
+            cloud-provider: azure
+            cluster-name: {{ .Cluster.Name }}
     joinConfiguration:
       nodeRegistration:
         name: {{"'{{ ds.meta_data.local_hostname }}'"}}
         kubeletExtraArgs:
-          cloud-provider: aws
+          cloud-provider: azure
           {{$taints := .Cluster.Spec.ControlPlane.TaintTmpl}}
           {{if $taints}}
           register-with-taints: "{{$taints}}"
@@ -177,29 +182,33 @@ spec:
           {{end}}
   version: "{{.Cluster.Spec.KubernetesVersion}}"
 ---
-kind: AWSMachineTemplate
+kind: AzureMachineTemplate
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 metadata:
   name: "{{.Cluster.Name}}-cp-{{.Cluster.Status.LastUsedUID}}"
   namespace: "{{.Cluster.Namespace}}"
 spec:
+  {{if .Cluster.Spec.ControlPlane.ProviderTags}}
+  additionalTags:
+  {{range $key, $value := .Cluster.Spec.ControlPlane.ProviderTags}}
+  {{$key}}: {{$value | quote}}
+  {{end}}
+  {{end}}
   template:
-    spec:
-      instanceType: "{{.Cluster.Spec.ControlPlane.MachineType}}"
-      iamInstanceProfile: "control-plane.cluster-api-provider-aws.sigs.k8s.io"
-      {{if .Cluster.Spec.InfrastructureProvider.SSHKey}}
-      sshKeyName: "{{ .Cluster.Spec.InfrastructureProvider.SSHKey}}"
-      {{end}}
-      {{if .Cluster.Spec.ControlPlane.ProviderTags}}
-      additionalTags:
-        {{range $key, $value := .Cluster.Spec.ControlPlane.ProviderTags}}
-        {{$key}}: {{$value | quote}}
-        {{end}}
-      {{end}}
-      {{if .Cluster.Spec.ControlPlane.Subnet}}
-      subnet:
-        id: {{.Cluster.Spec.ControlPlane.Subnet}}
-      {{end}}
+    {{if .Cluster.Spec.ControlPlane.Subnet}}
+    subnetName: {{.Cluster.Spec.ControlPlane.Subnet}}
+    {{end}}
+    dataDisks:
+      - diskSizeGB: 256
+        lun: 0
+        nameSuffix: etcddisk
+    osDisk:
+      diskSizeGB: 128
+      osType: Linux
+    {{if .Cluster.Spec.InfrastructureProvider.SSHKey}}
+    sshPublicKey: "{{ .Cluster.Spec.InfrastructureProvider.SSHKey}}"
+    {{end}}
+    vmSize: {{.Cluster.Spec.ControlPlane.MachineType}}
 ---
 apiVersion: cluster.x-k8s.io/v1alpha4
 kind: MachineHealthCheck
@@ -233,7 +242,7 @@ apiVersion: cluster.x-k8s.io/v1alpha4
 kind: MachinePool
 metadata:
   name: "{{$name}}-mp-{{$index}}"
-  namespace: "{{$namespace}}"
+  namespace: {{ $namespace }}
 spec:
   clusterName: {{$name}}
   replicas: {{$element.Replicas}}
@@ -243,63 +252,52 @@ spec:
         configRef:
           apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
           kind: KubeadmConfig
-          name: "{{$name}}-mp-{{$uid}}-{{$index}}"
+          name: "{{$name}}-mp-{{$index}}"
           namespace: "{{$namespace}}"
       clusterName: {{$name}}
       infrastructureRef:
         apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-        kind: AWSMachinePool
+        kind: AzureMachinePool
         name: "{{$name}}-mp-{{$index}}"
         namespace: "{{$namespace}}"
       version: "{{$k8s}}"
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-kind: AWSMachinePool
+kind: AzureMachinePool
 metadata:
   name: "{{$name}}-mp-{{$index}}"
-  namespace: "{{$namespace}}"
+  namespace: {{ $namespace }}
 spec:
-  {{if $element.Autoscale.Enabled}}
-  minSize: {{$element.Autoscale.MinSize}}
-  maxSize: {{$element.Autoscale.MaxSize}}
-  {{else}}
-  minSize: {{$element.Replicas}}
-  maxSize: {{$element.Replicas}}
-  {{end}}
+  location: {{ $region }}
+  strategy:
+    rollingUpdate:
+      deletePolicy: Oldest
+      maxSurge: 25%
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    osDisk:
+      diskSizeGB: 30
+      osType: Linux
+    {{if .Cluster.Spec.InfrastructureProvider.SSHKey}}
+    sshPublicKey: {{ $sshKey }}
+    {{end}}
+    vmSize: {{ $element.MachineType }}
   {{if $element.ProviderTags}}
   additionalTags:
     {{range $key, $value := $element.ProviderTags}}
     {{$key}}: {{$value | quote}}
     {{end}}
   {{end}}
-  {{if $subnets}}
-  availabilityZones: 
-    {{- range $subnets}}
-    - {{.Zone}}
-    {{- end}}
-  {{end}}
-  awsLaunchTemplate:
-    instanceType: "{{$element.MachineType}}"
-    {{if $element.LaunchTemplateReference.ID}}
-    id: {{$element.LaunchTemplateReference.ID}}
-    {{end}}
-    {{if $element.LaunchTemplateReference.Version}}
-    versionNumber: {{$element.LaunchTemplateReference.Version}}
-    {{end}}
-    {{if $sshKey}}
-    sshKeyName: "{{$sshKey}}"
-    {{end}}
-    iamInstanceProfile: "nodes.cluster-api-provider-aws.sigs.k8s.io"
   {{if $element.Subnet}}
-  subnets:
-    - {{$element.Subnet}}
+  subnetName: {{$element.Subnet}}
   {{end}}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
 kind: KubeadmConfig
 metadata:
   name: "{{$name}}-mp-{{$uid}}-{{$index}}"
-  namespace: "{{$namespace}}"
+  namespace: {{ $name }}
 spec:
   useExperimentalRetryJoin: true
   clusterConfiguration:
@@ -314,7 +312,9 @@ spec:
     nodeRegistration:
       name: {{"'{{ ds.meta_data.local_hostname }}'"}}
       kubeletExtraArgs:
-        cloud-provider: aws
+        azure-container-registry-config: /etc/kubernetes/azure.json
+        cloud-config: /etc/kubernetes/azure.json
+        cloud-provider: azure
         {{$taints := $element.TaintTmpl}}
         {{if $taints}}
         register-with-taints: "{{$taints}}"

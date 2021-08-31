@@ -1,0 +1,116 @@
+---
+apiVersion: cluster.x-k8s.io/v1alpha4
+kind: Cluster
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Name}}"
+spec:
+  paused: {{.Cluster.Spec.Paused}}
+  {{if .Cluster.Spec.Network}}
+  clusterNetwork:  
+    {{if .Cluster.Spec.Network.Pods}}
+    pods:
+      {{range .Cluster.Spec.Network.Pods}}
+      cidrBlocks:
+        - {{. | quote}}
+      {{end}}
+    {{end}}
+    {{if .Cluster.Spec.Network.Services}}
+    services:
+      {{range .Cluster.Spec.Network.Services}}
+      cidrBlocks:
+        - {{. | quote}}
+      {{end}}
+    {{end}}
+  {{end}}
+  {{if .Cluster.Spec.ControlPlane}}
+  {{if .Cluster.Spec.ControlPlane.Endpoint}}
+  controlPlaneEndpoint:
+    host: {{.Cluster.Spec.ControlPlane.Endpoint.Host}}
+    port: {{.Cluster.Spec.ControlPlane.Endpoint.Port}}
+  {{end}}
+  {{end}}
+  controlPlaneRef:
+    kind: AzureManagedControlPlane
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+    name: "{{.Cluster.Name}}"
+    namespace: "{{.Cluster.Namespace}}"
+  infrastructureRef:
+    kind: AzureManagedCluster
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+    name: "{{.Cluster.Name}}"
+    namespace: "{{.Cluster.Namespace}}"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AzureManagedCluster
+metadata:
+  name: {{ Cluster.Name }}
+  namespace: "{{.Cluster.Namespace}}"
+---
+apiVersion: cluster.x-k8s.io/v1alpha4
+kind: AzureManagedMachinePool
+metadata:
+  name: {{ .Cluster.Name }}
+  namespace: {{ .Cluster.Namespace }}
+spec:
+  mode: System
+  replicas: {{ .Cluster.ControlPlane.Spec.Replicas }}
+  networkPolicy: "calico"
+  osDiskSizeGB: 0
+  sku: {{ cluster.ControlPlane.MachineType }}
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: AzureManagedControlPlane
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  identityRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+    kind: AzureClusterIdentity
+    name: {{ .Cluster.Name }}
+  location: "{{ .Cluster.Spec.InfrastructureProvider.Region}}"
+  {{if .Cluster.Spec.InfrastructureProvider.SSHKey}}
+  sshPublicKey: "{{.Cluster.Spec.InfrastructureProvider.SSHKey}}"
+  {{end}}
+  subscriptionID: {{credentials .Credentials "subscriptionID"}}
+  version: "{{.Cluster.Spec.KubernetesVersion}}"
+{{$name := .Cluster.Name}}
+{{$namespace := .Cluster.Namespace}}
+{{$k8s := .Cluster.Spec.KubernetesVersion}}
+{{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
+{{$uid := .Cluster.Status.LastUsedUID}}
+{{range $index, $element := .Cluster.Spec.Workers}}
+---
+apiVersion: cluster.x-k8s.io/v1alpha4
+kind: MachinePool
+metadata:
+  name: "{{$name}}-mp-{{$index}}"
+  namespace: {{ $namespace }}
+spec:
+  clusterName: {{ $name }}
+  replicas: {{ $element.Replicas }}
+  template:
+    metadata: {}
+    spec:
+      bootstrap:
+        dataSecretName: ""
+      clusterName: {{$name}}
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+        kind: AzureManagedMachinePool
+        name: "{{$name}}-mp-{{$index}}"
+        namespace: "{{$namespace}}"
+      version: "{{$k8s}}"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AzureManagedMachinePool
+metadata:
+  name: "{{$name}}-mp-{{$index}}"
+  namespace: {{ $namespace }}
+spec:
+  networkPolicy: "calico"
+  mode: User
+  osDiskSizeGB: 0
+  sku: {{ $element.MachineType }}
+{{end}}

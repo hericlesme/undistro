@@ -142,6 +142,7 @@ type NetworkSpec struct {
 	CIDRBlock string `json:"cidrBlock,omitempty"`
 	Zone      string `json:"zone,omitempty"`
 	IsPublic  bool   `json:"isPublic,omitempty"`
+	Role      string `json:"role,omitempty"`
 }
 
 type Network struct {
