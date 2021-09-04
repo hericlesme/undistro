@@ -18,6 +18,7 @@ package cli
 import (
 	"context"
 	"flag"
+	"fmt"
 
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
@@ -56,6 +57,28 @@ func (f *ConfigFlags) AddFlags(flags *pflag.FlagSet, goflags *flag.FlagSet) {
 
 func stringptr(s string) *string {
 	return &s
+}
+
+func getIPFromConfig(cfg map[string]interface{}) string {
+	fmt.Println(cfg)
+	undistroCfg, ok := cfg["undistro"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	ingressCfg, ok := undistroCfg["ingress"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	fmt.Println(ingressCfg)
+	hosts, ok := ingressCfg["hosts"].([]interface{})
+	if !ok {
+		return ""
+	}
+
+	if len(hosts) == 0 {
+		return ""
+	}
+	return hosts[0].(string)
 }
 
 func defaultValues(ctx context.Context, c client.Client, name string) map[string]interface{} {

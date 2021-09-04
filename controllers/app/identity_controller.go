@@ -21,15 +21,21 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
+	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/kube"
+	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/undistro/pkg/retry"
+	"github.com/getupio-undistro/undistro/pkg/undistro"
+	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	conciergev1aplha1 "go.pinniped.dev/generated/latest/apis/concierge/authentication/v1alpha1"
 	supervisorconfigv1aplha1 "go.pinniped.dev/generated/latest/apis/supervisor/config/v1alpha1"
 	supervisoridpv1aplha1 "go.pinniped.dev/generated/latest/apis/supervisor/idp/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,14 +44,6 @@ import (
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/yaml"
-
-	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
-	"github.com/getupio-undistro/undistro/pkg/kube"
-	"github.com/getupio-undistro/undistro/pkg/meta"
-	"github.com/getupio-undistro/undistro/pkg/retry"
-	"github.com/getupio-undistro/undistro/pkg/undistro"
-	"github.com/getupio-undistro/undistro/pkg/util"
 )
 
 const (
@@ -136,31 +134,42 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, req ctrl.Request, i 
 		r.Log.Info(err.Error())
 		return err
 	}
+	values := map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"namespace": undistro.Namespace,
+		},
+	}
 
-	err = r.reconcileComponentInstallation(ctx, req, cl, i, concierge, undistro.Namespace)
+	err = r.reconcileComponentInstallation(ctx, req, cl, i, concierge, undistro.Namespace, "0.10.0", values)
 	if err != nil {
 		r.Log.Info(err.Error())
 		return err
 	}
 	fedo := make(map[string]interface{})
+	o, err := util.GetFromConfigMap(
+		ctx, clusterClient, "identity-config", undistro.Namespace, "federationdomain.yaml", fedo)
+	fedo = o.(map[string]interface{})
+	if err != nil {
+		r.Log.Info(err.Error())
+		return err
+	}
+	issuer := fedo["issuer"].(string)
 	if util.IsMgmtCluster(i.Spec.ClusterName) {
 		r.Log.Info("Installing Pinniped components in cluster ", "cluster-name", i.Spec.ClusterName)
 		r.Log.Info("Installing components in management cluster")
 		cl.Name = "management"
 		cl.Namespace = undistro.Namespace
-		// install supervisor
-		err = r.reconcileComponentInstallation(ctx, req, cl, i, supervisor, undistro.Namespace)
+		// regex to get ip or dns names
+		callbackURL := fmt.Sprintf("https://%s/callback", hostFromURL(issuer))
+		values["config"] = map[string]interface{}{
+			"callbackURL": callbackURL,
+		}
+		err = r.reconcileComponentInstallation(ctx, req, cl, i, supervisor, undistro.Namespace, "0.10.0-undistro", values)
 		if err != nil {
 			r.Log.Info(err.Error())
 			return err
 		}
-		o, err := getFromConfigMap(
-			ctx, clusterClient, "identity-config", undistro.Namespace, "federationdomain.yaml", fedo)
-		fedo = o.(map[string]interface{})
-		if err != nil {
-			r.Log.Info(err.Error())
-			return err
-		}
+
 		err = r.reconcileFederationDomain(ctx, fedo)
 		if err != nil {
 			r.Log.Info(err.Error())
@@ -179,12 +188,20 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, req ctrl.Request, i 
 		}
 	}
 
-	err = r.reconcileJWTAuthenticator(ctx, clusterClient, fedo["issuer"].(string))
+	err = r.reconcileJWTAuthenticator(ctx, clusterClient, issuer)
 	if err != nil {
 		r.Log.Info(err.Error())
 		return err
 	}
 	return err
+}
+
+func hostFromURL(input string) string {
+	u, err := url.Parse(input)
+	if err != nil {
+		return ""
+	}
+	return u.Host
 }
 
 func (r *IdentityReconciler) reconcileFederationDomain(ctx context.Context, federationDomainCfg map[string]interface{}) error {
@@ -222,10 +239,10 @@ func (r *IdentityReconciler) reconcileFederationDomain(ctx context.Context, fede
 }
 
 func (r *IdentityReconciler) reconcileOIDCProvider(ctx context.Context) error {
-	r.Log.Info("Reconciling OIDC Provider")
+	r.Log.Info("Reconciling OIDC provider")
 	// get oidc related configmap
 	tmp := make(map[string]interface{})
-	o, err := getFromConfigMap(
+	o, err := util.GetFromConfigMap(
 		ctx, r.Client, "identity-config", undistro.Namespace, "oidcprovider.yaml", tmp)
 	if err != nil {
 		r.Log.Info(err.Error())
@@ -325,7 +342,8 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 	cl *appv1alpha1.Cluster,
 	i appv1alpha1.Identity,
 	pc PinnipedComponent,
-	targetNs string,
+	targetNs, version string,
+	values map[string]interface{},
 ) (err error) {
 	release := appv1alpha1.HelmRelease{}
 	msg := fmt.Sprintf("Checking if %s is installed", pc)
@@ -336,7 +354,7 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 			return err
 		}
 
-		release, err = prepareHR(pc, targetNs, cl.GetNamespace(), "0.10.0", i)
+		release, err = prepareHR(pc, targetNs, cl.GetNamespace(), version, i, values)
 		if err != nil {
 			return err
 		}
@@ -347,28 +365,6 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 		}
 	}
 	return
-}
-
-func getFromConfigMap(ctx context.Context, c client.Client, name, ns, dataField string, o interface{}) (interface{}, error) {
-	// retrieve the config map for update
-	cmKey := client.ObjectKey{
-		Name:      name,
-		Namespace: ns,
-	}
-	cm := corev1.ConfigMap{}
-	err := c.Get(ctx, cmKey, &cm)
-	if err != nil {
-		return o, err
-	}
-	// convert data for more simply manipulation
-	f := cm.Data[dataField]
-	fede := strings.ReplaceAll(f, "|", "")
-	byt := []byte(fede)
-	err = yaml.Unmarshal(byt, &o)
-	if err != nil {
-		return o, err
-	}
-	return o, nil
 }
 
 // installComponent installs some chart in a such cluster
@@ -385,14 +381,9 @@ func installComponent(ctx context.Context, c client.Client, hr appv1alpha1.HelmR
 }
 
 // prepareHR fills the Helm Release fields for the given component
-func prepareHR(pc PinnipedComponent, targetNs, clusterNs, version string, i appv1alpha1.Identity) (appv1alpha1.HelmRelease, error) {
+func prepareHR(pc PinnipedComponent, targetNs, clusterNs, version string, i appv1alpha1.Identity, v map[string]interface{}) (appv1alpha1.HelmRelease, error) {
 	chartName := fmt.Sprintf("%s-%s", "pinniped", pc)
-	vMap := map[string]interface{}{
-		"metadata": map[string]interface{}{
-			"namespace": undistro.Namespace,
-		},
-	}
-	byt, err := json.Marshal(vMap)
+	byt, err := json.Marshal(v)
 	if err != nil {
 		return appv1alpha1.HelmRelease{}, err
 	}

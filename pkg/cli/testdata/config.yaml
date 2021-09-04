@@ -1,0 +1,7 @@
+global:
+  undistroRepository: registry.undistro.io/library
+  undistroVersion: v0.34.7
+undistro:
+  ingress:
+    hosts:
+      - k8s.felipeweb.dev

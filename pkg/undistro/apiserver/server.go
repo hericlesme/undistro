@@ -24,9 +24,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/caarlos0/httperr"
 	"github.com/getupio-undistro/undistro/pkg/fs"
 	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver/health"
 	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver/proxy"
+	"github.com/getupio-undistro/undistro/third_party/pinniped/authnz"
 	"github.com/gorilla/mux"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
@@ -66,9 +68,18 @@ func NewServer(cfg *rest.Config, in io.Reader, out, errOut io.Writer, healthChec
 
 func (s *Server) routes(router *mux.Router) {
 	proxyHandler := proxy.NewHandler(s.K8sCfg)
+	authNZHandlerState := authnz.SetRestConfHandlerState(s.K8sCfg)
+	callbackHandler := httperr.NewF(authNZHandlerState.HandleAuthCodeCallback)
+	loginHandler := httperr.NewF(authNZHandlerState.HandleLogin)
+	authClusterHandler := httperr.NewF(authNZHandlerState.HandleAuthCluster)
+	logoutHandler := httperr.NewF(authNZHandlerState.HandleAuthCluster)
 
 	router.Handle("/healthz/readiness", &s.HealthHandler)
 	router.HandleFunc("/healthz/liveness", health.HandleLive)
+	router.Handle("/callback", callbackHandler).Methods(http.MethodGet)
+	router.Handle("/login", loginHandler).Methods(http.MethodGet)
+	router.Handle("/authcluster", authClusterHandler).Methods(http.MethodGet)
+	router.Handle("/logout", logoutHandler).Methods(http.MethodGet)
 	router.PathPrefix("/uapi/v1/namespaces/{namespace}/clusters/{cluster}/proxy/").Handler(proxyHandler)
 	router.PathPrefix("/").Handler(fs.ReactHandler("", "frontend"))
 }

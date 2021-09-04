@@ -15,10 +15,28 @@ limitations under the License.
 */
 package undistro
 
+import (
+	"sync"
+
+	"github.com/getupio-undistro/undistro/pkg/util"
+)
+
 const (
 	Namespace   = "undistro-system"
 	DefaultRepo = "https://registry.undistro.io/chartrepo/library"
 )
+
+var (
+	once            sync.Once
+	requestAudience string
+)
+
+func GetRequestAudience() string {
+	once.Do(func() {
+		requestAudience = util.RandomString(24)
+	})
+	return requestAudience
+}
 
 const LocalCluster = "undistro"
 
@@ -29,6 +47,7 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
   apiServerPort: 6443
+  apiServerAddress: 0.0.0.0
 nodes:
 - role: control-plane
   kubeadmConfigPatches:

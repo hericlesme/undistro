@@ -387,20 +387,24 @@ func (o *InstallOptions) installCore(ctx context.Context, c client.Client, restG
 	return hrs, nil
 }
 
-func validateSupervisorConfig(ctx context.Context, c client.Client, out io.Writer) error {
-	// is required to use the local IP for the Pinniped Federation Domain Issuer
-	ip, err := knet.ChooseHostInterface()
-	if err != nil {
-		return err
+func validateSupervisorConfig(ctx context.Context, c client.Client, isLocal bool, ingressAddr string, out io.Writer) error {
+	supervisorURL := "https://%s/auth"
+	issuer := fmt.Sprintf(supervisorURL, ingressAddr)
+	if isLocal || ingressAddr == "" {
+		// is required to use the local IP for the Pinniped Federation Domain Issuer
+		ip, err := knet.ChooseHostInterface()
+		if err != nil {
+			return err
+		}
+		issuer = fmt.Sprintf(supervisorURL, ip.String())
 	}
-	issuer := fmt.Sprintf("https://%s/auth", ip.String())
 	// retrieve the config map for update
 	cmKey := client.ObjectKey{
 		Name:      "identity-config",
 		Namespace: undistro.Namespace,
 	}
 	cm := corev1.ConfigMap{}
-	err = c.Get(ctx, cmKey, &cm)
+	err := c.Get(ctx, cmKey, &cm)
 	if err != nil {
 		return err
 	}
@@ -504,20 +508,10 @@ func validateKindConfig(ctx context.Context, c client.Client, out io.Writer) err
 }
 
 func (o *InstallOptions) validateLocalEnvironment(ctx context.Context, c client.Client) error {
-	isLocal, err := util.IsLocalCluster(ctx, c)
+	fmt.Fprintln(o.IOStreams.Out, "Cluster is local. Preparing environment...")
+	err := validateKindConfig(ctx, c, o.IOStreams.Out)
 	if err != nil {
 		return err
-	}
-	if isLocal {
-		fmt.Fprintln(o.IOStreams.Out, "Cluster is local. Preparing environment...")
-		err = validateSupervisorConfig(ctx, c, o.IOStreams.Out)
-		if err != nil {
-			return err
-		}
-		err = validateKindConfig(ctx, c, o.IOStreams.Out)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -570,9 +564,19 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	if err != nil {
 		return err
 	}
-	err = o.validateLocalEnvironment(cmd.Context(), c)
+	isLocal, err := util.IsLocalCluster(cmd.Context(), c)
 	if err != nil {
 		return err
+	}
+	err = validateSupervisorConfig(cmd.Context(), c, isLocal, getIPFromConfig(cfg), o.IOStreams.Out)
+	if err != nil {
+		return err
+	}
+	if isLocal {
+		err = o.validateLocalEnvironment(cmd.Context(), c)
+		if err != nil {
+			return err
+		}
 	}
 	fmt.Fprintln(o.IOStreams.Out, "Applying metadata...")
 	err = o.applyMetadata(cmd.Context(), c, providers...)
