@@ -3,7 +3,7 @@ apiVersion: cluster.x-k8s.io/v1alpha4
 kind: Cluster
 metadata:
   name: "{{.Cluster.Name}}"
-  namespace: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
 spec:
   paused: {{.Cluster.Spec.Paused}}
   {{if .Cluster.Spec.Network}}

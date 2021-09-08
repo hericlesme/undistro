@@ -40,7 +40,7 @@ func RegionNames(provider metadatav1alpha1.Provider) []string {
 	case appv1alpha1.Amazon.String():
 		return aws.Regions
 	case appv1alpha1.Azure.String():
-		return azure.Regions
+		return azure.GetRegions()
 	}
 	return nil
 }
@@ -110,8 +110,6 @@ func GetAccount(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (
 	switch cl.Spec.InfrastructureProvider.Name {
 	case "aws":
 		return aws.NewAccount(ctx, c)
-	case "azure":
-		return azure.NewAccount(ctx, c)
 	}
 	return nil, nil
 }

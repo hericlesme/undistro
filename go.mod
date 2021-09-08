@@ -3,6 +3,10 @@ module github.com/getupio-undistro/undistro
 go 1.16
 
 require (
+	github.com/Azure/azure-sdk-for-go v16.2.1+incompatible
+	github.com/Azure/go-autorest/autorest v0.11.18
+	github.com/Azure/go-autorest/autorest/azure/auth v0.5.8
+	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
 	github.com/MakeNowJust/heredoc/v2 v2.0.1
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/Masterminds/sprig/v3 v3.2.2

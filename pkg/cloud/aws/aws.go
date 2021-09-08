@@ -20,11 +20,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"os/exec"
-	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
@@ -38,12 +33,12 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws/cloudformation"
+	"github.com/getupio-undistro/undistro/pkg/util"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -281,21 +276,9 @@ func clusterNetwork(ctx context.Context, cl *appv1alpha1.Cluster, u unstructured
 			}
 			cl.Spec.Network.Subnets = append(cl.Spec.Network.Subnets, n)
 		}
-		cl.Spec.Network.Subnets = removeDuplicateNetwork(cl.Spec.Network.Subnets)
+		cl.Spec.Network.Subnets = util.RemoveDuplicateNetwork(cl.Spec.Network.Subnets)
 	}
 	return nil
-}
-
-func removeDuplicateNetwork(n []appv1alpha1.NetworkSpec) []appv1alpha1.NetworkSpec {
-	nMap := make(map[appv1alpha1.NetworkSpec]struct{})
-	for _, t := range n {
-		nMap[t] = struct{}{}
-	}
-	res := make([]appv1alpha1.NetworkSpec, 0)
-	for k := range nMap {
-		res = append(res, k)
-	}
-	return res
 }
 
 type AwsCredentials struct {
@@ -383,23 +366,15 @@ func Credentials(ctx context.Context, c client.Client) (AwsCredentials, *corev1.
 
 func credentialsFromSecret(s *corev1.Secret) (AwsCredentials, error) {
 	cred := AwsCredentials{
-		AccessKeyID:     getData(s, "accessKeyID"),
-		SecretAccessKey: getData(s, "secretAccessKey"),
-		Region:          getData(s, "region"),
-		SessionToken:    getData(s, "sessionToken"),
+		AccessKeyID:     util.GetData(s, "accessKeyID"),
+		SecretAccessKey: util.GetData(s, "secretAccessKey"),
+		Region:          util.GetData(s, "region"),
+		SessionToken:    util.GetData(s, "sessionToken"),
 	}
 	if cred.Region == "" {
 		cred.Region = DefaultAWSRegion
 	}
 	return cred, nil
-}
-
-func getData(secret *corev1.Secret, key string) string {
-	b, ok := secret.Data[key]
-	if !ok {
-		return ""
-	}
-	return string(b)
 }
 
 type Account struct {
@@ -444,43 +419,4 @@ func (a *Account) GetUsername() string {
 
 func (a *Account) IsRoot() bool {
 	return strings.HasSuffix(a.GetUsername(), "root")
-}
-
-func InstallTools(ctx context.Context, streams genericclioptions.IOStreams) error {
-	_, err := exec.LookPath(eksTool)
-	if err == nil {
-		fmt.Fprintf(streams.Out, "%s already installed\n", eksTool)
-		return nil
-	}
-	addr := fmt.Sprintf("https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/%s/%s/aws-iam-authenticator", runtime.GOOS, runtime.GOARCH)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, addr, nil)
-	if err != nil {
-		return err
-	}
-
-	f, err := os.Create(eksTool)
-	if err != nil {
-		return err
-	}
-	f.Chmod(0755)
-	defer f.Close()
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	_, err = io.Copy(f, resp.Body)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		f.Close()
-		os.RemoveAll(eksTool)
-		return errors.Errorf("unable to download %s: %v", eksTool, http.StatusText(resp.StatusCode))
-	}
-	_, err = exec.LookPath(eksTool)
-	if err != nil {
-		fmt.Fprintf(streams.Out, "PLEASE ADD %s IN YOUR $PATH\n", eksTool)
-	}
-	return nil
 }

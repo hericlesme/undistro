@@ -80,9 +80,7 @@ spec:
       {{end}}
       {{if .Cluster.Spec.Network.VPC.CIDRBlock}}
       cidrBlocks: 
-        {{- range    .Cluster.Spec.Network.CIDRBlocks}}
-          - {{.}}
-        {{- end}}
+        - {{ .Cluster.Spec.Network.VPC.CIDRBlock}}
       {{end}}
       resourceGroup: "{{.Cluster.Name}}"
       name: "{{.Cluster.Name}}-vnet"
@@ -94,7 +92,8 @@ spec:
       id: {{.ID}}
       {{end}}
       {{if .CIDRBlock}}
-      cidrBlocks: {{.CIDRBlock}}
+      cidrBlocks: 
+        - {{.CIDRBlock}}
       {{end}}
       name: "{{ .Cluster.Name }}-{{ .Cluster.Name.Spec.Network.Role }}"
       role: {{ .Cluster.Name.Spec.Network.Role }}
@@ -155,11 +154,11 @@ spec:
           cloud-config: /etc/kubernetes/azure.json
           cloud-provider: azure
             extraVolumes:
-            - hostPath: /etc/kubernetes/azure.json
-              mountPath: /etc/kubernetes/azure.json
-              name: cloud-config
-              readOnly: true
-              timeoutForControlPlane: 20m
+              - hostPath: /etc/kubernetes/azure.json
+                mountPath: /etc/kubernetes/azure.json
+                name: cloud-config
+                readOnly: true
+                timeoutForControlPlane: 20m
       controllerManager:
         extraArgs:
           cloud-provider: azure

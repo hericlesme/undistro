@@ -94,6 +94,10 @@ var providersInfo = map[string]metadatav1alpha1.ProviderInfo{
 		Category:   metadatav1alpha1.ProviderInfra,
 		SecretName: "undistro-aws-config",
 	},
+	"undistro-azure": {
+		Category:   metadatav1alpha1.ProviderInfra,
+		SecretName: "undistro-azure-config",
+	},
 }
 
 type InstallOptions struct {

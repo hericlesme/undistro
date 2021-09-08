@@ -21,7 +21,6 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
-	"github.com/getupio-undistro/undistro/pkg/retry"
 	"io"
 	"math"
 	"math/rand"
@@ -29,6 +28,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/getupio-undistro/undistro/pkg/retry"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
@@ -306,4 +307,24 @@ func GetCaFromSecret(ctx context.Context, c client.Client, secretName, dataField
 
 func IsMgmtCluster(clusterName string) bool {
 	return clusterName == ""
+}
+
+func GetData(secret *corev1.Secret, key string) string {
+	b, ok := secret.Data[key]
+	if !ok {
+		return ""
+	}
+	return string(b)
+}
+
+func RemoveDuplicateNetwork(n []appv1alpha1.NetworkSpec) []appv1alpha1.NetworkSpec {
+	nMap := make(map[appv1alpha1.NetworkSpec]struct{})
+	for _, t := range n {
+		nMap[t] = struct{}{}
+	}
+	res := make([]appv1alpha1.NetworkSpec, 0)
+	for k := range nMap {
+		res = append(res, k)
+	}
+	return res
 }
