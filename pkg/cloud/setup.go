@@ -21,6 +21,7 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws"
+	"github.com/getupio-undistro/undistro/pkg/cloud/azure"
 	"k8s.io/apimachinery/pkg/util/json"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -38,6 +39,8 @@ func RegionNames(provider metadatav1alpha1.Provider) []string {
 	switch provider.Name {
 	case appv1alpha1.Amazon.String():
 		return aws.Regions
+	case appv1alpha1.Azure.String():
+		return azure.Regions
 	}
 	return nil
 }
@@ -46,6 +49,8 @@ func GetFlavors(provider metadatav1alpha1.Provider) MetadataFunc {
 	switch provider.Name {
 	case appv1alpha1.Amazon.String():
 		return aws.GetFlavors
+	case appv1alpha1.Azure.String():
+		return azure.GetFlavors
 	}
 	return nil
 }
@@ -54,6 +59,8 @@ func GetMachineMetadata(provider metadatav1alpha1.Provider) MetadataFunc {
 	switch provider.Name {
 	case appv1alpha1.Amazon.String():
 		return aws.GetMachineMetadata
+	case appv1alpha1.Azure.String():
+		return azure.GetMachineMetadata
 	}
 	return nil
 }
@@ -69,6 +76,8 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 	switch cl.Spec.InfrastructureProvider.Name {
 	case appv1alpha1.Amazon.String():
 		return aws.ReconcileNetwork(ctx, r, cl, capiCluster)
+	case appv1alpha1.Azure.String():
+		return azure.ReconcileNetwork(ctx, r, cl, capiCluster)
 	}
 	return nil
 }
@@ -78,6 +87,8 @@ func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alph
 	switch cl.Spec.InfrastructureProvider.Name {
 	case appv1alpha1.Amazon.String():
 		return aws.ReconcileLaunchTemplate(ctx, r, cl)
+	case appv1alpha1.Azure.String():
+		return azure.ReconcileLaunchTemplate(ctx, r, cl)
 	}
 	return nil
 }
@@ -86,6 +97,8 @@ func CalicoValues(flavor string) ([]byte, error) {
 	values := make(map[string]interface{})
 	switch flavor {
 	case appv1alpha1.EKS.String():
+		values["vxlan"] = true
+	case appv1alpha1.AKS.String():
 		values["vxlan"] = true
 	default:
 		values["vxlan"] = false
@@ -97,6 +110,8 @@ func GetAccount(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (
 	switch cl.Spec.InfrastructureProvider.Name {
 	case "aws":
 		return aws.NewAccount(ctx, c)
+	case "azure":
+		return azure.NewAccount(ctx, c)
 	}
 	return nil, nil
 }
@@ -105,6 +120,8 @@ func DefaultRegion(infra string) string {
 	switch infra {
 	case "aws":
 		return aws.DefaultAWSRegion
+	case "azure":
+		return azure.DefaultAzureRegion
 	}
 	return ""
 }

@@ -85,6 +85,14 @@ func TestMain(m *testing.M) {
 				"secretAccessKey": os.Getenv("E2E_AWS_SECRET_ACCESS_KEY"),
 			},
 		},
+		"undistro-azure": map[string]interface{}{
+			"enabled": true,
+			"credentials": map[string]interface{}{
+				"clientId": os.Getenv("E2E_AZURE_CLIENT_ID"),
+				"clientSecret": os.Getenv("E2E_AZURE_CLIENT_SECRET"),
+				"subscriptionId": os.Getenv("E2E_AZURE_SUBSCRIPTION_ID"),
+				"tenantId": os.Getenv("E2E_AZURE_TENANT_ID"),
+			},
 	}
 	byt, _ := yaml.Marshal(cfg)
 	err = ioutil.WriteFile("undistro-config.yaml", byt, 0700)

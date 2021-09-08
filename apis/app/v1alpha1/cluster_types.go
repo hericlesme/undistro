@@ -108,10 +108,11 @@ type SupportedInfraProvider int8
 
 const (
 	Amazon SupportedInfraProvider = iota
+	Azure
 )
 
 func (s SupportedInfraProvider) String() string {
-	return [...]string{"aws"}[s]
+	return [...]string{"aws", "azure"}[s]
 }
 
 type SupportedInfraProviderFlavor int8
@@ -119,22 +120,27 @@ type SupportedInfraProviderFlavor int8
 const (
 	EC2 SupportedInfraProviderFlavor = iota
 	EKS
+	VM
+	AKS
 )
 
 func (s SupportedInfraProviderFlavor) String() string {
-	return [...]string{"ec2", "eks"}[s]
+	return [...]string{"ec2", "eks", "vm", "aks"}[s]
 }
 
 func (i InfrastructureProvider) Flavors() []string {
 	switch i.Name {
 	case Amazon.String():
 		return []string{EC2.String(), EKS.String()}
+	case Azure.String():
+		return []string{VM.String(), AKS.String()}
 	}
 	return nil
 }
 
 func (i InfrastructureProvider) IsManaged() bool {
-	return i.Name == Amazon.String() && i.Flavor == EKS.String()
+	return (i.Name == Amazon.String() && i.Flavor == EKS.String()) ||
+		(i.Name == Azure.String() && i.Flavor == AKS.String())
 }
 
 type NetworkSpec struct {

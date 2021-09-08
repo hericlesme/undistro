@@ -1,0 +1,40 @@
+---
+apiVersion: app.undistro.io/v1alpha1
+kind: Cluster
+metadata:
+  name: vm-20-e2e
+  namespace: e2e
+spec:
+  bastion:
+    allowedCIDRBlocks:
+      - "0.0.0.0/0"
+  controlPlane:
+    machineType: Standard_D2s_v4
+    providerTags:
+      e2e: e2e
+    replicas: 3
+  infrastructureProvider:
+    flavor: vm
+    name: azure
+    region: eastus
+    sshKey: undistro
+  kubernetesVersion: v1.20.9
+  workers:
+  - machineType: Standard_D2s_v4
+    replicas: 2
+    providerTags:
+      e2e: e2e
+  - infraNode: true
+    machineType: Standard_D2s_v4
+    replicas: 2
+    providerTags:
+      e2e: e2e
+
+---
+apiVersion: app.undistro.io/v1alpha1
+kind: DefaultPolicies
+metadata:
+  name: defaultpolicies-vm-20-e2e
+  namespace: e2e
+spec:
+  clusterName: vm-20-e2e

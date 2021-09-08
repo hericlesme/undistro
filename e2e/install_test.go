@@ -69,6 +69,18 @@ var _ = Describe("Validate UnDistro Installation", func() {
 			return string(s.Data["credentials"])
 		}, 10*time.Minute, 1*time.Minute).ShouldNot(BeEmpty())
 	})
+	It("Verify if Undistro Azure is correctly installed", func() {
+		Eventually(func() string {
+			s := corev1.Secret{}
+			key := client.ObjectKey{
+				Name:      "undistro-azure-config",
+				Namespace: "undistro-system",
+			}
+			err := k8sClient.Get(context.Background(), key, &s)
+			Expect(err).ToNot(HaveOccurred())
+			return string(s.Data["credentials"])
+		}, 10*time.Minute, 1*time.Minute).ShouldNot(BeEmpty())
+	})
 	It("Check tested image", func() {
 		sha := os.Getenv("GITHUB_SHA")
 		image := fmt.Sprintf("localhost:5000/undistro:%s", sha)
