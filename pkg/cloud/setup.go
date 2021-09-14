@@ -17,7 +17,9 @@ package cloud
 
 import (
 	"context"
+	"strconv"
 
+	"github.com/Masterminds/semver/v3"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws"
@@ -107,4 +109,15 @@ func DefaultRegion(infra string) string {
 		return aws.DefaultAWSRegion
 	}
 	return ""
+}
+
+func CoreDNSVersion(k8sVersion string) string {
+	v := semver.MustParse(k8sVersion)
+	minor := strconv.Itoa(int(v.Minor()))
+	switch minor {
+	case "19":
+		return "v1.7.0"
+	default:
+		return "v1.8.0"
+	}
 }

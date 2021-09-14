@@ -34,25 +34,25 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ = Describe("Create EC2 cluster 1.21", func() {
+var _ = Describe("Create EC2 cluster 1.19", func() {
 	var (
 		clusterClient client.Client
 	)
-	It("Should generate recommend cluster spec 1.21", func() {
+	It("Should generate recommend cluster spec 1.19", func() {
 		cmd := exec.NewCommand(
 			exec.WithCommand("undistro"),
-			exec.WithArgs("create", "cluster", "ec2-21-e2e", "-n", "e2e", "--infra", "aws", "--flavor", "ec2", "--ssh-key-name", "undistro", "--generate-file"),
+			exec.WithArgs("create", "cluster", "ec2-19-e2e", "-n", "e2e", "--infra", "aws", "--flavor", "ec2", "--ssh-key-name", "undistro", "--generate-file"),
 		)
 		_, _, err := cmd.Run(context.Background())
 		Expect(err).ToNot(HaveOccurred())
-		_, err = os.Stat("ec2-21-e2e.yaml")
+		_, err = os.Stat("ec2-19-e2e.yaml")
 		Expect(err).ToNot(HaveOccurred())
 
 	})
-	It("Should create EC2 cluster 1.21", func() {
+	It("Should create EC2 cluster 1.19", func() {
 		cmd := exec.NewCommand(
 			exec.WithCommand("undistro"),
-			exec.WithArgs("apply", "-f", "./testdata/ec2-21.yaml"),
+			exec.WithArgs("apply", "-f", "./testdata/ec2-19.yaml"),
 		)
 		out, _, err := cmd.Run(context.Background())
 		fmt.Println(err)
@@ -61,7 +61,7 @@ var _ = Describe("Create EC2 cluster 1.21", func() {
 		Eventually(func() bool {
 			cl := appv1alpha1.Cluster{}
 			key := client.ObjectKey{
-				Name:      "ec2-21-e2e",
+				Name:      "ec2-19-e2e",
 				Namespace: "e2e",
 			}
 			err = k8sClient.Get(context.Background(), key, &cl)
@@ -72,7 +72,7 @@ var _ = Describe("Create EC2 cluster 1.21", func() {
 		fmt.Println("Get Kubeconfig")
 		cmd = exec.NewCommand(
 			exec.WithCommand("undistro"),
-			exec.WithArgs("get", "kubeconfig", "ec2-21-e2e", "-n", "e2e", "--admin"),
+			exec.WithArgs("get", "kubeconfig", "ec2-19-e2e", "-n", "e2e", "--admin"),
 		)
 		out, _, err = cmd.Run(context.Background())
 		Expect(err).ToNot(HaveOccurred())
@@ -156,7 +156,7 @@ var _ = Describe("Create EC2 cluster 1.21", func() {
 		fmt.Println("delete cluster")
 		cmd = exec.NewCommand(
 			exec.WithCommand("undistro"),
-			exec.WithArgs("delete", "-f", "./testdata/ec2-21.yaml"),
+			exec.WithArgs("delete", "-f", "./testdata/ec2-19.yaml"),
 		)
 		out, _, err = cmd.Run(context.Background())
 		Expect(err).ToNot(HaveOccurred())

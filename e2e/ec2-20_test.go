@@ -55,6 +55,7 @@ var _ = Describe("Create EC2 cluster 1.20", func() {
 			exec.WithArgs("apply", "-f", "./testdata/ec2-20.yaml"),
 		)
 		out, _, err := cmd.Run(context.Background())
+		fmt.Println(err)
 		Expect(err).ToNot(HaveOccurred())
 		fmt.Println(string(out))
 		Eventually(func() bool {

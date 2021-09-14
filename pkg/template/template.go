@@ -25,6 +25,7 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/getupio-undistro/undistro/pkg/cloud"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -51,7 +52,8 @@ func New(options ...Options) (*Render, error) {
 	funcs := []template.FuncMap{
 		sprig.TxtFuncMap(),
 		{
-			"slugtaint": slugfyTaintEffect,
+			"slugtaint":      slugfyTaintEffect,
+			"corednsVersion": cloud.CoreDNSVersion,
 		},
 	}
 	var o Options
