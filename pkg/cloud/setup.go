@@ -111,13 +111,16 @@ func DefaultRegion(infra string) string {
 	return ""
 }
 
+// https://github.com/coredns/deployment/blob/master/kubernetes/CoreDNS-k8s_version.md
 func CoreDNSVersion(k8sVersion string) string {
 	v := semver.MustParse(k8sVersion)
 	minor := strconv.Itoa(int(v.Minor()))
 	switch minor {
-	case "19":
+	case "19", "20":
 		return "v1.7.0"
-	default:
+	case "21":
 		return "v1.8.0"
+	default:
+		return "v1.8.4"
 	}
 }

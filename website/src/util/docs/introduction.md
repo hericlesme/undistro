@@ -18,10 +18,9 @@ The overarching architecture of UnDistro is centered around a "management plane"
 
 ![Image of Architecture](https://raw.githubusercontent.com/getupio-undistro/undistro/main/website/src/assets/images/arch.jpg)
 
-
 ## Supported Kubernetes versions
 
 - 1.19
 - 1.20
 - 1.21
-
+- 1.22
