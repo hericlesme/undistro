@@ -18,7 +18,6 @@ package cli
 import (
 	"context"
 	"flag"
-	"fmt"
 
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
@@ -60,7 +59,6 @@ func stringptr(s string) *string {
 }
 
 func getIPFromConfig(cfg map[string]interface{}) string {
-	fmt.Println(cfg)
 	undistroCfg, ok := cfg["undistro"].(map[string]interface{})
 	if !ok {
 		return ""
@@ -69,7 +67,6 @@ func getIPFromConfig(cfg map[string]interface{}) string {
 	if !ok {
 		return ""
 	}
-	fmt.Println(ingressCfg)
 	hosts, ok := ingressCfg["hosts"].([]interface{})
 	if !ok {
 		return ""
