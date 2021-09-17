@@ -5,6 +5,8 @@ import { useClickOutside } from 'hooks/useClickOutside'
 import { useDisclosure } from 'hooks/useDisclosure'
 import { DeleteNodepoolAlert } from '@components/nodepoolActionAlert'
 import { useHistory } from 'react-router'
+import Checkbox from '@components/checkbox'
+import { useClusters } from 'providers/ClustersProvider'
 
 const ASC = 'asc'
 const DES = 'des'
@@ -48,6 +50,8 @@ const emptyCluster = {
 const Table = props => {
   const [key, setKey] = useState('')
   const [order, setOrder] = useState('')
+  const [allChecked, setAllChecked] = useState(false)
+  const { clear, addClusters } = useClusters()
 
   const sortedRows = props.data.sort((a, b) => {
     if (!key) return 0
@@ -66,6 +70,20 @@ const Table = props => {
     <table className="table">
       <thead>
         <tr>
+        <td className='checkbox-row'>
+            <Checkbox 
+              value={allChecked} 
+              onChange={
+                (checked) => { 
+                  setAllChecked(checked)
+
+                  if (checked) {
+                    addClusters()
+                  } else {
+                    clear()
+                  }
+              }} />
+          </td>
           <td />
           {props.header.map(elm => (
             <td key={elm.name}>
@@ -128,10 +146,13 @@ const Row = props => {
   const [show, setShow] = useState(false)
   const menuRef = useRef(null)
   const history = useHistory()
+  const { clusters, addCluster, removeCluster } = useClusters()
 
   useClickOutside(menuRef, () => {
     setShow(false)
   })
+
+  console.log(props.data)
 
   const [
     isDeleteNodepoolAlertOpen,
@@ -159,10 +180,21 @@ const Row = props => {
   }
 
   const isControlPlane = props.data.provider === 'aws'
-  // const isControlPlane = props.data.type === 'controlPlane'
 
   return (
     <tr>
+      <td className="checkbox-row">
+        <Checkbox
+          value={props.isEmpty ? false : props.allChecked || !!clusters.find(cluster => cluster.name === props.data.name)}
+          onChange={checked => {
+            if (checked) {
+              addCluster({ name: props.data.name, namespace: props.data.clusterGroups })
+            } else {
+              removeCluster(props.data.name)
+            }
+          }}
+        />
+      </td>
       <td className="select-row">
         {isDeleteNodepoolAlertOpen && (
           <DeleteNodepoolAlert
@@ -198,7 +230,7 @@ const Row = props => {
                 }
               }}
             >
-              <i className="icon-close-solid" /> <p>Delete Nodepool</p>
+              <i className="icon-close-solid" onClick={() => handleDelete()}/> <p>Delete Nodepool</p>
             </li>
           </ul>
         )}

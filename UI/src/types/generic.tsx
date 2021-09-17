@@ -3,7 +3,9 @@ export type TypeModal = {
 }
 
 export type TypeSubItem = {
-  name: string
+  name: string,
+  link?: string,
+  handleAction?: () => void
 }
 
 export type TypeItem = {
@@ -11,10 +13,6 @@ export type TypeItem = {
   icon: string | any
   subItens: TypeSubItem[]
   url: string
-}
-
-export type TypeMenu = {
-  itens: TypeItem[]
 }
 
 export type apiOption = {

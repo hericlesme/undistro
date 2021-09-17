@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { InfranodeDetails } from '@components/details'
 import { useEffect, useState } from 'react'
+import BreadCrumb from '@components/breadcrumb'
 import Api from 'util/api'
 
 export default function ControlPlanePage() {
@@ -16,6 +17,7 @@ export default function ControlPlanePage() {
 
   return data?(
     <div className="home-page-route">
+      <BreadCrumb />
       <InfranodeDetails
         data={{
           controlPlaneMachineType: data.spec.controlPlane.machineType,

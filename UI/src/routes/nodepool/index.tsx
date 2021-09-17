@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import Table from '@components/nodepoolTable'
 import Api from 'util/api'
 import moment from 'moment'
+import { useClusters } from 'providers/ClustersProvider'
+import BreadCrumb from '@components/breadcrumb'
 
 const headers = [
   { name: 'Name', field: 'name' },
@@ -18,47 +20,46 @@ const headers = [
 export default function NodepoolsPage() {
   const [nodePools, setNodePools] = useState<any>([])
 
+  const { clusters } = useClusters()
+ 
   const getControlPlanesAndWorkers = async () => {
-    const clusters = await Api.Cluster.list()
+    let allControlPlanes: any = []
+    let allWorkers: any = []
 
-    const controlPlanes = clusters.items.map((cluster: any) => {
-      const message: string = cluster.status.conditions[0].message.toLowerCase()
-
-      return {
-        ...cluster.spec.controlPlane,
-        age: moment(cluster.metadata.creationTimestamp)
+    await Promise.all(clusters.map(async (cluster) => {
+      const fetchedCluster = await Api.Cluster.get(cluster.namespace, cluster.name)
+      const message: string = fetchedCluster.status.conditions[0].message.toLowerCase()
+      const controlPlane = {
+        ...fetchedCluster.spec.controlPlane,
+        age: moment(fetchedCluster.metadata.creationTimestamp)
           .startOf('day')
           .fromNow(),
         labels: 0,
-        name: cluster.metadata.name,
+        name: fetchedCluster.metadata.name,
         status: getStatus(message),
         taints: 0,
         type: 'Control Plane',
-        version: cluster.spec.kubernetesVersion
+        version: fetchedCluster.spec.kubernetesVersion
       }
-    })
 
-    const workers = clusters.items.reduce((workers: any, cluster: any) => {
-      const message: string = cluster.status.conditions[0].message.toLowerCase()
+      const workers = fetchedCluster.spec.workers.map((worker: any, i: number) => ({
+        ...worker,
+        age: moment(fetchedCluster.metadata.creationTimestamp)
+          .startOf('day')
+          .fromNow(),
+        labels: Object.keys(worker.labels || {}).length,
+        name: `${fetchedCluster.metadata.name}-mp-${i}`,
+        status: getStatus(message),
+        taints: (worker.taints || []).length,
+        type: worker.infraNode ? 'InfraNode' : 'Worker',
+        version: fetchedCluster.spec.kubernetesVersion
+      }))
 
-      return [
-        ...workers,
-        ...cluster.spec.workers.map((worker: any, i: number) => ({
-          ...worker,
-          age: moment(cluster.metadata.creationTimestamp)
-            .startOf('day')
-            .fromNow(),
-          labels: Object.keys(worker.labels || {}).length,
-          name: `${cluster.metadata.name}-mp-${i}`,
-          status: getStatus(message),
-          taints: (worker.taints || []).length,
-          type: worker.infraNode ? 'InfraNode' : 'Worker',
-          version: cluster.spec.kubernetesVersion
-        }))
-      ]
-    }, [])
+      allControlPlanes.push(controlPlane)
+      allWorkers = [...allWorkers, ...workers]
+    }))
 
-    return [...controlPlanes, ...workers]
+    return [...allControlPlanes, ...allWorkers]
   }
 
   const getStatus = (message: string) => {
@@ -92,12 +93,22 @@ export default function NodepoolsPage() {
     }
   }
 
+  const getClusterName = () => {
+    return clusters.length > 1 ? 'Multiple Clusters' : clusters.map(elm => elm.name)
+  }
+
+  const routes = [ 
+    { name: 'Clusters', url: '/' },
+    { name: getClusterName(), url: '/' }
+  ]
+
   useEffect(() => {
     getNodePools()
   }, [])
 
   return (
     <div className="home-page-route">
+      <BreadCrumb routes={routes} />
       <Table data={nodePools || []} header={headers} />
     </div>
   )

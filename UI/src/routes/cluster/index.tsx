@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Api from 'util/api'
 import { useHistory } from 'react-router'
+import BreadCrumb from '@components/breadcrumb'
 
 export default function ClusterRoute() {
   const [data, setData] = useState<any>()
@@ -47,6 +48,7 @@ export default function ClusterRoute() {
 
   return data?(
     <div className="home-page-route">
+      <BreadCrumb />
       <ClusterDetails
         data={{
           generalClusterName: data.metadata.name,

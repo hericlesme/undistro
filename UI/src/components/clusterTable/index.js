@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Classnames from 'classnames'
 import Api from 'util/api'
+import Checkbox from '@components/checkbox'
 import './index.scss'
 import { useClickOutside } from 'hooks/useClickOutside'
 import { useDisclosure } from 'hooks/useDisclosure'
@@ -11,16 +12,13 @@ import {
   ResumeClusterAlert
 } from '@components/clusterActionAlert'
 import { useHistory } from 'react-router-dom'
+import { useClusters } from 'providers/ClustersProvider'
 
 const ASC = 'asc'
 const DES = 'des'
 
 const SortIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 20 20"
-    fill="currentColor"
-  >
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
     <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" />
   </svg>
 )
@@ -39,18 +37,18 @@ const emptyCluster = {
 }
 
 const Table = props => {
+  const { clear, addClusters } = useClusters()
   const [key, setKey] = useState('')
   const [order, setOrder] = useState('')
   const [version, setVersion] = useState([])
-
+  const [allChecked, setAllChecked] = useState(false)
   const getK8sVersion = () => {
-    Api.Provider.list('flavors')
-      .then(res => res.items.map(elm => setVersion(elm.spec.supportedK8SVersions)))
+    Api.Provider.list('flavors').then(res => res.items.map(elm => setVersion(elm.spec.supportedK8SVersions)))
   }
 
   useEffect(() => {
     getK8sVersion()
-  }, []) 
+  }, [])
 
   const sortedRows = props.data.sort((a, b) => {
     if (!key) return 0
@@ -61,14 +59,36 @@ const Table = props => {
   })
 
   const filledRows =
-    sortedRows.length >= 20
-      ? sortedRows
-      : [...sortedRows, ...Array(20 - sortedRows.length).fill(emptyCluster)]
+    sortedRows.length >= 20 ? sortedRows : [...sortedRows, ...Array(20 - sortedRows.length).fill(emptyCluster)]
+
+  console.log(sortedRows)
 
   return (
     <table className="table">
       <thead>
         <tr>
+          <td className="checkbox-row-header">
+            <Checkbox
+              value={allChecked}
+              onChange={checked => {
+                setAllChecked(checked)
+
+                if (checked) {
+                  addClusters(
+                    filledRows
+                      .filter(({ isEmpty }) => !isEmpty)
+                      .map(elm => ({
+                        name: elm.name,
+                        namespace: elm.clusterGroups,
+                        paused: elm.status === 'Paused'
+                      }))
+                  )
+                } else {
+                  clear()
+                }
+              }}
+            />
+          </td>
           <td />
           {props.header.map(elm => (
             <td key={elm.name}>
@@ -77,9 +97,7 @@ const Table = props => {
                 className="icon-button"
                 onClick={() => {
                   setKey(elm.field)
-                  setOrder(
-                    !order || order === DES || key !== elm.field ? ASC : DES
-                  )
+                  setOrder(!order || order === DES || key !== elm.field ? ASC : DES)
                 }}
               >
                 <SortIcon />
@@ -92,6 +110,7 @@ const Table = props => {
         {filledRows.map((elm, i) => {
           return (
             <Row
+              allChecked={allChecked}
               onChange={props.onChange}
               header={props.header}
               key={i}
@@ -141,29 +160,10 @@ const Row = props => {
     setShow(false)
   })
 
-  const [
-    isPauseClusterAlertOpen,
-    closePauseClusterAlert,
-    openPauseClusterAlert
-  ] = useDisclosure()
-
-  const [
-    isResumeClusterAlertOpen,
-    closeResumeClusterAlert,
-    openResumeClusterAlert
-  ] = useDisclosure()
-
-  const [
-    isChangeVersionAlertOpen,
-    closeChangeVersionAlert,
-    openChangeVersionAlert
-  ] = useDisclosure()
-
-  const [
-    isDeleteClusterAlertOpen,
-    closeDeleteClusterAlert,
-    openDeleteClusterAlert
-  ] = useDisclosure()
+  const [isPauseClusterAlertOpen, closePauseClusterAlert, openPauseClusterAlert] = useDisclosure()
+  const [isResumeClusterAlertOpen, closeResumeClusterAlert, openResumeClusterAlert] = useDisclosure()
+  const [isChangeVersionAlertOpen, closeChangeVersionAlert, openChangeVersionAlert] = useDisclosure()
+  const [isDeleteClusterAlertOpen, closeDeleteClusterAlert, openDeleteClusterAlert] = useDisclosure()
 
   useEffect(() => {
     setStatus(props.status)
@@ -193,7 +193,7 @@ const Row = props => {
     })
   }
 
-  const handleChangeVersion = (version) => {
+  const handleChangeVersion = version => {
     const payload = {
       spec: {
         kubernetesVersion: version
@@ -212,8 +212,24 @@ const Row = props => {
     })
   }
 
+  const { clusters, addCluster, removeCluster } = useClusters()
+
   return (
     <tr>
+      <td className="checkbox-row">
+        <Checkbox
+          value={
+            props.isEmpty ? false : props.allChecked || !!clusters.find(cluster => cluster.name === props.data.name)
+          }
+          onChange={checked => {
+            if (checked) {
+              addCluster({ name: props.data.name, namespace: props.data.clusterGroups, paused: props.pause })
+            } else {
+              removeCluster(props.data.name)
+            }
+          }}
+        />
+      </td>
       <td className="select-row">
         {isChangeVersionAlertOpen && (
           <ChangeVersionAlert
@@ -314,10 +330,7 @@ const Row = props => {
         }
 
         return (
-          <td
-            key={key}
-            className={`${cellColorClassName} ${statusCellColorName}`}
-          >
+          <td key={key} className={`${cellColorClassName} ${statusCellColorName}`}>
             <div>
               <span>{key === 'status' ? status : props.data[key]}</span>
             </div>
