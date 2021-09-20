@@ -64,7 +64,7 @@ func TestMain(m *testing.M) {
 	}
 	cmd := exec.NewCommand(
 		exec.WithCommand("bash"),
-		exec.WithArgs("-c", fmt.Sprintf("../testbin/docker-build-e2e.sh %s %s", regHost, sha)),
+		exec.WithArgs("-c", fmt.Sprintf("../../testbin/docker-build-e2e.sh %s %s", regHost, sha)),
 	)
 	stout, stderr, err := cmd.Run(ctx)
 	if err != nil {
