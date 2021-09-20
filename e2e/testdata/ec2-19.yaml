@@ -1,0 +1,40 @@
+---
+apiVersion: app.undistro.io/v1alpha1
+kind: Cluster
+metadata:
+  name: ec2-20-e2e
+  namespace: e2e
+spec:
+  bastion:
+    allowedCIDRBlocks:
+      - "0.0.0.0/0"
+  controlPlane:
+    machineType: m5.large
+    providerTags:
+      e2e: e2e
+    replicas: 3
+  infrastructureProvider:
+    flavor: ec2
+    name: aws
+    region: us-east-1
+    sshKey: undistro
+  kubernetesVersion: v1.20.11
+  workers:
+  - machineType: m5.large
+    replicas: 2
+    providerTags:
+      e2e: e2e
+  - infraNode: true
+    machineType: m5.large
+    replicas: 2
+    providerTags:
+      e2e: e2e
+
+---
+apiVersion: app.undistro.io/v1alpha1
+kind: DefaultPolicies
+metadata:
+  name: defaultpolicies-ec2-20-e2e
+  namespace: e2e
+spec:
+  clusterName: ec2-20-e2e

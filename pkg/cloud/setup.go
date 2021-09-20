@@ -118,8 +118,6 @@ func CoreDNSVersion(k8sVersion string) string {
 	switch minor {
 	case "19", "20":
 		return "v1.7.0"
-	case "21":
-		return "v1.8.0"
 	default:
 		return "v1.8.4"
 	}
