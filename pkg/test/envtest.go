@@ -30,6 +30,8 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/onsi/ginkgo"
+	admissionv1 "k8s.io/api/admissionregistration/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
@@ -135,8 +137,8 @@ func (t *Environment) Stop() error {
 }
 
 func initializeWebhookInEnvironment() {
-	validatingWebhooks := []client.Object{}
-	mutatingWebhooks := []client.Object{}
+	validatingWebhooks := []admissionv1.ValidatingWebhookConfiguration{}
+	mutatingWebhooks := []admissionv1.MutatingWebhookConfiguration{}
 
 	// Get the root of the current file to use in CRD paths.
 	_, filename, _, _ := goruntime.Caller(0) //nolint
@@ -172,7 +174,7 @@ const (
 
 // Mutate the name of each webhook, because kubebuilder generates the same name for all controllers.
 // In normal usage, kustomize will prefix the controller name, which we have to do manually here.
-func appendWebhookConfiguration(mutatingWebhooks []client.Object, validatingWebhooks []client.Object, configyamlFile []byte, tag string) ([]client.Object, []client.Object, error) {
+func appendWebhookConfiguration(mutatingWebhooks []admissionv1.MutatingWebhookConfiguration, validatingWebhooks []admissionv1.ValidatingWebhookConfiguration, configyamlFile []byte, tag string) ([]admissionv1.MutatingWebhookConfiguration, []admissionv1.ValidatingWebhookConfiguration, error) {
 
 	objs, err := util.ToUnstructured(configyamlFile)
 	if err != nil {
@@ -184,15 +186,25 @@ func appendWebhookConfiguration(mutatingWebhooks []client.Object, validatingWebh
 		if o.GetKind() == mutatingWebhookKind {
 			// update the name in metadata
 			if o.GetName() == mutatingwebhook {
-				o.SetName(strings.Join([]string{mutatingwebhook, "-", tag}, ""))
-				mutatingWebhooks = append(mutatingWebhooks, &o)
+				cfg := admissionv1.MutatingWebhookConfiguration{}
+				err = runtime.DefaultUnstructuredConverter.FromUnstructured(o.Object, &cfg)
+				if err != nil {
+					klog.Fatalf("failed to decode obj")
+				}
+				cfg.Name = strings.Join([]string{mutatingwebhook, "-", tag}, "")
+				mutatingWebhooks = append(mutatingWebhooks, cfg)
 			}
 		}
 		if o.GetKind() == validatingWebhookKind {
 			// update the name in metadata
 			if o.GetName() == validatingwebhook {
-				o.SetName(strings.Join([]string{validatingwebhook, "-", tag}, ""))
-				validatingWebhooks = append(validatingWebhooks, &o)
+				cfg := admissionv1.ValidatingWebhookConfiguration{}
+				err = runtime.DefaultUnstructuredConverter.FromUnstructured(o.Object, &cfg)
+				if err != nil {
+					klog.Fatalf("failed to decode obj")
+				}
+				cfg.Name = strings.Join([]string{mutatingwebhook, "-", tag}, "")
+				validatingWebhooks = append(validatingWebhooks, cfg)
 			}
 		}
 	}

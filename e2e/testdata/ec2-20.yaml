@@ -18,7 +18,7 @@ spec:
     name: aws
     region: us-east-1
     sshKey: undistro
-  kubernetesVersion: v1.20.9
+  kubernetesVersion: v1.20.11
   workers:
   - machineType: m5.large
     replicas: 2

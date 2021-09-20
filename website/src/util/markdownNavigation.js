@@ -12,6 +12,11 @@ const titleNavigation = [
 				title: 'Architecture',
 				number: '1.2',
 				id: '#architecture'
+			},
+			{
+				title: 'Supported Kubernetes versions',
+				number: '1.3',
+				id: '#supported-kubernetes-versions'
 			}
 		],
 		id: '#1---introduction'
