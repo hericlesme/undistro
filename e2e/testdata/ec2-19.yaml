@@ -2,9 +2,12 @@
 apiVersion: app.undistro.io/v1alpha1
 kind: Cluster
 metadata:
-  name: ec2-20-e2e
+  name: ec2-19-e2e
   namespace: e2e
 spec:
+  network:
+    vpc:
+      cidrBlock: 10.2.0.0/16
   bastion:
     allowedCIDRBlocks:
       - "0.0.0.0/0"
@@ -18,7 +21,7 @@ spec:
     name: aws
     region: us-east-1
     sshKey: undistro
-  kubernetesVersion: v1.20.11
+  kubernetesVersion: v1.19.13
   workers:
   - machineType: m5.large
     replicas: 2
@@ -34,7 +37,7 @@ spec:
 apiVersion: app.undistro.io/v1alpha1
 kind: DefaultPolicies
 metadata:
-  name: defaultpolicies-ec2-20-e2e
+  name: defaultpolicies-ec2-19-e2e
   namespace: e2e
 spec:
-  clusterName: ec2-20-e2e
+  clusterName: ec2-19-e2e
