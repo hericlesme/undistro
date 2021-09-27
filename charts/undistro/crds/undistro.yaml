@@ -463,6 +463,8 @@ spec:
                       - name
                       type: object
                     type: array
+                  extraConfiguration:
+                    x-kubernetes-preserve-unknown-fields: true
                   flavor:
                     type: string
                   name:

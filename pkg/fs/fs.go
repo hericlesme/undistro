@@ -32,6 +32,7 @@ var FS embed.FS
 //go:generate helm package -u ../../charts/ingress-nginx -d chart
 //go:generate helm package -u ../../charts/undistro -d chart
 //go:generate helm package -u ../../charts/undistro-aws -d chart
+//go:generate helm package -u ../../charts/undistro-openstack -d chart
 //go:embed chart/*
 var ChartFS embed.FS
 

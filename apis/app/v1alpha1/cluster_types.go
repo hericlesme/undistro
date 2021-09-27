@@ -24,6 +24,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 )
@@ -97,21 +98,23 @@ type Autoscaling struct {
 }
 
 type InfrastructureProvider struct {
-	Name   string          `json:"name,omitempty"`
-	SSHKey string          `json:"sshKey,omitempty"`
-	Flavor string          `json:"flavor,omitempty"`
-	Region string          `json:"region,omitempty"`
-	Env    []corev1.EnvVar `json:"env,omitempty"`
+	Name               string                `json:"name,omitempty"`
+	SSHKey             string                `json:"sshKey,omitempty"`
+	Flavor             string                `json:"flavor,omitempty"`
+	Region             string                `json:"region,omitempty"`
+	Env                []corev1.EnvVar       `json:"env,omitempty"`
+	ExtraConfiguration *apiextensionsv1.JSON `json:"extraConfiguration,omitempty"`
 }
 
 type SupportedInfraProvider int8
 
 const (
 	Amazon SupportedInfraProvider = iota
+	OpenStack
 )
 
 func (s SupportedInfraProvider) String() string {
-	return [...]string{"aws"}[s]
+	return [...]string{"aws", "openstack"}[s]
 }
 
 type SupportedInfraProviderFlavor int8
@@ -119,16 +122,19 @@ type SupportedInfraProviderFlavor int8
 const (
 	EC2 SupportedInfraProviderFlavor = iota
 	EKS
+	OpenStackFlavor
 )
 
 func (s SupportedInfraProviderFlavor) String() string {
-	return [...]string{"ec2", "eks"}[s]
+	return [...]string{"ec2", "eks", "openstack"}[s]
 }
 
 func (i InfrastructureProvider) Flavors() []string {
 	switch i.Name {
 	case Amazon.String():
 		return []string{EC2.String(), EKS.String()}
+	case OpenStack.String():
+		return []string{OpenStackFlavor.String()}
 	}
 	return nil
 }

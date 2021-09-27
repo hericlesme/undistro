@@ -1,0 +1,252 @@
+---
+apiVersion: cluster.x-k8s.io/v1alpha4
+kind: Cluster
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  paused: {{.Cluster.Spec.Paused}}
+  {{if .Cluster.Spec.Network}}
+  clusterNetwork:
+    {{if .Cluster.Spec.Network.Pods}}
+    pods:
+      {{range .Cluster.Spec.Network.Pods}}
+      cidrBlocks:
+        - {{. | quote}}
+      {{end}}
+    {{end}}
+    {{if .Cluster.Spec.Network.Services}}
+    services:
+      {{range .Cluster.Spec.Network.Services}}
+      cidrBlocks:
+        - {{. | quote}}
+      {{end}}
+    {{end}}
+  {{end}}
+  {{if .Cluster.Spec.ControlPlane}}
+  {{if .Cluster.Spec.ControlPlane.Endpoint}}
+  controlPlaneEndpoint:
+    host: {{.Cluster.Spec.ControlPlane.Endpoint.Host}}
+    port: {{.Cluster.Spec.ControlPlane.Endpoint.Port}}
+  {{end}}
+  {{end}}
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+    kind: OpenStackCluster
+    name: "{{.Cluster.Name}}"
+    namespace: "{{.Cluster.Namespace}}"
+  controlPlaneRef:
+    kind: KubeadmControlPlane
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+    name: "{{.Cluster.Name}}"
+    namespace: "{{.Cluster.Namespace}}"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: OpenStackCluster
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  cloudName: {{.ENV.CLOUD_NAME}}
+  identityRef:
+    name: "{{.Cluster.Name}}-cloud-config"
+    namespace: "{{.Cluster.Namespace}}"
+    kind: Secret
+  # For now we're keeping this as disabled until we have a LB service
+  # working properly
+  managedAPIServerLoadBalancer: false
+  managedSecurityGroups: true
+  allowAllInClusterTraffic: true
+  {{if .Cluster.Spec.Network}}
+  {{if .Cluster.Spec.Network.VPC.CIDRBlock}}
+  nodeCidr: {{.Cluster.Spec.Network.VPC.CIDRBlock}}
+  {{else}}
+  nodeCidr: 10.6.0.0/24
+  {{end}}
+  {{else}}
+   nodeCidr: 10.6.0.0/24
+  {{end}}
+  dnsNameservers:
+  - {{.ENV.DNS_NAME_SERVER}}
+
+---
+kind: KubeadmControlPlane
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  replicas: {{ .Cluster.Spec.ControlPlane.Replicas}}
+  machineTemplate:
+    infrastructureRef:
+      kind: OpenStackMachineTemplate
+      apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+      name: "{{.Cluster.Name}}-cp-{{.Cluster.Status.LastUsedUID}}"
+      namespace: "{{.Cluster.Namespace}}"
+  kubeadmConfigSpec:
+    useExperimentalRetryJoin: true
+    initConfiguration:
+      nodeRegistration:
+        name: {{"'{{ local_hostname }}'"}}
+        kubeletExtraArgs:
+          cloud-provider: external
+          {{$taints := .Cluster.Spec.ControlPlane.TaintTmpl}}
+          {{if $taints}}
+          register-with-taints: "{{$taints}}"
+          {{end}}
+          {{$labels := .Cluster.Spec.ControlPlane.LabelsTmpl}}
+          {{if $labels}}
+          node-labels: "{{$labels}}"
+          {{end}}
+    clusterConfiguration:
+      imageRepository: registry.undistro.io/k8s
+      dns:
+        imageRepository: registry.undistro.io/k8s/coredns
+        imageTag: v1.8.4
+      etcd:
+        local:
+          imageRepository: registry.undistro.io/k8s
+      apiServer:
+        extraArgs:
+          cloud-provider: external
+      controllerManager:
+        extraArgs:
+          cloud-provider: external
+    joinConfiguration:
+      nodeRegistration:
+        name: {{"'{{ local_hostname }}'"}}
+        kubeletExtraArgs:
+          cloud-provider: external
+          {{$taints := .Cluster.Spec.ControlPlane.TaintTmpl}}
+          {{if $taints}}
+          register-with-taints: "{{$taints}}"
+          {{end}}
+          {{$labels := .Cluster.Spec.ControlPlane.LabelsTmpl}}
+          {{if $labels}}
+          node-labels: "{{$labels}}"
+          {{end}}
+  version: "{{.Cluster.Spec.KubernetesVersion}}"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: OpenStackMachineTemplate
+metadata:
+  name: "{{.Cluster.Name}}-cp-{{.Cluster.Status.LastUsedUID}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  template:
+    spec:
+      flavor: "{{.Cluster.Spec.ControlPlane.MachineType}}"
+      image: ubuntu-2004-kube-{{.Cluster.Spec.KubernetesVersion}} 
+      {{if .Cluster.Spec.InfrastructureProvider.SSHKey}}
+      sshKeyName: "{{ .Cluster.Spec.InfrastructureProvider.SSHKey}}"
+      {{end}}
+      cloudName: {{.ENV.CLOUD_NAME}}
+      identityRef:
+        name: "{{.Cluster.Name}}-cloud-config"
+        namespace: "{{.Cluster.Namespace}}"
+        kind: Secret
+---
+apiVersion: cluster.x-k8s.io/v1alpha4
+kind: MachineHealthCheck
+metadata:
+  name: "{{.Cluster.Name}}"
+  namespace: "{{.Cluster.Namespace}}"
+spec:
+  clusterName: "{{.Cluster.Name}}"
+  nodeStartupTimeout: 5m
+  maxUnhealthy: 100%
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/control-plane: ""
+  unhealthyConditions:
+    - type: Ready
+      status: Unknown
+      timeout: 300s
+    - type: Ready
+      status: "False"
+      timeout: 300s
+{{$name := .Cluster.Name}}
+{{$namespace := .Cluster.Namespace}}
+{{$k8s := .Cluster.Spec.KubernetesVersion}}
+{{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
+{{$region := .Cluster.Spec.InfrastructureProvider.Region}}
+{{$uid := .Cluster.Status.LastUsedUID}}
+{{$subnets := .Cluster.Spec.Network.Subnets}}
+{{$env := .ENV}}
+{{range $index, $element := .Cluster.Spec.Workers}}
+---
+apiVersion: cluster.x-k8s.io/v1alpha4
+kind: MachineDeployment
+metadata:
+  name: "{{$name}}-mp-{{$index}}"
+  namespace: "{{$namespace}}"
+spec:
+  clusterName: "{{$name}}"
+  replicas: {{$element.Replicas}}
+  template:
+    spec:
+      failureDomain: nova
+      clusterName: "{{$name}}"
+      version: "{{$k8s}}"
+      bootstrap:
+        configRef:
+          name: "{{$name}}-mp-{{$uid}}-{{$index}}"
+          namespace: "{{$namespace}}"
+          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
+          kind: KubeadmConfigTemplate
+      infrastructureRef:
+        name: "{{$name}}-mp-{{$uid}}-{{$index}}"
+        namespace: "{{$namespace}}"
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+        kind: OpenStackMachineTemplate
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: OpenStackMachineTemplate
+metadata:
+  name: "{{$name}}-mp-{{$uid}}-{{$index}}"
+  namespace: "{{$namespace}}"
+spec:
+  template:
+    spec:
+      flavor: "{{$element.MachineType}}"
+      image: ubuntu-2004-kube-{{$k8s}} 
+      {{if $sshKey}}
+      sshKeyName: "{{$sshKey}}"
+      {{end}}
+      cloudName: {{$env.CLOUD_NAME}}
+      identityRef:
+        name: "{{$name}}-cloud-config"
+        namespace: "{{$namespace}}"
+        kind: Secret
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
+kind: KubeadmConfigTemplate
+metadata:
+  name: "{{$name}}-mp-{{$uid}}-{{$index}}"
+  namespace: "{{$namespace}}"
+spec:
+  template:
+    spec:
+      useExperimentalRetryJoin: true
+      clusterConfiguration:
+        imageRepository: registry.undistro.io/k8s
+        dns:
+          imageRepository: registry.undistro.io/k8s/coredns
+          imageTag: v1.8.4
+        etcd:
+          local:
+            imageRepository: registry.undistro.io/k8s
+      joinConfiguration:
+        nodeRegistration:
+          name: {{"'{{ local_hostname }}'"}}
+          kubeletExtraArgs:
+            cloud-provider: external
+            {{$taints := $element.TaintTmpl}}
+            {{if $taints}}
+            register-with-taints: "{{$taints}}"
+            {{end}}
+            {{$labels := $element.LabelsTmpl}}
+            {{if $labels}}
+            node-labels: "{{$labels}}"
+            {{end}}
+{{end}}

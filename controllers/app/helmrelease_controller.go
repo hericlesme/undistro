@@ -125,7 +125,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		isCNIChart := false
 		isKyverno := false
 		if hr.Annotations != nil {
-			_, isCNIChart = hr.Annotations[meta.CNIAnnotation]
+			_, isCNIChart = hr.Annotations[meta.SetupAnnotation]
 			_, isKyverno = hr.Annotations[meta.KyvernoAnnotation]
 		}
 		if !meta.InReadyCondition(cl.Status.Conditions) && !isCNIChart {
@@ -245,14 +245,14 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		if client.IgnoreNotFound(err) != nil {
 			return hr, ctrl.Result{}, err
 		}
-		if _, isCNIChart := hr.Annotations[meta.CNIAnnotation]; isCNIChart {
+		if _, isSetupChart := hr.Annotations[meta.SetupAnnotation]; isSetupChart {
 			return appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "wait kubeconfig to be available"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
 		return hr, ctrl.Result{}, nil
 	}
 	restCfg, err := getter.ToRESTConfig()
 	if err != nil {
-		if _, isCNIChart := hr.Annotations[meta.CNIAnnotation]; isCNIChart {
+		if _, isCNIChart := hr.Annotations[meta.SetupAnnotation]; isCNIChart {
 			return appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "wait kubeconfig to be available"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
 		return hr, ctrl.Result{}, err
@@ -261,7 +261,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		Scheme: scheme.Scheme,
 	})
 	if err != nil {
-		if _, isCNIChart := hr.Annotations[meta.CNIAnnotation]; isCNIChart {
+		if _, isCNIChart := hr.Annotations[meta.SetupAnnotation]; isCNIChart {
 			return appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "wait kubeconfig to be available"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
 		return hr, ctrl.Result{}, err

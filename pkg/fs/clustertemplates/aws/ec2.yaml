@@ -147,7 +147,7 @@ spec:
       imageRepository: registry.undistro.io/k8s
       dns:
         imageRepository: registry.undistro.io/k8s/coredns
-        imageTag: {{corednsVersion .Cluster.Spec.KubernetesVersion}}
+        imageTag: v1.8.4
       etcd:
         local:
           imageRepository: registry.undistro.io/k8s
@@ -304,7 +304,7 @@ spec:
     imageRepository: registry.undistro.io/k8s
     dns:
       imageRepository: registry.undistro.io/k8s/coredns
-      imageTag: {{corednsVersion $k8s}}
+      imageTag: v1.8.4
     etcd:
       local:
         imageRepository: registry.undistro.io/k8s

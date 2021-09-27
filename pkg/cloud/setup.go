@@ -23,6 +23,7 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws"
+	"github.com/getupio-undistro/undistro/pkg/cloud/openstack"
 	"k8s.io/apimachinery/pkg/util/json"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -80,6 +81,17 @@ func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alph
 	switch cl.Spec.InfrastructureProvider.Name {
 	case appv1alpha1.Amazon.String():
 		return aws.ReconcileLaunchTemplate(ctx, r, cl)
+	case appv1alpha1.OpenStack.String():
+		return openstack.ReconcileClusterSecret(ctx, r, cl)
+	}
+	return nil
+}
+
+// ReconcileIntegration from clouds
+func ReconcileIntegration(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster) error {
+	switch cl.Spec.InfrastructureProvider.Name {
+	case appv1alpha1.OpenStack.String():
+		return openstack.ReconcileCloudProvider(ctx, r, cl)
 	}
 	return nil
 }

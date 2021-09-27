@@ -182,6 +182,12 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 		return cl, ctrl.Result{}, err
 	}
 
+	err = cloud.ReconcileIntegration(ctx, r.Client, &cl)
+	if err != nil {
+		meta.SetResourceCondition(&cl, meta.CloudProviderInstalledCondition, metav1.ConditionFalse, meta.CloudProvideInstalledFailedReason, err.Error())
+		return cl, ctrl.Result{}, err
+	}
+
 	if cl.Spec.Bastion != nil {
 		if *cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
 			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, cl, capiCluster)
@@ -241,13 +247,17 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 	cl.Status.BastionConfig = cl.Spec.Bastion
 	if capiCluster.Status.ControlPlaneReady && capiCluster.Status.InfrastructureReady {
 		cl = appv1alpha1.ClusterReady(cl)
+		err = kube.EnsureComponentsConfig(ctx, r.Client, &cl)
+		if err != nil {
+			return cl, ctrl.Result{}, err
+		}
 		if cl.Status.ConciergeInfo == nil {
 			cl, err = r.reconcileConciergeEndpoint(ctx, cl)
 			if err != nil {
 				return cl, ctrl.Result{}, err
 			}
 		}
-		return cl, ctrl.Result{RequeueAfter: 20 * time.Minute}, nil
+		return cl, ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
 	}
 	return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 }
@@ -331,7 +341,7 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 	if hr.Annotations == nil {
 		hr.Annotations = make(map[string]string)
 	}
-	hr.Annotations[meta.CNIAnnotation] = cniCalicoName
+	hr.Annotations[meta.SetupAnnotation] = cniCalicoName
 	_, err = util.CreateOrUpdate(ctx, r.Client, &hr)
 	if err != nil {
 		return err
