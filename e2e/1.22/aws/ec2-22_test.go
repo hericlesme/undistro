@@ -52,7 +52,7 @@ var _ = Describe("Create EC2 cluster 1.22", func() {
 	It("Should create EC2 cluster 1.22", func() {
 		cmd := exec.NewCommand(
 			exec.WithCommand("undistro"),
-			exec.WithArgs("apply", "-f", "../testdata/ec2-22.yaml"),
+			exec.WithArgs("apply", "-f", "../../testdata/ec2-22.yaml"),
 		)
 		out, _, err := cmd.Run(context.Background())
 		fmt.Println(err)
@@ -159,7 +159,7 @@ var _ = Describe("Create EC2 cluster 1.22", func() {
 		fmt.Println("delete cluster")
 		cmd = exec.NewCommand(
 			exec.WithCommand("undistro"),
-			exec.WithArgs("delete", "-f", "../testdata/ec2-22.yaml"),
+			exec.WithArgs("delete", "-f", "../../testdata/ec2-22.yaml"),
 		)
 		out, _, err = cmd.Run(context.Background())
 		Expect(err).ToNot(HaveOccurred())

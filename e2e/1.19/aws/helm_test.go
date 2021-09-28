@@ -33,7 +33,7 @@ var _ = Describe("Helm Release", func() {
 	It("Should apply helm release", func() {
 		cmd := exec.NewCommand(
 			exec.WithCommand("undistro"),
-			exec.WithArgs("apply", "-f", "../testdata/k8s-dash.yaml"),
+			exec.WithArgs("apply", "-f", "../../testdata/k8s-dash.yaml"),
 		)
 		out, _, err := cmd.Run(context.Background())
 		Expect(err).ToNot(HaveOccurred())
@@ -68,7 +68,7 @@ var _ = Describe("Helm Release", func() {
 	It("Should upgrade helm release", func() {
 		cmd := exec.NewCommand(
 			exec.WithCommand("undistro"),
-			exec.WithArgs("apply", "-f", "../testdata/k8s-dash-upgrade.yaml"),
+			exec.WithArgs("apply", "-f", "../../testdata/k8s-dash-upgrade.yaml"),
 		)
 		out, _, err := cmd.Run(context.Background())
 		Expect(err).ToNot(HaveOccurred())

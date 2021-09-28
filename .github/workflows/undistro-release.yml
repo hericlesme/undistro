@@ -52,20 +52,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
-      - name: Helm Push
+      - name: helm chart-push
         working-directory: ./charts
         env:
           HELM_LOGIN: ${{ secrets.REGISTRY_LOGIN }}
           HELM_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
         run: |
-          helm plugin install https://github.com/chartmuseum/helm-push.git
+          helm plugin install https://github.com/getupio-undistro/helm-push.git
           helm repo add undistro https://registry.undistro.io/chartrepo/library
-          helm push cert-manager undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
-          helm push cluster-api undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
-          helm push undistro undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
-          helm push undistro-aws undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
-          helm push kyverno undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
-          helm push ingress-nginx undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
-          helm push pinniped-concierge undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
-          helm push pinniped-supervisor undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
-          helm push metallb undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push cert-manager undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push cluster-api undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push undistro undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push undistro-aws undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push kyverno undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push ingress-nginx undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push pinniped-concierge undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push pinniped-supervisor undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push metallb undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push undistro-openstack undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push cloud-provider-openstack undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force

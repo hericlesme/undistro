@@ -1,4 +1,4 @@
-name: Tests E2E 1.22
+name: Tests E2E 1.20 on AWS
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   e2e:
-    name: E2E 1.22
+    name: E2E 1.20
     runs-on: ubuntu-latest
     steps:
       - name: Cancel Previous Runs
@@ -40,15 +40,15 @@ jobs:
           GO111MODULE="on" go install sigs.k8s.io/kind@v0.11.1
           ./hack/cluster.sh -k
 
-      - name: Configure AWS credentials for E2E 1.22
+      - name: Configure AWS credentials for E2E 1.20
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.E2E_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.E2E_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Run E2E 1.22
-        working-directory: ./e2e/1.22
+      - name: Run E2E 1.20
+        working-directory: ./e2e/1.20/aws
         if: "!contains(github.event.head_commit.message, 'skip e2e')"
         env:
           E2E_AWS_ACCESS_KEY_ID: ${{ secrets.E2E_AWS_ACCESS_KEY_ID }}
