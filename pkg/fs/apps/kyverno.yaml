@@ -10,7 +10,7 @@ spec:
   {{if and (ne .Cluster.Namespace "undistro-system") (ne .Cluster.Name "management")}}
   clusterName: "{{.Cluster.Namespace}}/{{.Cluster.Name}}"
   {{end}}
-  releaseNme: kyverno
+  releaseName: kyverno
   targetNamespace: kyverno
   chart:
     repository: "https://registry.undistro.io/chartrepo/library"
