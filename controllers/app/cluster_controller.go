@@ -103,7 +103,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		cl = appv1alpha1.ClusterDeleting(cl)
 		return r.reconcileDelete(ctx, cl)
 	}
-	cl, result, err := r.reconcile(ctx, log, cl, capiCluster)
+	cl, result, err := r.reconcile(ctx, cl, capiCluster)
 	return result, err
 }
 
@@ -147,7 +147,7 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 	return vars, nil
 }
 
-func (r *ClusterReconciler) getBastionIP(ctx context.Context, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (string, error) {
+func (r *ClusterReconciler) getBastionIP(ctx context.Context, capiCluster capi.Cluster) (string, error) {
 	ref := capiCluster.Spec.InfrastructureRef
 	if ref != nil {
 		key := client.ObjectKey{
@@ -169,7 +169,7 @@ func (r *ClusterReconciler) getBastionIP(ctx context.Context, cl appv1alpha1.Clu
 	return "", nil
 }
 
-func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (appv1alpha1.Cluster, ctrl.Result, error) {
+func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (appv1alpha1.Cluster, ctrl.Result, error) {
 	cl.Status.TotalWorkerPools = int32(len(cl.Spec.Workers))
 	cl.Status.TotalWorkerReplicas = 0
 	for _, w := range cl.Spec.Workers {
@@ -190,7 +190,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, log logr.Logger, cl a
 
 	if cl.Spec.Bastion != nil {
 		if *cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
-			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, cl, capiCluster)
+			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, capiCluster)
 			if err != nil {
 				return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{Requeue: true}, nil
 			}

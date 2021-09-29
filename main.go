@@ -27,8 +27,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
-	appcontroller "github.com/getupio-undistro/undistro/controllers/app"
-	metadatacontroller "github.com/getupio-undistro/undistro/controllers/metadata"
+	appcontrollers "github.com/getupio-undistro/undistro/controllers/app"
+	metadatacontrollers "github.com/getupio-undistro/undistro/controllers/metadata"
 	"github.com/getupio-undistro/undistro/pkg/record"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
@@ -77,7 +77,7 @@ func main() {
 
 	record.InitFromRecorder(mgr.GetEventRecorderFor("undistro-controller"))
 
-	if err = (&appcontroller.ClusterReconciler{
+	if err = (&appcontrollers.ClusterReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Cluster"),
 		Scheme: mgr.GetScheme(),
@@ -85,7 +85,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Cluster")
 		os.Exit(1)
 	}
-	if err = (&appcontroller.HelmReleaseReconciler{
+	if err = (&appcontrollers.HelmReleaseReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("HelmRelease"),
 		Scheme: mgr.GetScheme(),
@@ -93,7 +93,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "HelmRelease")
 		os.Exit(1)
 	}
-	if err = (&appcontroller.DefaultPoliciesReconciler{
+	if err = (&appcontrollers.DefaultPoliciesReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("DefaultPolicies"),
 		Scheme: mgr.GetScheme(),
@@ -101,7 +101,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "DefaultPolicies")
 		os.Exit(1)
 	}
-	if err = (&metadatacontroller.ProviderReconciler{
+	if err = (&metadatacontrollers.ProviderReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Metadata"),
 		Scheme: mgr.GetScheme(),
@@ -109,7 +109,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Provider")
 		os.Exit(1)
 	}
-	if err = (&appcontroller.IdentityReconciler{
+	if err = (&appcontrollers.IdentityReconciler{
 		Client:   mgr.GetClient(),
 		Log:      ctrl.Log.WithName("controllers").WithName("Identity"),
 		Scheme:   mgr.GetScheme(),
@@ -118,6 +118,15 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Identity")
 		os.Exit(1)
 	}
+	if err = (&appcontrollers.ObserverReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Identity"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Observer")
+		os.Exit(1)
+	}
+
 	if err = (&appv1alpha1.Cluster{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Cluster")
 		os.Exit(1)
@@ -131,6 +140,7 @@ func main() {
 		setupLog.Error(err, "unable to create webhook", "webhook", "DefaultPolicies")
 		os.Exit(1)
 	}
+
 	// +kubebuilder:scaffold:builder
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")

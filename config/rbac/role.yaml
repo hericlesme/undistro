@@ -12,3 +12,29 @@ rules:
   - '*'
   verbs:
   - '*'
+- apiGroups:
+  - app.undistro.io
+  resources:
+  - observers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - app.undistro.io
+  resources:
+  - observers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - app.undistro.io
+  resources:
+  - observers/status
+  verbs:
+  - get
+  - patch
+  - update

@@ -94,6 +94,9 @@ var providersInfo = map[string]metadatav1alpha1.ProviderInfo{
 		Category:   metadatav1alpha1.ProviderInfra,
 		SecretName: "undistro-aws-config",
 	},
+	"kube-prometheus-stack": {
+		Category: metadatav1alpha1.ProviderInfra,
+	},
 	"undistro-openstack": {
 		Category:   metadatav1alpha1.ProviderInfra,
 		SecretName: "undistro-openstack-config",

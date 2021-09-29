@@ -1,0 +1,24 @@
+# permissions for end users to edit observers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: observer-editor-role
+rules:
+- apiGroups:
+  - app.undistro.io
+  resources:
+  - observers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - app.undistro.io
+  resources:
+  - observers/status
+  verbs:
+  - get

@@ -71,3 +71,4 @@ jobs:
           helm chart-push metallb undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
           helm chart-push undistro-openstack undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
           helm chart-push cloud-provider-openstack undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push kube-prometheus-stack undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force

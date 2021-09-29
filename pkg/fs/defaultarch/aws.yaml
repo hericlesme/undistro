@@ -32,6 +32,15 @@ metadata:
   namespace: {{.Namespace}}
 spec:
   clusterName: {{.Name}}
+---
+apiVersion: app.undistro.io/v1alpha1
+kind: Observer
+metadata:
+  name: "undistro-observer-{{.Name}}"
+  namespace: {{.Namespace}}
+spec:
+  clusterName: {{.Name}}
+  paused: false
 {{- if .AuthEnabled}}
 ---
 apiVersion: app.undistro.io/v1alpha1

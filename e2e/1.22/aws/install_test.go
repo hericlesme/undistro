@@ -40,7 +40,7 @@ var _ = Describe("Validate UnDistro Installation", func() {
 			err := k8sClient.List(context.Background(), &podList, client.InNamespace("undistro-system"))
 			Expect(err).ToNot(HaveOccurred())
 			return podList.Items
-		}, 15*time.Minute, 1*time.Minute).Should(HaveLen(8)) // 8 when auth isn't enabled
+		}, 15*time.Minute, 1*time.Minute).Should(HaveLen(13)) // 13 when auth isn't enabled
 		Eventually(func() bool {
 			podList := corev1.PodList{}
 			err := k8sClient.List(context.Background(), &podList, client.InNamespace("undistro-system"))

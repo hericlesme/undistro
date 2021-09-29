@@ -1,0 +1,7 @@
+apiVersion: app.undistro.io/v1alpha1
+kind: Observer
+metadata:
+  name: undistro-observer
+  namespace: {{ .Values.identity.namespace }}
+spec:
+  clusterName: ""

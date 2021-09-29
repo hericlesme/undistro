@@ -47,8 +47,8 @@ import (
 )
 
 const (
-	requeueAfter    = time.Minute * 2
-	identityManager = "pinniped"
+	identityRequeueAfter = time.Minute * 2
+	identityManager      = "pinniped"
 )
 
 type PinnipedComponent string
@@ -118,16 +118,16 @@ func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	elapsed := time.Since(start)
 	msg := fmt.Sprintf("Queueing after %s", elapsed.String())
 	r.Log.Info(msg)
-	return ctrl.Result{RequeueAfter: requeueAfter}, nil
+	return ctrl.Result{RequeueAfter: identityRequeueAfter}, nil
 }
 
 // reconcile ensures that Pinniped is installed
-func (r *IdentityReconciler) reconcile(ctx context.Context, req ctrl.Request, i appv1alpha1.Identity) error {
+func (r *IdentityReconciler) reconcile(ctx context.Context, req ctrl.Request, instance appv1alpha1.Identity) error {
 	cl := &appv1alpha1.Cluster{}
 	clusterClient := r.Client
 	key := client.ObjectKey{
-		Name:      i.Spec.ClusterName,
-		Namespace: i.GetNamespace(),
+		Name:      instance.Spec.ClusterName,
+		Namespace: instance.GetNamespace(),
 	}
 	err := r.Get(ctx, key, cl)
 	if client.IgnoreNotFound(err) != nil {
@@ -139,8 +139,7 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, req ctrl.Request, i 
 			"namespace": undistro.Namespace,
 		},
 	}
-
-	err = r.reconcileComponentInstallation(ctx, req, cl, i, concierge, undistro.Namespace, "0.10.0", values)
+	err = r.reconcileComponentInstallation(ctx, req, cl, instance, concierge, undistro.Namespace, "0.10.0", values)
 	if err != nil {
 		r.Log.Info(err.Error())
 		return err
@@ -154,8 +153,8 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, req ctrl.Request, i 
 		return err
 	}
 	issuer := fedo["issuer"].(string)
-	if util.IsMgmtCluster(i.Spec.ClusterName) {
-		r.Log.Info("Installing Pinniped components in cluster ", "cluster-name", i.Spec.ClusterName)
+	if util.IsMgmtCluster(instance.Spec.ClusterName) {
+		r.Log.Info("Installing Pinniped components in cluster ", "cluster-name", instance.Spec.ClusterName)
 		r.Log.Info("Installing components in management cluster")
 		cl.Name = "management"
 		cl.Namespace = undistro.Namespace
@@ -164,12 +163,11 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, req ctrl.Request, i 
 		values["config"] = map[string]interface{}{
 			"callbackURL": callbackURL,
 		}
-		err = r.reconcileComponentInstallation(ctx, req, cl, i, supervisor, undistro.Namespace, "0.10.0-undistro", values)
+		err = r.reconcileComponentInstallation(ctx, req, cl, instance, supervisor, undistro.Namespace, "0.10.0-undistro", values)
 		if err != nil {
 			r.Log.Info(err.Error())
 			return err
 		}
-
 		err = r.reconcileFederationDomain(ctx, fedo)
 		if err != nil {
 			r.Log.Info(err.Error())
@@ -181,7 +179,7 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, req ctrl.Request, i 
 			return err
 		}
 	} else {
-		clusterClient, err = kube.NewClusterClient(ctx, r.Client, i.Spec.ClusterName, cl.GetNamespace())
+		clusterClient, err = kube.NewClusterClient(ctx, r.Client, instance.Spec.ClusterName, cl.GetNamespace())
 		if err != nil {
 			r.Log.Info(err.Error())
 			return err
@@ -353,8 +351,8 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
-
-		release, err = prepareHR(pc, targetNs, cl.GetNamespace(), version, i, values)
+		releaseName := fmt.Sprintf("%s-%s", "pinniped", pc)
+		release, err = r.prepareRelease(releaseName, targetNs, cl.GetNamespace(), version, i, values)
 		if err != nil {
 			return err
 		}
@@ -380,9 +378,8 @@ func installComponent(ctx context.Context, c client.Client, hr appv1alpha1.HelmR
 	return err
 }
 
-// prepareHR fills the Helm Release fields for the given component
-func prepareHR(pc PinnipedComponent, targetNs, clusterNs, version string, i appv1alpha1.Identity, v map[string]interface{}) (appv1alpha1.HelmRelease, error) {
-	chartName := fmt.Sprintf("%s-%s", "pinniped", pc)
+// prepareRelease fills the Helm Release fields for the given component
+func (r *IdentityReconciler) prepareRelease(releaseName string, targetNs, clusterNs, version string, i appv1alpha1.Identity, v map[string]interface{}) (appv1alpha1.HelmRelease, error) {
 	byt, err := json.Marshal(v)
 	if err != nil {
 		return appv1alpha1.HelmRelease{}, err
@@ -390,28 +387,31 @@ func prepareHR(pc PinnipedComponent, targetNs, clusterNs, version string, i appv
 	values := apiextensionsv1.JSON{
 		Raw: byt,
 	}
+	hrSpec := appv1alpha1.HelmReleaseSpec{
+		ReleaseName:     releaseName,
+		TargetNamespace: targetNs,
+		Values:          &values,
+		Chart: appv1alpha1.ChartSource{
+			RepoChartSource: appv1alpha1.RepoChartSource{
+				RepoURL: undistro.DefaultRepo,
+				Name:    releaseName,
+				Version: version,
+			},
+		},
+	}
+	if !util.IsMgmtCluster(i.Spec.ClusterName) {
+		hrSpec.ClusterName = fmt.Sprintf("%s/%s", clusterNs, i.Spec.ClusterName)
+	}
 	hr := &appv1alpha1.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: appv1alpha1.GroupVersion.String(),
 			Kind:       "HelmRelease",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      chartName,
+			Name:      releaseName,
 			Namespace: clusterNs,
 		},
-		Spec: appv1alpha1.HelmReleaseSpec{
-			ReleaseName:     chartName,
-			TargetNamespace: targetNs,
-			ClusterName:     i.GetClusterName(),
-			Values:          &values,
-			Chart: appv1alpha1.ChartSource{
-				RepoChartSource: appv1alpha1.RepoChartSource{
-					RepoURL: undistro.DefaultRepo,
-					Name:    chartName,
-					Version: version,
-				},
-			},
-		},
+		Spec: hrSpec,
 	}
 	return *hr, nil
 }

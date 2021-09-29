@@ -80,9 +80,9 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		p = appv1alpha1.DefaultPoliciesPaused(p)
 		return ctrl.Result{}, nil
 	}
-	// if cluster name if empty, we install the chart only for the undistro cluster
+	// if cluster name is empty, we install the chart only for the undistro cluster
 	cl := &appv1alpha1.Cluster{}
-	if p.Spec.ClusterName != "" {
+	if util.IsMgmtCluster(p.Spec.ClusterName) {
 		key := client.ObjectKey{
 			Name:      p.Spec.ClusterName,
 			Namespace: p.GetNamespace(),
