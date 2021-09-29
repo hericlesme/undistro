@@ -58,6 +58,22 @@ func stringptr(s string) *string {
 	return &s
 }
 
+func identityEnabled(cfg map[string]interface{}) bool {
+	undistroCfg, ok := cfg["undistro"].(map[string]interface{})
+	if !ok {
+		return false
+	}
+	identityCfg, ok := undistroCfg["identity"].(map[string]interface{})
+	if !ok {
+		return false
+	}
+	enabled, ok := identityCfg["enabled"].(bool)
+	if !ok {
+		return false
+	}
+	return enabled
+}
+
 func getIPFromConfig(cfg map[string]interface{}) string {
 	undistroCfg, ok := cfg["undistro"].(map[string]interface{})
 	if !ok {

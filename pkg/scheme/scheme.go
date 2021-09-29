@@ -28,6 +28,7 @@ import (
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	capicp "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha4"
 	capiexp "sigs.k8s.io/cluster-api/exp/api/v1alpha4"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var (
@@ -42,8 +43,17 @@ func init() {
 	utilruntime.Must(capicp.AddToScheme(Scheme))
 	utilruntime.Must(apiextensionsv1.AddToScheme(Scheme))
 	utilruntime.Must(capiexp.AddToScheme(Scheme))
-	utilruntime.Must(v1alpha1supervisoridp.AddToScheme(Scheme))
-	utilruntime.Must(v1alpha1supervisorconf.AddToScheme(Scheme))
-	utilruntime.Must(v1alpha1conciergeauth.AddToScheme(Scheme))
+	err := v1alpha1supervisoridp.AddToScheme(Scheme)
+	if err != nil {
+		ctrl.Log.V(2).Info("identity disabled", "err", err)
+	}
+	err = v1alpha1supervisorconf.AddToScheme(Scheme)
+	if err != nil {
+		ctrl.Log.V(2).Info("identity disabled", "err", err)
+	}
+	err = v1alpha1conciergeauth.AddToScheme(Scheme)
+	if err != nil {
+		ctrl.Log.V(2).Info("identity disabled", "err", err)
+	}
 	// +kubebuilder:scaffold:scheme
 }

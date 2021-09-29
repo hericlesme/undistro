@@ -572,9 +572,11 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	if err != nil {
 		return err
 	}
-	err = validateSupervisorConfig(cmd.Context(), c, isLocal, getIPFromConfig(cfg), o.IOStreams.Out)
-	if err != nil {
-		return err
+	if identityEnabled(cfg) {
+		err = validateSupervisorConfig(cmd.Context(), c, isLocal, getIPFromConfig(cfg), o.IOStreams.Out)
+		if err != nil {
+			return err
+		}
 	}
 	if isLocal {
 		err = o.validateLocalEnvironment(cmd.Context(), c)
@@ -598,10 +600,6 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 			return ctx.Err()
 		default:
 			ready := true
-			runner, err := helm.NewRunner(restGetter, ns, log.Log)
-			if err != nil {
-				return err
-			}
 			var addrs []string
 			for _, hr := range hrs {
 				if hr.Name == "undistro" {
@@ -623,11 +621,14 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 					ready = false
 					continue
 				}
-				rel, err := runner.Status(hr)
+				gettedHr := appv1alpha1.HelmRelease{}
+				key := client.ObjectKeyFromObject(&hr)
+				err = c.Get(ctx, key, &gettedHr)
 				if err != nil {
-					return err
+					ready = false
+					continue
 				}
-				if rel.Info.Status != release.StatusDeployed {
+				if !meta.InReadyCondition(gettedHr.Status.Conditions) {
 					ready = false
 					continue
 				}
