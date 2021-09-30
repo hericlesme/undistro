@@ -18,15 +18,14 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/getupio-undistro/undistro/pkg/undistro"
-	"github.com/getupio-undistro/undistro/pkg/util"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/hr"
+	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/undistro/pkg/undistro"
+	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -104,8 +103,7 @@ func (r *ObserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, observer appv1alpha1.Observer) error {
 	// check kube-prometheus-stack installation from helm
-	values := make(map[string]interface{})
-	defaultValues := map[string]interface{}{
+	values := map[string]interface{}{
 		"namespaceOverride": undistro.Namespace,
 		"grafana": map[string]interface{}{
 			"enabled": false,
@@ -115,7 +113,6 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, ob
 	if util.IsMgmtCluster(observer.Spec.ClusterName) {
 		cl.Name = "management"
 		cl.Namespace = undistro.Namespace
-		values = defaultValues
 	} else {
 		key := client.ObjectKey{
 			Name:      observer.Spec.ClusterName,
@@ -132,7 +129,7 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, ob
 					"admissionWebhooks": map[string]interface{}{
 						"patch": map[string]interface{}{
 							"nodeSelector": map[string]interface{}{
-								"node-role.undistro.io/infra": "true",
+								meta.LabelUndistroInfra: "true",
 							},
 							"tolerations": []map[string]interface{}{
 								{
@@ -145,7 +142,7 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, ob
 					},
 					"prometheusSpec": map[string]interface{}{
 						"nodeSelector": map[string]interface{}{
-							"node-role.undistro.io/infra": "true",
+							meta.LabelUndistroInfra: "true",
 						},
 						"tolerations": []map[string]interface{}{
 							{
@@ -156,7 +153,7 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, ob
 						},
 					},
 					"nodeSelector": map[string]interface{}{
-						"node-role.undistro.io/infra": "true",
+						meta.LabelUndistroInfra: "true",
 					},
 					"tolerations": []map[string]interface{}{
 						{
@@ -169,7 +166,7 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, ob
 				"alertmanager": map[string]interface{}{
 					"alertmanagerSpec": map[string]interface{}{
 						"nodeSelector": map[string]interface{}{
-							"node-role.undistro.io/infra": "true",
+							meta.LabelUndistroInfra: "true",
 						},
 						"tolerations": []map[string]interface{}{
 							{
@@ -182,7 +179,7 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, ob
 				},
 				"kube-state-metrics": map[string]interface{}{
 					"nodeSelector": map[string]interface{}{
-						"node-role.undistro.io/infra": "true",
+						meta.LabelUndistroInfra: "true",
 					},
 					"tolerations": []map[string]interface{}{
 						{
@@ -195,7 +192,7 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, ob
 				"prometheus": map[string]interface{}{
 					"prometheusSpec": map[string]interface{}{
 						"nodeSelector": map[string]interface{}{
-							"node-role.undistro.io/infra": "true",
+							meta.LabelUndistroInfra: "true",
 						},
 						"tolerations": []map[string]interface{}{
 							{
@@ -207,29 +204,31 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, ob
 					},
 				},
 			}
-			values = util.MergeMaps(defaultValues, infraValues)
-		} else {
-			values = defaultValues
+			values = util.MergeMaps(values, infraValues)
 		}
 	}
-	release := appv1alpha1.HelmRelease{}
 	releaseName := "kube-prometheus-stack"
+	key := client.ObjectKey{
+		Name:      hr.GetObjectName(releaseName, observer.Spec.ClusterName),
+		Namespace: observer.GetNamespace(),
+	}
+	release := appv1alpha1.HelmRelease{}
 	msg := fmt.Sprintf("Checking if %s is installed", releaseName)
 	r.Log.Info(msg)
-	err := r.Get(ctx, req.NamespacedName, &release)
+	err := r.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
-		release, err = r.prepareRelease(releaseName, undistro.Namespace, cl.GetNamespace(), "18.0.4", observer, values)
+		release, err = hr.Prepare(releaseName, undistro.Namespace, cl.GetNamespace(), "18.0.4", observer.Spec.ClusterName, values)
 		if err != nil {
 			return err
 		}
-		msg = fmt.Sprintf("Installing %s", releaseName)
-		r.Log.Info(msg)
-		if err := installComponent(ctx, r.Client, release, cl); err != nil {
-			return err
-		}
+	}
+	msg = fmt.Sprintf("Installing %s", releaseName)
+	r.Log.Info(msg)
+	if err := hr.Install(ctx, r.Client, release, cl); err != nil {
+		return err
 	}
 	// after the kube-prometheus-stack crds install
 	if util.IsMgmtCluster(observer.Spec.ClusterName) {
@@ -275,50 +274,6 @@ spec:
 		}
 	}
 	return nil
-}
-
-// prepareRelease fills the Helm Release fields for the given component
-func (r *ObserverReconciler) prepareRelease(
-	releaseName string,
-	targetNs,
-	clusterNs,
-	version string,
-	o appv1alpha1.Observer,
-	v map[string]interface{}) (appv1alpha1.HelmRelease, error) {
-	byt, err := json.Marshal(v)
-	if err != nil {
-		return appv1alpha1.HelmRelease{}, err
-	}
-	values := apiextensionsv1.JSON{
-		Raw: byt,
-	}
-	hrSpec := appv1alpha1.HelmReleaseSpec{
-		ReleaseName:     releaseName,
-		TargetNamespace: targetNs,
-		Values:          &values,
-		Chart: appv1alpha1.ChartSource{
-			RepoChartSource: appv1alpha1.RepoChartSource{
-				RepoURL: undistro.DefaultRepo,
-				Name:    releaseName,
-				Version: version,
-			},
-		},
-	}
-	if !util.IsMgmtCluster(o.Spec.ClusterName) {
-		hrSpec.ClusterName = fmt.Sprintf("%s/%s", clusterNs, o.Spec.ClusterName)
-	}
-	hr := &appv1alpha1.HelmRelease{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: appv1alpha1.GroupVersion.String(),
-			Kind:       "HelmRelease",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      releaseName,
-			Namespace: clusterNs,
-		},
-		Spec: hrSpec,
-	}
-	return *hr, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

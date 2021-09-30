@@ -24,7 +24,6 @@ import (
 	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws"
 	"github.com/getupio-undistro/undistro/pkg/cloud/openstack"
-	"k8s.io/apimachinery/pkg/util/json"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -96,7 +95,7 @@ func ReconcileIntegration(ctx context.Context, r client.Client, cl *appv1alpha1.
 	return nil
 }
 
-func CalicoValues(flavor string) ([]byte, error) {
+func CalicoValues(flavor string) map[string]interface{} {
 	values := make(map[string]interface{})
 	switch flavor {
 	case appv1alpha1.EKS.String():
@@ -104,7 +103,7 @@ func CalicoValues(flavor string) ([]byte, error) {
 	default:
 		values["vxlan"] = false
 	}
-	return json.Marshal(values)
+	return values
 }
 
 func GetAccount(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (Account, error) {

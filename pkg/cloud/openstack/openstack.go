@@ -23,16 +23,14 @@ import (
 	"text/template"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/hr"
 	"github.com/getupio-undistro/undistro/pkg/meta"
-	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -121,61 +119,34 @@ func ReconcileCloudProvider(ctx context.Context, c client.Client, cl *appv1alpha
 		version   = "1.22.0"
 	)
 
-	m := map[string]string{
+	m := map[string]interface{}{
 		"cloudconf": base64.StdEncoding.EncodeToString([]byte(cfgFile)),
 		"cacert":    base64.StdEncoding.EncodeToString(secret.Data["caFile"]),
 	}
-	v, err := json.Marshal(m)
-	if err != nil {
-		return err
-	}
 	key := client.ObjectKey{
-		Name:      cloudHelm,
+		Name:      hr.GetObjectName(cloudHelm, cl.Name),
 		Namespace: cl.GetNamespace(),
 	}
-	hr := appv1alpha1.HelmRelease{}
-	err = c.Get(ctx, key, &hr)
+	release := appv1alpha1.HelmRelease{}
+	err = c.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
-		hr = appv1alpha1.HelmRelease{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: appv1alpha1.GroupVersion.String(),
-				Kind:       "HelmRelease",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-%s", cloudHelm, cl.Name),
-				Namespace: cl.GetNamespace(),
-			},
-			Spec: appv1alpha1.HelmReleaseSpec{
-				TargetNamespace: "kube-system",
-				ReleaseName:     cloudHelm,
-				Values:          &apiextensionsv1.JSON{Raw: v},
-				ClusterName:     fmt.Sprintf("%s/%s", cl.GetNamespace(), cl.Name),
-				Chart: appv1alpha1.ChartSource{
-					RepoChartSource: appv1alpha1.RepoChartSource{
-						RepoURL: undistro.DefaultRepo,
-						Name:    cloudHelm,
-						Version: version,
-					},
-				},
-			},
-		}
-		err = ctrl.SetControllerReference(cl, &hr, scheme.Scheme)
+		release, err = hr.Prepare(cloudHelm, "kube-system", cl.GetNamespace(), version, cl.Name, m)
 		if err != nil {
 			return err
 		}
 	}
-	if hr.Annotations == nil {
-		hr.Annotations = make(map[string]string)
+	if release.Annotations == nil {
+		release.Annotations = make(map[string]string)
 	}
-	hr.Annotations[meta.SetupAnnotation] = cloudHelm
-	_, err = util.CreateOrUpdate(ctx, c, &hr)
+	release.Annotations[meta.SetupAnnotation] = cloudHelm
+	err = hr.Install(ctx, c, release, cl)
 	if err != nil {
 		return err
 	}
-	if meta.InReadyCondition(hr.Status.Conditions) {
+	if meta.InReadyCondition(release.Status.Conditions) {
 		meta.SetResourceCondition(cl, meta.CloudProviderInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "opestack cloud integration installed")
 	}
 	return nil

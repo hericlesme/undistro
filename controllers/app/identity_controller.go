@@ -19,16 +19,14 @@ package app
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/hr"
 	"github.com/getupio-undistro/undistro/pkg/kube"
-	"github.com/getupio-undistro/undistro/pkg/meta"
-	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
@@ -36,7 +34,6 @@ import (
 	conciergev1aplha1 "go.pinniped.dev/generated/latest/apis/concierge/authentication/v1alpha1"
 	supervisorconfigv1aplha1 "go.pinniped.dev/generated/latest/apis/supervisor/config/v1alpha1"
 	supervisoridpv1aplha1 "go.pinniped.dev/generated/latest/apis/supervisor/idp/v1alpha1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -343,77 +340,30 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 	targetNs, version string,
 	values map[string]interface{},
 ) (err error) {
+	releaseName := fmt.Sprintf("%s-%s", "pinniped", pc)
 	release := appv1alpha1.HelmRelease{}
 	msg := fmt.Sprintf("Checking if %s is installed", pc)
 	r.Log.Info(msg)
-	err = r.Get(ctx, req.NamespacedName, &release)
+	key := client.ObjectKey{
+		Name:      hr.GetObjectName(releaseName, i.Spec.ClusterName),
+		Namespace: i.GetNamespace(),
+	}
+	err = r.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
-		releaseName := fmt.Sprintf("%s-%s", "pinniped", pc)
-		release, err = r.prepareRelease(releaseName, targetNs, cl.GetNamespace(), version, i, values)
+		release, err = hr.Prepare(releaseName, targetNs, cl.GetNamespace(), version, i.Spec.ClusterName, values)
 		if err != nil {
 			return err
 		}
-		msg = fmt.Sprintf("Installing %s component: %s", identityManager, pc)
-		r.Log.Info(msg)
-		if err := installComponent(ctx, r.Client, release, cl); err != nil {
-			return err
-		}
+	}
+	msg = fmt.Sprintf("Installing %s component: %s", identityManager, pc)
+	r.Log.Info(msg)
+	if err := hr.Install(ctx, r.Client, release, cl); err != nil {
+		return err
 	}
 	return
-}
-
-// installComponent installs some chart in a such cluster
-func installComponent(ctx context.Context, c client.Client, hr appv1alpha1.HelmRelease, cl *appv1alpha1.Cluster) error {
-	msg := fmt.Sprintf("%s installation", hr.Name)
-	if meta.InReadyCondition(hr.Status.Conditions) {
-		meta.SetResourceCondition(cl, meta.ReadyCondition, metav1.ConditionTrue, meta.InstallSucceededReason, msg)
-	}
-	err := retry.WithExponentialBackoff(retry.NewBackoff(), func() error {
-		_, e := util.CreateOrUpdate(ctx, c, &hr)
-		return e
-	})
-	return err
-}
-
-// prepareRelease fills the Helm Release fields for the given component
-func (r *IdentityReconciler) prepareRelease(releaseName string, targetNs, clusterNs, version string, i appv1alpha1.Identity, v map[string]interface{}) (appv1alpha1.HelmRelease, error) {
-	byt, err := json.Marshal(v)
-	if err != nil {
-		return appv1alpha1.HelmRelease{}, err
-	}
-	values := apiextensionsv1.JSON{
-		Raw: byt,
-	}
-	hrSpec := appv1alpha1.HelmReleaseSpec{
-		ReleaseName:     releaseName,
-		TargetNamespace: targetNs,
-		Values:          &values,
-		Chart: appv1alpha1.ChartSource{
-			RepoChartSource: appv1alpha1.RepoChartSource{
-				RepoURL: undistro.DefaultRepo,
-				Name:    releaseName,
-				Version: version,
-			},
-		},
-	}
-	if !util.IsMgmtCluster(i.Spec.ClusterName) {
-		hrSpec.ClusterName = fmt.Sprintf("%s/%s", clusterNs, i.Spec.ClusterName)
-	}
-	hr := &appv1alpha1.HelmRelease{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: appv1alpha1.GroupVersion.String(),
-			Kind:       "HelmRelease",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      releaseName,
-			Namespace: clusterNs,
-		},
-		Spec: hrSpec,
-	}
-	return *hr, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

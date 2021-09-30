@@ -18,16 +18,14 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"path/filepath"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/fs"
+	"github.com/getupio-undistro/undistro/pkg/hr"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
-	"github.com/getupio-undistro/undistro/pkg/template"
-	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -82,7 +80,7 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 	// if cluster name is empty, we install the chart only for the undistro cluster
 	cl := &appv1alpha1.Cluster{}
-	if util.IsMgmtCluster(p.Spec.ClusterName) {
+	if !util.IsMgmtCluster(p.Spec.ClusterName) {
 		key := client.ObjectKey{
 			Name:      p.Spec.ClusterName,
 			Namespace: p.GetNamespace(),
@@ -91,46 +89,9 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		if client.IgnoreNotFound(err) != nil {
 			return ctrl.Result{}, err
 		}
-	} else {
-		cl.Name = "management"
-		cl.Namespace = "undistro-system"
-	}
-	if !p.DeletionTimestamp.IsZero() {
-		p = appv1alpha1.DefaultPoliciesDeleting(p)
-		return r.reconcileDelete(ctx, &p, cl)
 	}
 	p, result, err := r.reconcile(ctx, log, p, cl)
 	return result, err
-}
-
-func (r *DefaultPoliciesReconciler) reconcileDelete(ctx context.Context, p *appv1alpha1.DefaultPolicies, cl *appv1alpha1.Cluster) (ctrl.Result, error) {
-	hr := appv1alpha1.HelmRelease{}
-	key := client.ObjectKey{
-		Name:      fmt.Sprintf("kyverno-%s", cl.Name),
-		Namespace: p.GetNamespace(),
-	}
-	err := r.Get(ctx, key, &hr)
-	if err != nil {
-		if client.IgnoreNotFound(err) != nil {
-			return ctrl.Result{}, err
-		}
-		controllerutil.RemoveFinalizer(p, meta.Finalizer)
-		_, err = util.CreateOrUpdate(ctx, r.Client, p)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
-	}
-	err = r.Delete(ctx, &hr)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	controllerutil.RemoveFinalizer(p, meta.Finalizer)
-	_, err = util.CreateOrUpdate(ctx, r.Client, p)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	return ctrl.Result{}, nil
 }
 
 func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logger, p appv1alpha1.DefaultPolicies, cl *appv1alpha1.Cluster) (appv1alpha1.DefaultPolicies, ctrl.Result, error) {
@@ -139,33 +100,65 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 		return p, ctrl.Result{}, nil
 	}
 	var err error
-	hr := appv1alpha1.HelmRelease{}
+	const (
+		releaseName = "kyverno"
+		version     = "1.4.2"
+	)
+	values := map[string]interface{}{
+		"fullnameOverride": releaseName,
+		"namespace":        releaseName,
+		"resources": map[string]interface{}{
+			"limits": map[string]interface{}{
+				"cpu":    "2000m",
+				"memory": "2Gi",
+			},
+			"requests": map[string]interface{}{
+				"cpu":    "500m",
+				"memory": "500Mi",
+			},
+		},
+	}
+	if cl.HasInfraNodes() {
+		infraValues := map[string]interface{}{
+			"nodeSelector": map[string]interface{}{
+				meta.LabelUndistroInfra: "true",
+			},
+			"tolerations": []map[string]interface{}{
+				{
+					"effect": "NoSchedule",
+					"key":    "dedicated",
+					"value":  "infra",
+				},
+			},
+		}
+		values = util.MergeMaps(values, infraValues)
+	}
+	release := appv1alpha1.HelmRelease{}
 	key := client.ObjectKey{
-		Name:      fmt.Sprintf("kyverno-%s", cl.Name),
+		Name:      hr.GetObjectName(releaseName, p.Spec.ClusterName),
 		Namespace: p.GetNamespace(),
 	}
-	err = r.Get(ctx, key, &hr)
+	err = r.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return p, ctrl.Result{}, err
 		}
-		p, err = r.installKyverno(ctx, p, cl)
+		release, err = hr.Prepare(releaseName, releaseName, p.GetNamespace(), version, p.Spec.ClusterName, values)
 		if err != nil {
 			return appv1alpha1.DefaultPoliciesNotReady(p, meta.ObjectsApliedFailedReason, err.Error()), ctrl.Result{}, err
 		}
 	}
-	if !meta.InReadyCondition(cl.Status.Conditions) && cl.Name != "management" && cl.Namespace != undistro.Namespace {
-		return appv1alpha1.DefaultPoliciesNotReady(p, meta.WaitProvisionReason, "wait cluster to be ready"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	err = hr.Install(ctx, r.Client, release, cl)
+	if err != nil {
+		return appv1alpha1.DefaultPoliciesNotReady(p, meta.ObjectsApliedFailedReason, err.Error()), ctrl.Result{}, err
 	}
-	if !meta.InReadyCondition(hr.Status.Conditions) {
+	meta.SetResourceCondition(&p, meta.ObjectsAppliedCondition, metav1.ConditionTrue, meta.ObjectsAppliedSuccessReason, "Kyverno installed")
+	if !meta.InReadyCondition(release.Status.Conditions) {
 		return appv1alpha1.DefaultPoliciesNotReady(p, meta.WaitProvisionReason, "wait Kyverno to be installed"), ctrl.Result{Requeue: true}, nil
 	}
 	clusterClient := r.Client
 	if p.Spec.ClusterName != "" {
-		if !meta.InReadyCondition(cl.Status.Conditions) {
-			return appv1alpha1.DefaultPoliciesNotReady(p, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
-		}
-		clusterClient, err = kube.NewClusterClient(ctx, r.Client, p.Spec.ClusterName, cl.GetNamespace())
+		clusterClient, err = kube.NewClusterClient(ctx, r.Client, p.Spec.ClusterName, p.GetNamespace())
 		if err != nil {
 			return appv1alpha1.DefaultPoliciesNotReady(p, meta.GetClusterFailed, err.Error()), ctrl.Result{}, err
 		}
@@ -222,24 +215,6 @@ func (r *DefaultPoliciesReconciler) applyPolicies(ctx context.Context, log logr.
 			p.Status.AppliedPolicies = set.UnsortedList()
 		}
 	}
-	return p, nil
-}
-
-func (r *DefaultPoliciesReconciler) installKyverno(ctx context.Context, p appv1alpha1.DefaultPolicies, cl *appv1alpha1.Cluster) (appv1alpha1.DefaultPolicies, error) {
-	vars := map[string]interface{}{
-		"Cluster": cl,
-	}
-	objs, err := template.GetObjs(fs.AppsFS, "apps", "kyverno", vars)
-	if err != nil {
-		return p, err
-	}
-	for _, o := range objs {
-		_, err = util.CreateOrUpdate(ctx, r.Client, &o)
-		if err != nil {
-			return p, err
-		}
-	}
-	meta.SetResourceCondition(&p, meta.ObjectsAppliedCondition, metav1.ConditionTrue, meta.ObjectsAppliedSuccessReason, "Kyverno installed")
 	return p, nil
 }
 

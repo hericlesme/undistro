@@ -39,9 +39,6 @@ var ChartFS embed.FS
 //go:embed frontend/*
 var frontFS embed.FS
 
-//go:embed apps/*
-var AppsFS embed.FS
-
 //go:embed defaultarch/*
 var DefaultArchFS embed.FS
 

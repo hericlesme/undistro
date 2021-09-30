@@ -25,15 +25,14 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud"
 	"github.com/getupio-undistro/undistro/pkg/fs"
+	"github.com/getupio-undistro/undistro/pkg/hr"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/template"
-	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -296,57 +295,31 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 		calicoVersion = "3.19.1"
 	)
 
-	v, err := cloud.CalicoValues(cl.Spec.InfrastructureProvider.Flavor)
-	if err != nil {
-		return err
-	}
+	v := cloud.CalicoValues(cl.Spec.InfrastructureProvider.Flavor)
 	key := client.ObjectKey{
-		Name:      cniCalicoName,
+		Name:      hr.GetObjectName(cniCalicoName, cl.Name),
 		Namespace: cl.GetNamespace(),
 	}
-	hr := appv1alpha1.HelmRelease{}
-	err = r.Get(ctx, key, &hr)
+	release := appv1alpha1.HelmRelease{}
+	err := r.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
-		hr = appv1alpha1.HelmRelease{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: appv1alpha1.GroupVersion.String(),
-				Kind:       "HelmRelease",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.Sprintf("%s-%s", cniCalicoName, cl.Name),
-				Namespace: cl.GetNamespace(),
-			},
-			Spec: appv1alpha1.HelmReleaseSpec{
-				TargetNamespace: "kube-system",
-				ReleaseName:     cniCalicoName,
-				Values:          &apiextensionsv1.JSON{Raw: v},
-				ClusterName:     fmt.Sprintf("%s/%s", cl.GetNamespace(), cl.Name),
-				Chart: appv1alpha1.ChartSource{
-					RepoChartSource: appv1alpha1.RepoChartSource{
-						RepoURL: undistro.DefaultRepo,
-						Name:    cniCalicoName,
-						Version: calicoVersion,
-					},
-				},
-			},
-		}
-		err = ctrl.SetControllerReference(cl, &hr, r.Scheme)
+		release, err = hr.Prepare(cniCalicoName, "kube-system", cl.GetNamespace(), calicoVersion, cl.Name, v)
 		if err != nil {
 			return err
 		}
 	}
-	if hr.Annotations == nil {
-		hr.Annotations = make(map[string]string)
+	if release.Annotations == nil {
+		release.Annotations = make(map[string]string)
 	}
-	hr.Annotations[meta.SetupAnnotation] = cniCalicoName
-	_, err = util.CreateOrUpdate(ctx, r.Client, &hr)
+	release.Annotations[meta.SetupAnnotation] = cniCalicoName
+	err = hr.Install(ctx, r.Client, release, cl)
 	if err != nil {
 		return err
 	}
-	if meta.InReadyCondition(hr.Status.Conditions) {
+	if meta.InReadyCondition(release.Status.Conditions) {
 		meta.SetResourceCondition(cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
 	}
 	return nil
@@ -393,14 +366,14 @@ func (r *ClusterReconciler) reconcileDelete(ctx context.Context, cl appv1alpha1.
 }
 
 func (r *ClusterReconciler) removeDeps(ctx context.Context, cl appv1alpha1.Cluster) error {
-	hrClusterName := fmt.Sprintf("%s/%s", cl.GetNamespace(), cl.Name)
-	hrList := appv1alpha1.HelmReleaseList{}
-	err := r.List(ctx, &hrList)
+	releaseClusterName := fmt.Sprintf("%s/%s", cl.GetNamespace(), cl.Name)
+	releaseList := appv1alpha1.HelmReleaseList{}
+	err := r.List(ctx, &releaseList)
 	if err != nil {
 		return err
 	}
-	for _, item := range hrList.Items {
-		if item.Spec.ClusterName == hrClusterName {
+	for _, item := range releaseList.Items {
+		if item.Spec.ClusterName == releaseClusterName {
 			err = r.Delete(ctx, &item)
 			if err != nil {
 				return err
