@@ -69,10 +69,13 @@ test: manifests generate fmt vet ## Run tests.
 
 ##@ Build
 
-build: generate fmt vet ## Build manager binary.
+clean: ## Removes cached Heml charts at <pkg/fs/charts>.
+	rm -fr pkg/fs/charts/*
+
+build: clean generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
 
-run: manifests generate fmt vet ## Run a controller from your host.
+run: clean manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
 docker-build: test ## Build docker image with the manager.
@@ -124,10 +127,10 @@ setup_kind: ## Creates a KinD cluster, a Docker registry and pushes Undistro's i
 setup_minikube: ## Creates a Minikube cluster with an inner Docker registry and pushes Undistro's images to it.
 	./hack/cluster.sh -m "${MINIK_IP}" -b "${REG_ADDR}:${UND_IMG_TAG}"
 
-cli-kind_install: cli setup_kind ## Prepares a KinD cluster and a registry, then installs Undistro in it.
+cli-kind_install: clean cli setup_kind ## Prepares a KinD cluster and a registry, then installs Undistro in it.
 	./bin/undistro --config "${UND_CONF}" install
 
-cli-minikube_install: cli setup_minikube ## Prepares a Minikube cluster and a registry, then installs Undistro in it.
+cli-minikube_install: clean cli setup_minikube ## Prepares a Minikube cluster and a registry, then installs Undistro in it.
 	./bin/undistro --config "${UND_CONF}" install
 
 # go-install-tool will 'go install' any package $2 and install it to $1.
