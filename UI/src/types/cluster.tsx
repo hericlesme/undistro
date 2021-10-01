@@ -42,21 +42,9 @@ export type TypeCluster = {
   regionOptions: TypeOption[]
   region: string
   setRegion: Function
-  accessKey: string
-  setAccesskey: Function
-  secret: string
-  setSecret: Function
-  session: string
-  setSession: Function
 }
 
 export type TypeInfra = {
-  provider: string
-  setProvider: Function
-  providerOptions: any
-  regionOptions: TypeOption[]
-  region: string
-  setRegion: Function
   flavor: string
   setFlavor: Function
   flavorOptions: TypeOption[]
@@ -65,6 +53,10 @@ export type TypeInfra = {
   sshKey: string
   setSshKey: Function
   k8sOptions: any
+  id?: string
+  setId?: Function
+  cidr?: string
+  setCidr?: Function
 }
 
 export type TypeTaints = {

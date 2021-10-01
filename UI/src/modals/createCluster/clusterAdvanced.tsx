@@ -35,8 +35,6 @@ const BASE_URL = `http://${HOST}/uapi/v1`
 
 const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const body = store.useState((s: any) => s.body)
-  const [accessKey, setAccesskey] = useState<string>('')
-  const [secret, setSecret] = useState<string>('')
   const [region, setRegion] = useState<string>('')
   const [clusterName, setClusterName] = useState<string>('')
   const [namespace, setNamespace] = useState<string>('')
@@ -102,7 +100,6 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
   const [maxSize, setMaxSize] = useState<number>(0)
   const [minSize, setMinSize] = useState<number>(0)
   const [groupId, setGroupId] = useState<string>('')
-  const [session, setSession] = useState<string>('')
   const [infraNode, setInfraNode] = useState<boolean>(false)
   const [providerTagsWorkers, setProviderTagsWorkers] = useState<{}[]>()
   const [labelsWorkers, setLabelsWorkers] = useState<{}[]>()
@@ -326,14 +323,6 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
     SetSubnets(newSubnets)
   }
 
-  const getSecrets = (secretRef: string) => {
-    Api.Secret.list(secretRef).then(res => {
-      setAccesskey(atob(res.data.accessKeyID))
-      setSecret(atob(res.data.secretAccessKey))
-      setRegion(atob(res.data.region))
-    })
-  }
-
   const getMachines = () => {
     Api.Provider.list('awsmachines').then(res => {
       const name = res.items.map((elm: any) => ({ label: elm.metadata.name, value: elm.metadata.name }))
@@ -353,7 +342,6 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
       })
       setProvider(newArray[0].metadata.name)
       setRegionOptions(newArray[0].status.regionNames.map((elm: string) => ({ value: elm, label: elm })))
-      getSecrets(newArray[0].spec.secretRef.name)
       return newArray
     })
   }
@@ -413,24 +401,12 @@ const ClusterAdvanced: FC<TypeModal> = ({ handleClose }) => {
             region={region}
             setRegion={setRegion}
             regionOptions={regionOptions}
-            accessKey={accessKey}
-            setAccesskey={setAccesskey}
-            secret={secret}
-            setSecret={setSecret}
-            session={session}
-            setSession={setSession}
           />
 
           <Infra
-            provider={provider}
-            setProvider={setProvider}
-            providerOptions={providerOptions}
             flavor={flavor}
             setFlavor={setFlavor}
             flavorOptions={flavorOptions}
-            region={region}
-            setRegion={setRegion}
-            regionOptions={regionOptions}
             k8sVersion={k8sVersion}
             setK8sVersion={setK8sVersion}
             k8sOptions={k8sOptions}

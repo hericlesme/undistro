@@ -1,10 +1,10 @@
 @font-face {
     font-family: "icons";
-    src: url("./icons.eot?4d7edb9958465d82433f3e211c159764?#iefix") format("embedded-opentype"),
-url("./icons.woff2?4d7edb9958465d82433f3e211c159764") format("woff2"),
-url("./icons.woff?4d7edb9958465d82433f3e211c159764") format("woff"),
-url("./icons.ttf?4d7edb9958465d82433f3e211c159764") format("truetype"),
-url("./icons.svg?4d7edb9958465d82433f3e211c159764#icons") format("svg");
+    src: url("./icons.eot?86be1c0a58babeb9d1f93e30909bcbd9?#iefix") format("embedded-opentype"),
+url("./icons.woff2?86be1c0a58babeb9d1f93e30909bcbd9") format("woff2"),
+url("./icons.woff?86be1c0a58babeb9d1f93e30909bcbd9") format("woff"),
+url("./icons.ttf?86be1c0a58babeb9d1f93e30909bcbd9") format("truetype"),
+url("./icons.svg?86be1c0a58babeb9d1f93e30909bcbd9#icons") format("svg");
 }
 
 i[class^="icon-"]:before, i[class*=" icon-"]:before {
@@ -18,66 +18,69 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
     -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-arrow-down:before {
+.icon-add-circle:before {
     content: "\f101";
 }
-.icon-arrow-right:before {
+.icon-arrow-down:before {
     content: "\f102";
 }
-.icon-arrow-solid-up:before {
+.icon-arrow-right:before {
     content: "\f103";
 }
-.icon-arrow-up:before {
+.icon-arrow-solid-up:before {
     content: "\f104";
 }
-.icon-beetle:before {
+.icon-arrow-up:before {
     content: "\f105";
 }
-.icon-check:before {
+.icon-beetle:before {
     content: "\f106";
 }
-.icon-close-solid:before {
+.icon-check:before {
     content: "\f107";
 }
-.icon-close:before {
+.icon-close-solid:before {
     content: "\f108";
 }
-.icon-cluster:before {
+.icon-close:before {
     content: "\f109";
 }
-.icon-clustersIcon:before {
+.icon-cluster:before {
     content: "\f10a";
 }
-.icon-dots:before {
+.icon-clustersIcon:before {
     content: "\f10b";
 }
-.icon-git:before {
+.icon-dots:before {
     content: "\f10c";
 }
-.icon-helm:before {
+.icon-git:before {
     content: "\f10d";
 }
-.icon-network:before {
+.icon-helm:before {
     content: "\f10e";
 }
-.icon-node:before {
+.icon-network:before {
     content: "\f10f";
 }
-.icon-play:before {
+.icon-node:before {
     content: "\f110";
 }
-.icon-plus:before {
+.icon-play:before {
     content: "\f111";
 }
-.icon-settings:before {
+.icon-plus:before {
     content: "\f112";
 }
-.icon-stop:before {
+.icon-settings:before {
     content: "\f113";
 }
-.icon-union:before {
+.icon-stop:before {
     content: "\f114";
 }
-.icon-workload:before {
+.icon-union:before {
     content: "\f115";
+}
+.icon-workload:before {
+    content: "\f116";
 }

@@ -15,13 +15,7 @@ const Cluster: FC<TypeCluster> = ({
   providerOptions,
   regionOptions,
   region,
-  setRegion,
-  accessKey,
-  setAccesskey,
-  secret,
-  setSecret,
-  session,
-  setSession
+  setRegion
 }) => {
 
   const formCluster = (e: React.FormEvent<HTMLInputElement>) => {
@@ -32,24 +26,12 @@ const Cluster: FC<TypeCluster> = ({
     setNamespace(e.currentTarget.value)
   }
 
-  const formAccessKey = (e: React.FormEvent<HTMLInputElement>) => {
-    setAccesskey(e.currentTarget.value)
-  }
-
-  const formSecret = (e: React.FormEvent<HTMLInputElement>) => {
-    setSecret(e.currentTarget.value)
-  }
-
   const formProvider = (value: string) => {
     setProvider(value)
   }
 
   const formRegion = (value: string) => {
     setRegion(value)
-  }
-
-  const formSession = (e: React.FormEvent<HTMLInputElement>) => {
-    setSession(e.currentTarget.value)
   }
 
   return (
@@ -62,9 +44,6 @@ const Cluster: FC<TypeCluster> = ({
           <Select value={provider} onChange={formProvider} options={providerOptions} label='select provider' />
           <Select options={regionOptions} value={region} onChange={formRegion} label='default region' />
         </div>
-        <Input disabled type='text' label='secret access ID' value={accessKey} onChange={formAccessKey} />
-        <Input disabled type='text' label='secret access key' value={secret} onChange={formSecret} />
-        <Input disabled type='text' label='session token' value={session} onChange={formSession} />
       </form>
     </>
   )

@@ -4,31 +4,30 @@ import Input from '@components/input'
 import { TypeInfra } from '../../../types/cluster'
 
 const InfrastructureProvider: FC<TypeInfra> = ({
-  provider,
-  setProvider,
-  providerOptions,
   flavor,
   setFlavor,
   flavorOptions,
   k8sVersion,
   setK8sVersion,
   k8sOptions,
-  regionOptions,
-  region,
-  setRegion,
   sshKey,
-  setSshKey
+  setSshKey,
+  cidr,
+  setCidr,
+  id,
+  setId,
 }) => {
-  const formProvider = (value: string) => {
-    setProvider(value)
+
+  const formId = (e: React.FormEvent<HTMLInputElement>) => {
+    setId?.(e.currentTarget.value)
+  }
+
+  const formCidr = (e: React.FormEvent<HTMLInputElement>) => {
+    setCidr?.(e.currentTarget.value)
   }
 
   const formSshKey = (e: React.FormEvent<HTMLInputElement>) => {
     setSshKey(e.currentTarget.value)
-  }
-
-  const formRegion = (value: string) => {
-    setRegion(value)
   }
 
   const formFlavor = (value: string) => {
@@ -43,7 +42,8 @@ const InfrastructureProvider: FC<TypeInfra> = ({
     <>
       <h3 className="title-box">Infrastructure provider</h3>
       <form className="infra-provider">
-        <Select value={provider} onChange={formProvider} options={providerOptions} label="provider" />
+        <Input type='text' value={id} onChange={formId} label='ID' />
+        <Input type='text' label='CIDR block' value={cidr} onChange={formCidr} />
         <Select
           value={flavor}
           onChange={(v: string) => {
@@ -53,7 +53,6 @@ const InfrastructureProvider: FC<TypeInfra> = ({
           options={flavorOptions}
           label="flavor"
         />
-        <Select options={regionOptions} value={region} onChange={formRegion} label="region" />
         <Select
           value={k8sVersion}
           onChange={formK8s}

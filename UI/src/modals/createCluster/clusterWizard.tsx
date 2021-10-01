@@ -18,14 +18,14 @@ const BASE_URL = `http://${HOST}/uapi/v1`
 
 const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
   const body = store.useState((s: any) => s.body)
-  const [accessKey, setAccesskey] = useState<string>('')
-  const [secret, setSecret] = useState<string>('')
   const [region, setRegion] = useState<string>('')
   const [clusterName, setClusterName] = useState<string>('')
   const [namespace, setNamespace] = useState<string>('')
   const [provider, setProvider] = useState<string>('')
   const [flavor, setFlavor] = useState<string>('')
   const [k8sVersion, setK8sVersion] = useState<string>('')
+  const [cidr, setCidr] = useState<string>('')
+  const [id, setId] = useState<string>('')
   const [replicas, setReplicas] = useState<number>(0)
   const [infraNode, setInfraNode] = useState<boolean>(false)
   const [workers, setWorkers] = useState<TypeWorker[]>([])
@@ -43,7 +43,6 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
   const [MachineOptions, setMachineOptions] = useState<TypeOption[]>()
   const [k8sOptions, setK8sOptions] = useState<TypeSelectOptions>()
   const [sshKey, setSshKey] = useState<string>('')
-  const [session, setSession] = useState<string>('')
   const [messages, setMessages] = useState<string[]>([''])
   const [newMessage, setNewMessage] = useState('')
   const [error, setError] = useState<ClusterCreationError>()
@@ -179,14 +178,6 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
     }, 1000)
   }
 
-  const getSecrets = (secretRef: string) => {
-    Api.Secret.list(secretRef).then(res => {
-      setAccesskey(atob(res.data.accessKeyID))
-      setSecret(atob(res.data.secretAccessKey))
-      setRegion(atob(res.data.region))
-    })
-  }
-
   const createWorkers = () => {
     setWorkers([
       ...workers,
@@ -238,7 +229,6 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
           label: elm
         }))
       )
-      getSecrets(newArray[0].spec.secretRef.name)
       return newArray
     })
   }
@@ -301,29 +291,21 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
             region={region}
             setRegion={setRegion}
             regionOptions={regionOptions}
-            accessKey={accessKey}
-            setAccesskey={setAccesskey}
-            secret={secret}
-            setSecret={setSecret}
-            session={session}
-            setSession={setSession}
           />
 
           <Infra
-            provider={provider}
-            setProvider={setProvider}
-            providerOptions={providerOptions}
             flavor={flavor}
             setFlavor={setFlavor}
             flavorOptions={flavorOptions}
-            region={region}
-            setRegion={setRegion}
-            regionOptions={regionOptions}
             k8sVersion={k8sVersion}
             setK8sVersion={setK8sVersion}
             k8sOptions={k8sOptions}
             sshKey={sshKey}
             setSshKey={setSshKey}
+            id={id}
+            setId={setId}
+            cidr={cidr}
+            setCidr={setCidr}
           />
 
           <ControlPlane

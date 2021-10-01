@@ -1,29 +1,38 @@
-.rbac-route {
-  margin: 44px 0 0 92px;
-  .content {
-    width: 680px;
+@import 'styles/theme';
 
-    h3 {
-      margin: 22px 0;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
+.rbac-route {
+  margin-top: 32px;
+
+  h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 400;
+  }
+
+  .assign-role {
+    display: flex;
+    height: 70px;
+    background-color: var(--gray-blue-500, $gray-blue-500);
+    align-items: center;
+    padding: 0 16px;
 
     .input {
-      margin: 8px 0;
+      input {
+        margin: 0;
+      }
     }
-
-    .rbac-select {
-      margin-bottom: 28px;
-      width: 220px;
-    }
-
-    .button-container {
+  
+    .add-role {
+      margin-left: 24px;
+      cursor: pointer;
       display: flex;
-      justify-content: flex-end;
+      align-items: center;
+      color: var(--gray-500, $gray-500);
 
-      .button--black {
-        margin-right: 20px;
+      i {
+        margin-right: 8px;
+        display: flex;
       }
     }
   }
