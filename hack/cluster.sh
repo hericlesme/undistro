@@ -54,6 +54,7 @@ function start_minikube {
 	minikube start --addons="registry" \
 		--install-addons=true \
 		--driver=docker \
+		--cni=bridge \
 		--container-runtime=containerd \
 		--docker-opt="-p 80:80/tcp -p 443:443/tcp -p 6443:6443/tcp" \
 		--ports=6443 \
@@ -66,13 +67,10 @@ function call_build_script {
 	proj_root=$(git rev-parse --show-toplevel)
 	if test -n "$proj_root"; then
 		match_arg=$(echo $b_addr_and_tag | grep -Eo "[a-z0-9.-]+:([0-9]+:)?[a-z0-9-]+")
-		echo $match_arg
 		if test -n "$match_arg"; then
 			addr=$(echo $b_addr_and_tag | sed -E "s/:[a-z0-9]+$//g")
 			tag=$(echo $b_addr_and_tag | sed "s/.*://g")
-			echo $addr
-			echo $tag
-			. $proj_root/testbin/docker-build-e2e.sh $addr $tag
+			$proj_root/testbin/docker-build-e2e.sh $addr $tag
 		else
 			exit_and_inform 3
 		fi

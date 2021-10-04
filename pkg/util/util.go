@@ -21,7 +21,6 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
-	"github.com/getupio-undistro/undistro/pkg/retry"
 	"io"
 	"math"
 	"math/rand"
@@ -30,11 +29,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getupio-undistro/undistro/pkg/retry"
+
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/release"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	apiyaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -46,6 +48,15 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var chartNameRegex *regexp.Regexp
+
+type LocalClusterType int8
+
+const (
+	NonLocal LocalClusterType = iota
+	NodeRetrieveError
+	Kind
+	Minikube
+)
 
 func init() {
 	chartNameRegex = regexp.MustCompile("[a-z]+-?[a-z]{2,}")
@@ -243,22 +254,35 @@ func RemoveDuplicateTaints(taints []corev1.Taint) []corev1.Taint {
 	return res
 }
 
-func IsLocalCluster(ctx context.Context, c client.Client) (bool, error) {
-	nodes := corev1.NodeList{}
+//// Asserts whether the current cluster is local, and the kind of local cluster. Each type is mapped to the enum <LocalClusterType>.
+func IsLocalCluster(ctx context.Context, c client.Client) (LocalClusterType, error) {
+	nodes := corev1.NodeList{
+		TypeMeta: v1.TypeMeta{},
+		ListMeta: v1.ListMeta{},
+		Items:    []corev1.Node{},
+	}
 	err := c.List(ctx, &nodes)
 	if err != nil {
-		return false, err
+		return NodeRetrieveError, err
 	}
+	var cTyp int8
 	for _, node := range nodes.Items {
 		for _, image := range node.Status.Images {
 			for _, name := range image.Names {
-				if strings.Contains(name, "kindnet") || strings.Contains(name, "minikube") {
-					return true, nil
+				if strings.Contains(name, "kindnet") {
+					cTyp++
+				} else if strings.Contains(name, "minikube") {
+					cTyp++
 				}
 			}
 		}
 	}
-	return false, nil
+	if cTyp == 1 {
+		return Kind, nil
+	} else if cTyp > 1 {
+		return Minikube, nil
+	}
+	return NonLocal, nil
 }
 
 func ChartNameByFile(name string) string {

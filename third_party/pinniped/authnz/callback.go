@@ -212,11 +212,11 @@ func (h HandlerState) HandleAuthCluster(w http.ResponseWriter, r *http.Request) 
 		Endpoint:    conciergeInfo.Endpoint,
 		CA:          string(ca),
 	}
-	isLocal, err := util.IsLocalCluster(h.Ctx, c)
+	localClus, err := util.IsLocalCluster(h.Ctx, c)
 	if err != nil {
 		return err
 	}
-	if isLocal {
+	if localClus != util.NonLocal {
 		resp.Endpoint = "https://0.0.0.0:6443"
 	}
 	return json.NewEncoder(w).Encode(resp)
@@ -366,12 +366,12 @@ func (h HandlerState) updateHandlerState(ctx context.Context) (HandlerState, err
 	}
 	issuer := fedo["issuer"].(string)
 	cli := http.DefaultClient
-	isLocal, err := util.IsLocalCluster(h.Ctx, c)
+	localClus, err := util.IsLocalCluster(h.Ctx, c)
 	if err != nil {
 		return h, err
 	}
 	h.HTTPClient = cli
-	if isLocal {
+	if localClus != util.NonLocal {
 		h, err = h.updateHTTPClientCert(c)
 		if err != nil {
 			return h, err

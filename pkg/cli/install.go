@@ -260,11 +260,11 @@ func (o *InstallOptions) installChart(restGetter genericclioptions.RESTClientGet
 
 func (o *InstallOptions) checkEnabledList(ctx context.Context, c client.Client, cfg map[string]interface{}) []string {
 	p := []string{"cert-manager", "cluster-api", "undistro", "ingress-nginx"}
-	isLocal, err := util.IsLocalCluster(ctx, c)
+	localClus, err := util.IsLocalCluster(ctx, c)
 	if err != nil {
 		return nil
 	}
-	if isLocal {
+	if localClus != util.NonLocal {
 		p = []string{"metallb", "cert-manager", "cluster-api", "undistro", "ingress-nginx"}
 	}
 
@@ -394,10 +394,10 @@ func (o *InstallOptions) installCore(ctx context.Context, c client.Client, restG
 	return hrs, nil
 }
 
-func validateSupervisorConfig(ctx context.Context, c client.Client, isLocal bool, ingressAddr string, out io.Writer) error {
+func validateSupervisorConfig(ctx context.Context, c client.Client, localClus util.LocalClusterType, ingressAddr string, out io.Writer) error {
 	supervisorURL := "https://%s/auth"
 	issuer := fmt.Sprintf(supervisorURL, ingressAddr)
-	if isLocal || ingressAddr == "" {
+	if localClus != util.NonLocal || ingressAddr == "" {
 		// is required to use the local IP for the Pinniped Federation Domain Issuer
 		ip, err := knet.ChooseHostInterface()
 		if err != nil {
@@ -442,18 +442,24 @@ func validateSupervisorConfig(ctx context.Context, c client.Client, isLocal bool
 	return nil
 }
 
-func validateKindConfig(ctx context.Context, c client.Client, out io.Writer) error {
-	// get kind container ip for metallb configuration
-	kindContainerName := "kind-control-plane"
+func validateLocalClusConfig(ctx context.Context, c client.Client, out io.Writer, clusTyp util.LocalClusterType) error {
+	// get local cluster container ip for metallb configuration
+	containerName := ""
+	switch clusTyp {
+	case util.Kind:
+		containerName = "kind-control-plane"
+	case util.Minikube:
+		containerName = "minikube"
+	}
 	cmd := exec.Command(
 		"docker",
-		"inspect", "-f", "'{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}'", kindContainerName,
+		"inspect", "-f", "'{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}'", containerName,
 	)
 	b := bytes.Buffer{}
 	cmd.Stdout = &b
 	err := cmd.Run()
 	if err != nil {
-		fmt.Fprintln(out, "error getting kind container IP", err.Error())
+		fmt.Fprintf(out, "error getting %s container IP %s\n", containerName, err.Error())
 	}
 	containerIP := strings.TrimSpace(strings.ReplaceAll(b.String(), "'", ""))
 	// format container IP
@@ -514,9 +520,9 @@ func validateKindConfig(ctx context.Context, c client.Client, out io.Writer) err
 	return nil
 }
 
-func (o *InstallOptions) validateLocalEnvironment(ctx context.Context, c client.Client) error {
+func (o *InstallOptions) validateLocalEnvironment(ctx context.Context, c client.Client, clusTyp util.LocalClusterType) error {
 	fmt.Fprintln(o.IOStreams.Out, "Cluster is local. Preparing environment...")
-	err := validateKindConfig(ctx, c, o.IOStreams.Out)
+	err := validateLocalClusConfig(ctx, c, o.IOStreams.Out, clusTyp)
 	if err != nil {
 		return err
 	}
@@ -571,18 +577,18 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 	if err != nil {
 		return err
 	}
-	isLocal, err := util.IsLocalCluster(cmd.Context(), c)
+	localClus, err := util.IsLocalCluster(cmd.Context(), c)
 	if err != nil {
 		return err
 	}
 	if identityEnabled(cfg) {
-		err = validateSupervisorConfig(cmd.Context(), c, isLocal, getIPFromConfig(cfg), o.IOStreams.Out)
+		err = validateSupervisorConfig(cmd.Context(), c, localClus, getIPFromConfig(cfg), o.IOStreams.Out)
 		if err != nil {
 			return err
 		}
 	}
-	if isLocal {
-		err = o.validateLocalEnvironment(cmd.Context(), c)
+	if localClus != util.NonLocal {
+		err = o.validateLocalEnvironment(cmd.Context(), c, localClus)
 		if err != nil {
 			return err
 		}

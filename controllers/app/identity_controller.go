@@ -204,11 +204,11 @@ func (r *IdentityReconciler) reconcileFederationDomain(ctx context.Context, fede
 
 	spec := supervisorconfigv1aplha1.FederationDomainSpec{}
 	spec.Issuer = federationDomainCfg["issuer"].(string)
-	isLocal, err := util.IsLocalCluster(ctx, r.Client)
+	localClus, err := util.IsLocalCluster(ctx, r.Client)
 	if err != nil {
 		return err
 	}
-	if isLocal {
+	if localClus != util.NonLocal {
 		msg := fmt.Sprintf("%v", federationDomainCfg)
 		r.Log.Info(msg)
 		spec.TLS = &supervisorconfigv1aplha1.FederationDomainTLSSpec{
@@ -313,7 +313,7 @@ func (r *IdentityReconciler) reconcileJWTAuthenticator(ctx context.Context, c cl
 			Audience: r.Audience,
 		},
 	}
-	if local {
+	if local != util.NonLocal {
 		secretByt, err := util.GetCaFromSecret(ctx, c, caSecretName, caName, undistro.Namespace)
 		if err != nil {
 			return err

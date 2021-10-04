@@ -95,11 +95,11 @@ func getIPFromConfig(cfg map[string]interface{}) string {
 }
 
 func defaultValues(ctx context.Context, c client.Client, name string) map[string]interface{} {
-	isKind, _ := util.IsLocalCluster(ctx, c)
+	localClus, _ := util.IsLocalCluster(ctx, c)
 	ip, _ := knet.ChooseHostInterface()
 	switch name {
 	case "undistro":
-		if ip.String() != "" && isKind {
+		if ip.String() != "" && localClus != util.NonLocal {
 			return map[string]interface{}{
 				"local": true,
 				"ingress": map[string]interface{}{
@@ -109,13 +109,13 @@ func defaultValues(ctx context.Context, c client.Client, name string) map[string
 				},
 			}
 		}
-		if ip.String() == "" && isKind {
+		if ip.String() == "" && localClus != util.NonLocal {
 			return map[string]interface{}{
 				"local": true,
 			}
 		}
 	case "ingress-nginx":
-		if isKind {
+		if localClus != util.NonLocal {
 			return map[string]interface{}{
 				"controller": map[string]interface{}{
 					"service": map[string]interface{}{
