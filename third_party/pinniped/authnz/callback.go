@@ -84,7 +84,7 @@ func (h HandlerState) handleRefresh(ctx context.Context, refreshToken *oidctypes
 	refreshed, err := refreshSource.Token()
 	if err != nil {
 		// Ignore errors during refresh, but return nil which will trigger the full login flow.
-		return nil, err
+		return nil, nil
 	}
 
 	// The spec is not 100% clear about whether an ID token from the refresh flow should include a nonce, and at least
@@ -142,22 +142,26 @@ func (h HandlerState) HandleAuthCluster(w http.ResponseWriter, r *http.Request) 
 		return httperr.Newf(http.StatusBadRequest, "login required %s", err)
 	}
 	if token.RefreshToken != nil && token.RefreshToken.Token != "" {
-		token, err = h.handleRefresh(h.Ctx, token.RefreshToken)
+		refreshToken, err := h.handleRefresh(h.Ctx, token.RefreshToken)
 		if err != nil {
 			session.Options.MaxAge = -1
 			session.Save(r, w)
 			return httperr.Newf(http.StatusInternalServerError, "failed refresh: %s", err)
 		}
-		tokenyaml, err := yaml.Marshal(*token)
-		if err != nil {
-			return err
-		}
-		session.Values[sessionKey] = string(tokenyaml)
-		err = session.Save(r, w)
-		if err != nil {
-			return err
+		if refreshToken != nil {
+			tokenyaml, err := yaml.Marshal(*refreshToken)
+			if err != nil {
+				return err
+			}
+			session.Values[sessionKey] = string(tokenyaml)
+			err = session.Save(r, w)
+			if err != nil {
+				return err
+			}
+			token = refreshToken
 		}
 	}
+
 	// Perform the RFC8693 token exchange.
 	exchangedToken, err := h.tokenExchangeRFC8693(token)
 	if err != nil {

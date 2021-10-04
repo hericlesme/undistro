@@ -143,10 +143,10 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 		if client.IgnoreNotFound(err) != nil {
 			return p, ctrl.Result{}, err
 		}
-		release, err = hr.Prepare(releaseName, releaseName, p.GetNamespace(), version, p.Spec.ClusterName, values)
-		if err != nil {
-			return appv1alpha1.DefaultPoliciesNotReady(p, meta.ObjectsApliedFailedReason, err.Error()), ctrl.Result{}, err
-		}
+	}
+	release, err = hr.Prepare(releaseName, releaseName, p.GetNamespace(), version, p.Spec.ClusterName, values)
+	if err != nil {
+		return appv1alpha1.DefaultPoliciesNotReady(p, meta.ObjectsApliedFailedReason, err.Error()), ctrl.Result{}, err
 	}
 	err = hr.Install(ctx, r.Client, release, cl)
 	if err != nil {

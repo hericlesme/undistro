@@ -133,10 +133,10 @@ func ReconcileCloudProvider(ctx context.Context, c client.Client, cl *appv1alpha
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
-		release, err = hr.Prepare(cloudHelm, "kube-system", cl.GetNamespace(), version, cl.Name, m)
-		if err != nil {
-			return err
-		}
+	}
+	release, err = hr.Prepare(cloudHelm, "kube-system", cl.GetNamespace(), version, cl.Name, m)
+	if err != nil {
+		return err
 	}
 	if release.Annotations == nil {
 		release.Annotations = make(map[string]string)

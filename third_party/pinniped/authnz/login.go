@@ -60,7 +60,7 @@ func (h HandlerState) HandleLogin(w http.ResponseWriter, r *http.Request) error 
 	hr := appv1alpha1.HelmRelease{}
 	hrKey := client.ObjectKey{
 		Namespace: undistro.Namespace,
-		Name:      "pinniped-supervisor",
+		Name:      "pinniped-supervisor-management",
 	}
 	// get supervisor helm release
 	err = c.Get(h.Ctx, hrKey, &hr)

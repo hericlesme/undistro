@@ -220,10 +220,10 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, ob
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
-		release, err = hr.Prepare(releaseName, undistro.Namespace, cl.GetNamespace(), "18.0.4", observer.Spec.ClusterName, values)
-		if err != nil {
-			return err
-		}
+	}
+	release, err = hr.Prepare(releaseName, undistro.Namespace, cl.GetNamespace(), "18.0.4", observer.Spec.ClusterName, values)
+	if err != nil {
+		return err
 	}
 	msg = fmt.Sprintf("Installing %s", releaseName)
 	r.Log.Info(msg)

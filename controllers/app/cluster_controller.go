@@ -306,10 +306,10 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
-		release, err = hr.Prepare(cniCalicoName, "kube-system", cl.GetNamespace(), calicoVersion, cl.Name, v)
-		if err != nil {
-			return err
-		}
+	}
+	release, err = hr.Prepare(cniCalicoName, "kube-system", cl.GetNamespace(), calicoVersion, cl.Name, v)
+	if err != nil {
+		return err
 	}
 	if release.Annotations == nil {
 		release.Annotations = make(map[string]string)

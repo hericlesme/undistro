@@ -107,7 +107,7 @@ func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, nil
 	}
 	r.Log.Info("Checking if the Pinniped components are installed")
-	if err := r.reconcile(ctx, req, *instance); err != nil {
+	if err := r.reconcile(ctx, *instance); err != nil {
 		r.Log.Info(err.Error())
 		return ctrl.Result{}, err
 	}
@@ -119,7 +119,7 @@ func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 }
 
 // reconcile ensures that Pinniped is installed
-func (r *IdentityReconciler) reconcile(ctx context.Context, req ctrl.Request, instance appv1alpha1.Identity) error {
+func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1.Identity) error {
 	cl := &appv1alpha1.Cluster{}
 	clusterClient := r.Client
 	key := client.ObjectKey{
@@ -136,7 +136,7 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, req ctrl.Request, in
 			"namespace": undistro.Namespace,
 		},
 	}
-	err = r.reconcileComponentInstallation(ctx, req, cl, instance, concierge, undistro.Namespace, "0.10.0", values)
+	err = r.reconcileComponentInstallation(ctx, cl, instance, concierge, undistro.Namespace, "0.10.0", values)
 	if err != nil {
 		r.Log.Info(err.Error())
 		return err
@@ -160,7 +160,7 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, req ctrl.Request, in
 		values["config"] = map[string]interface{}{
 			"callbackURL": callbackURL,
 		}
-		err = r.reconcileComponentInstallation(ctx, req, cl, instance, supervisor, undistro.Namespace, "0.10.0-undistro", values)
+		err = r.reconcileComponentInstallation(ctx, cl, instance, supervisor, undistro.Namespace, "0.10.0-undistro", values)
 		if err != nil {
 			r.Log.Info(err.Error())
 			return err
@@ -333,7 +333,6 @@ func (r *IdentityReconciler) reconcileJWTAuthenticator(ctx context.Context, c cl
 
 func (r *IdentityReconciler) reconcileComponentInstallation(
 	ctx context.Context,
-	req ctrl.Request,
 	cl *appv1alpha1.Cluster,
 	i appv1alpha1.Identity,
 	pc PinnipedComponent,
@@ -353,10 +352,10 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
-		release, err = hr.Prepare(releaseName, targetNs, cl.GetNamespace(), version, i.Spec.ClusterName, values)
-		if err != nil {
-			return err
-		}
+	}
+	release, err = hr.Prepare(releaseName, targetNs, cl.GetNamespace(), version, i.Spec.ClusterName, values)
+	if err != nil {
+		return err
 	}
 	msg = fmt.Sprintf("Installing %s component: %s", identityManager, pc)
 	r.Log.Info(msg)
