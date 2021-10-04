@@ -29,6 +29,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver/health"
 	"github.com/getupio-undistro/undistro/pkg/undistro/apiserver/proxy"
 	"github.com/getupio-undistro/undistro/third_party/pinniped/authnz"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
@@ -63,6 +64,7 @@ func NewServer(cfg *rest.Config, in io.Reader, out, errOut io.Writer, healthChec
 	}
 	apiServer.routes(router)
 	apiServer.Handler = router
+	apiServer.Handler = handlers.CombinedLoggingHandler(out, apiServer.Handler)
 	return apiServer
 }
 
