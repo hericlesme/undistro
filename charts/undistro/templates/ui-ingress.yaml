@@ -12,7 +12,6 @@ metadata:
     {{- if not .Values.local }}
     cert-manager.io/cluster-issuer: letsencrypt-prod
     {{- end }}
-    nginx.ingress.kubernetes.io/enable-cors: "true"
   name: undistro-ingress-ui
   namespace: undistro-system
 spec:
