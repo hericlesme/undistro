@@ -14,15 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package internalautohttps
+package https
 
 import (
 	"context"
 	"crypto/x509"
 	"encoding/pem"
+
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
-
 	"github.com/pkg/errors"
 	"github.com/smallstep/truststore"
 	"sigs.k8s.io/controller-runtime/pkg/client"

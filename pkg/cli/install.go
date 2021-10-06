@@ -33,7 +33,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/certmanager"
 	undistrofs "github.com/getupio-undistro/undistro/pkg/fs"
 	"github.com/getupio-undistro/undistro/pkg/helm"
-	"github.com/getupio-undistro/undistro/pkg/internalautohttps"
+	"github.com/getupio-undistro/undistro/pkg/https"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
@@ -383,7 +383,7 @@ func (o *InstallOptions) installCore(ctx context.Context, c client.Client, restG
 			isLocal, ok := values["local"].(bool)
 			if ok && isLocal {
 				fmt.Fprintf(o.IOStreams.Out, "Installing local certificates\n")
-				err = internalautohttps.InstallLocalCert(ctx, c)
+				err = https.InstallLocalCert(ctx, c)
 				if err != nil {
 					return nil, err
 				}

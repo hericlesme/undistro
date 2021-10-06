@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/getupio-undistro/undistro/pkg/kube"
@@ -141,7 +142,7 @@ func (h HandlerState) HandleAuthCluster(w http.ResponseWriter, r *http.Request) 
 		session.Save(r, w)
 		return httperr.Newf(http.StatusBadRequest, "login required %s", err)
 	}
-	if token.RefreshToken != nil && token.RefreshToken.Token != "" {
+	if token.RefreshToken != nil && token.RefreshToken.Token != "" && token.AccessToken.Expiry.UTC().Before(time.Now().UTC()) {
 		refreshToken, err := h.handleRefresh(h.Ctx, token.RefreshToken)
 		if err != nil {
 			session.Options.MaxAge = -1

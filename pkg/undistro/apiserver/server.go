@@ -75,6 +75,7 @@ func (s *Server) routes(router *mux.Router) {
 	loginHandler := httperr.NewF(authNZHandlerState.HandleLogin)
 	authClusterHandler := httperr.NewF(authNZHandlerState.HandleAuthCluster)
 	logoutHandler := httperr.NewF(authNZHandlerState.HandleLogout)
+	authenticatedProxy := httperr.NewF(proxy.Authenticated)
 
 	router.Handle("/healthz/readiness", &s.HealthHandler)
 	router.HandleFunc("/healthz/liveness", health.HandleLive)
@@ -83,6 +84,7 @@ func (s *Server) routes(router *mux.Router) {
 	router.Handle("/authcluster", authClusterHandler).Methods(http.MethodGet)
 	router.Handle("/logout", logoutHandler).Methods(http.MethodGet)
 	router.PathPrefix("/uapi/v1/namespaces/{namespace}/clusters/{cluster}/proxy/").Handler(proxyHandler)
+	router.PathPrefix("/_").Handler(authenticatedProxy)
 	router.PathPrefix("/").Handler(fs.ReactHandler("", "frontend"))
 }
 
