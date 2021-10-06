@@ -180,12 +180,6 @@ func (h HandlerState) HandleAuthCluster(w http.ResponseWriter, r *http.Request) 
 		if err != nil {
 			return err
 		}
-		c, err = client.New(cfg, client.Options{
-			Scheme: scheme.Scheme,
-		})
-		if err != nil {
-			return err
-		}
 	}
 	conciergeInfo, err := kube.ConciergeInfoFromConfig(h.Ctx, cfg)
 	if err != nil {
@@ -216,13 +210,6 @@ func (h HandlerState) HandleAuthCluster(w http.ResponseWriter, r *http.Request) 
 		Credentials: cred,
 		Endpoint:    conciergeInfo.Endpoint,
 		CA:          string(ca),
-	}
-	localClus, err := util.IsLocalCluster(h.Ctx, c)
-	if err != nil {
-		return err
-	}
-	if localClus != util.NonLocal {
-		resp.Endpoint = "https://0.0.0.0:6443"
 	}
 	return json.NewEncoder(w).Encode(resp)
 }
