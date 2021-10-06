@@ -54,7 +54,7 @@ func Authenticated(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return httperr.Wrap(err, http.StatusInternalServerError)
 	}
-	u := fmt.Sprintf("%s%s", info.Endpoint, r.URL.Path)
+	u := fmt.Sprintf("%s%s", info.Endpoint, strings.TrimPrefix(r.URL.Path, "/_"))
 	buff := &bytes.Buffer{}
 	_, err = io.Copy(buff, r.Body)
 	if err != nil && err != io.EOF {
@@ -69,10 +69,10 @@ func Authenticated(w http.ResponseWriter, r *http.Request) error {
 		return httperr.Wrap(err, http.StatusInternalServerError)
 	}
 	defer resp.Body.Close()
+	w.WriteHeader(resp.StatusCode)
 	_, err = io.Copy(w, resp.Body)
 	if err != nil && err != io.EOF {
 		return httperr.Wrap(err, http.StatusInternalServerError)
 	}
-	w.WriteHeader(resp.StatusCode)
 	return nil
 }
