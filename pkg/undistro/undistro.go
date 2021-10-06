@@ -52,6 +52,11 @@ nodes:
 - role: control-plane
   kubeadmConfigPatches:
   - |
+    kind: ClusterConfiguration
+    apiServer:
+      extraArgs:
+        cors-allowed-origins: "http://*,https://*"
+  - |
     kind: InitConfiguration
     nodeRegistration:
       kubeletExtraArgs:
