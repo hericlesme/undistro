@@ -74,7 +74,7 @@ func (s *Server) routes(router *mux.Router) {
 	callbackHandler := httperr.NewF(authNZHandlerState.HandleAuthCodeCallback)
 	loginHandler := httperr.NewF(authNZHandlerState.HandleLogin)
 	authClusterHandler := httperr.NewF(authNZHandlerState.HandleAuthCluster)
-	logoutHandler := httperr.NewF(authNZHandlerState.HandleAuthCluster)
+	logoutHandler := httperr.NewF(authNZHandlerState.HandleLogout)
 
 	router.Handle("/healthz/readiness", &s.HealthHandler)
 	router.HandleFunc("/healthz/liveness", health.HandleLive)
