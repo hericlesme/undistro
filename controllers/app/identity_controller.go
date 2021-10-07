@@ -155,7 +155,7 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 		cl.Name = "management"
 		cl.Namespace = undistro.Namespace
 		// regex to get ip or dns names
-		callbackURL := fmt.Sprintf("https://%s/auth/callback", hostFromURL(issuer))
+		callbackURL := fmt.Sprintf("https://%s/callback", hostFromURL(issuer))
 		values["config"] = map[string]interface{}{
 			"callbackURL": callbackURL,
 		}
