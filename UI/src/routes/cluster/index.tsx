@@ -1,12 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import { Layout } from '@components/layout'
 import { ClusterDetails } from '@components/details'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import Api from 'util/api'
 import { useHistory } from 'react-router'
-import BreadCrumb from '@components/breadcrumb'
+import { useServices } from 'providers/ServicesProvider'
 
 export default function ClusterRoute() {
+  const { Api } = useServices()
   const [data, setData] = useState<any>()
   const [accessKey, setAccesskey] = useState<string>('')
   const [secret, setSecret] = useState<string>('')
@@ -17,8 +18,7 @@ export default function ClusterRoute() {
   const history = useHistory()
 
   const getData = () => {
-    Api.Cluster.get(params.namespace, params.clusterName)
-      .then(elm => setData(elm))
+    Api.Cluster.get(params.namespace, params.clusterName).then(elm => setData(elm))
   }
 
   const getSecrets = (secretRef: string) => {
@@ -46,40 +46,41 @@ export default function ClusterRoute() {
     getProviders()
   }, [])
 
-  return data?(
-    <div className="home-page-route">
-      <BreadCrumb />
-      <ClusterDetails
-        data={{
-          generalClusterName: data.metadata.name,
-          generalProvider: provider,
-          generalDefaultRegion: region,
-          generalAccessKeyId: accessKey,
-          generalSecretAccessKey: secret,
-          generalSessionToken: session,
-          generalNamespace: data.metadata.namespace,
-          bastionUserDefaultBlocksCidr: (data.spec.bastion.allowedCIDRBlocks || [])[0],
-          infraFlavor: data.spec.infrastructureProvider.flavor,
-          infraK8sVersion: data.spec.kubernetesVersion,
-          infraProvider: data.spec.infrastructureProvider.name,
-          infraSshKey: data.spec.infrastructureProvider.sshKey,
-          infraRegion: data.spec.infrastructureProvider.region,
-          k8sApiServerPort: data.spec.network.apiServerPort,
-          k8sPodsRanges: data.spec.network.pods,
-          k8sServiceDomain: data.spec.network.serviceDomain,
-          k8sServiceRanges: data.spec.network.services,
-          infraNetworkId: data.spec.network.vpc.id,
-          infraNetworkCidrBlock: data.spec.network.vpc.cidrBlock,
-          infraNetworkZone: data.spec.network.vpc.zone,
-          bastionDisableIngressRules: data.spec.bastion.ingress,
-          bastionEnabled: data.spec.bastion.enabled,
-          k8sNetworkMultiZone: data.spec.network.multiZone
-        }}
-        onCancel={() => history.push('/')}
-        onSave={data => {
-          console.log(data)
-        }}
-      />
-    </div>
+  return data ? (
+    <Layout>
+      <div className="home-page-route">
+        <ClusterDetails
+          data={{
+            generalClusterName: data.metadata.name,
+            generalProvider: provider,
+            generalDefaultRegion: region,
+            generalAccessKeyId: accessKey,
+            generalSecretAccessKey: secret,
+            generalSessionToken: session,
+            generalNamespace: data.metadata.namespace,
+            bastionUserDefaultBlocksCidr: (data.spec.bastion?.allowedCIDRBlocks || [])[0],
+            infraFlavor: data.spec.infrastructureProvider.flavor,
+            infraK8sVersion: data.spec.kubernetesVersion,
+            infraProvider: data.spec.infrastructureProvider.name,
+            infraSshKey: data.spec.infrastructureProvider.sshKey,
+            infraRegion: data.spec.infrastructureProvider.region,
+            k8sApiServerPort: data.spec.network.apiServerPort,
+            k8sPodsRanges: data.spec.network.pods,
+            k8sServiceDomain: data.spec.network.serviceDomain,
+            k8sServiceRanges: data.spec.network.services,
+            infraNetworkId: data.spec.network.vpc.id,
+            infraNetworkCidrBlock: data.spec.network.vpc.cidrBlock,
+            infraNetworkZone: data.spec.network.vpc.zone,
+            bastionDisableIngressRules: data.spec.bastion?.ingress,
+            bastionEnabled: data.spec.bastion?.enabled,
+            k8sNetworkMultiZone: data.spec.network.multiZone
+          }}
+          onCancel={() => history.push('/')}
+          onSave={data => {
+            console.log(data)
+          }}
+        />
+      </div>
+    </Layout>
   ) : null
 }

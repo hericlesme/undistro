@@ -7,7 +7,7 @@ import { useClusters } from 'providers/ClustersProvider'
 import { useDisclosure } from 'hooks/useDisclosure'
 import { PauseClusterAlert } from '@components/clusterActionAlert'
 import { useLocation } from 'react-router-dom'
-import Api from 'util/api'
+import { useServices } from 'providers/ServicesProvider'
 
 type TypeSubItem = {
   name: string
@@ -32,6 +32,7 @@ const showModal = () => {
 }
 
 const MenuSideBar = () => {
+  const { Api } = useServices()
   const { clusters } = useClusters()
   const [show, setShow] = useState<any>(false)
   const history = useHistory<any>()
@@ -190,7 +191,7 @@ const MenuSideBar = () => {
       />
       <div className="menu-side-container">
         <ul className="side-itens">
-          {location.pathname !== '/' && ( 
+          {location.pathname !== '/' && (
             <li onClick={() => history.push('/')} className="side-item-default">
               <svg
                 width="27"
@@ -211,8 +212,8 @@ const MenuSideBar = () => {
           )}
           {items.map((elm: any, i = 0) => {
             return (
-              <>
-                <li key={i} onClick={() => toggle(i)} className={Classnames('side-item', { active: show === i })}>
+              <div key={i}>
+                <li onClick={() => toggle(i)} className={Classnames('side-item', { active: show === i })}>
                   {typeof elm.icon === 'string' ? <i className={elm.icon} /> : elm.icon}
                   <p>{elm.name}</p>
                   {show === i ? <i className="icon-arrow-up" /> : <i className="icon-arrow-down" />}
@@ -220,11 +221,13 @@ const MenuSideBar = () => {
                 {show === i && (
                   <div className="item-menu">
                     {elm.subItens.map((elm: TypeSubItem) => (
-                      <p onClick={() => elm.handleAction?.() || handleRedirect(elm.link!)}>{elm.name}</p>
+                      <p key={elm.name} onClick={() => elm.handleAction?.() || handleRedirect(elm.link!)}>
+                        {elm.name}
+                      </p>
                     ))}
                   </div>
                 )}
-              </>
+              </div>
             )
           })}
         </ul>

@@ -1,9 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Layout } from '@components/layout'
 import Table from '@components/clusterTable'
-import Api from 'util/api'
 import moment from 'moment'
 import './index.scss'
+import { useServices } from 'providers/ServicesProvider'
 
 const headers = [
   { name: 'Name', field: 'name' },
@@ -27,8 +28,9 @@ type TypeCluster = {
   status: string
 }
 
-export default function HomePage () {
-	const [clusters, setClusters] = useState<TypeCluster[]>([])
+export default function HomePage() {
+  const [clusters, setClusters] = useState<TypeCluster[]>([])
+  const { Api } = useServices()
 
   moment.updateLocale('en', {
     relativeTime: {
@@ -48,11 +50,11 @@ export default function HomePage () {
     }
   })
 
-	const getClusters = () => {
-		Api.Cluster.list()
-			.then((clusters) => {
-				setClusters(clusters.items.map((elm: any) => {
-					let status = ''
+  const getClusters = () => {
+    Api.Cluster.list().then(clusters => {
+      setClusters(
+        clusters.items.map((elm: any) => {
+          let status = ''
 
           if (typeof elm.status.conditions === 'undefined') {
             status = 'Provisioning'
@@ -64,27 +66,32 @@ export default function HomePage () {
             else status = 'Ready'
           }
 
-					return {
-						name: elm.metadata.name,
-						provider: elm.spec.infrastructureProvider.name,
-						flavor: elm.spec.infrastructureProvider.flavor,
-						version: elm.spec.kubernetesVersion,
-						clusterGroups: elm.metadata.namespace,
-						machines: elm.status.controlPlane?.replicas + elm.status.totalWorkerReplicas || 0,
-						age: moment(elm.metadata.creationTimestamp).startOf('day').fromNow(),
-						status: status
-					}
-				}))
-			})
-	}
+          return {
+            name: elm.metadata.name,
+            provider: elm.spec.infrastructureProvider.name,
+            flavor: elm.spec.infrastructureProvider.flavor,
+            version: elm.spec.kubernetesVersion,
+            clusterGroups: elm.metadata.namespace,
+            machines: elm.status.controlPlane?.replicas + elm.status.totalWorkerReplicas || 0,
+            age: moment(elm.metadata.creationTimestamp)
+              .startOf('day')
+              .fromNow(),
+            status: status
+          }
+        })
+      )
+    })
+  }
 
-	useEffect(() => {
-		getClusters()
-	}, [])
+  useEffect(() => {
+    getClusters()
+  }, [])
 
-	return (
-		<div className='home-page-route'>
-			<Table data={(clusters || [])} header={headers}/>	
-		</div>
-	)
+  return (
+    <Layout>
+      <div className="home-page-route">
+        <Table data={clusters || []} header={headers} />
+      </div>
+    </Layout>
+  )
 }

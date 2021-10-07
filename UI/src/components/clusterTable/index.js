@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react'
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useState, useEffect, useRef } from 'react'
 import Classnames from 'classnames'
-import Api from 'util/api'
 import Checkbox from '@components/checkbox'
 import './index.scss'
 import { useClickOutside } from 'hooks/useClickOutside'
@@ -13,6 +13,7 @@ import {
 } from '@components/clusterActionAlert'
 import { useHistory } from 'react-router-dom'
 import { useClusters } from 'providers/ClustersProvider'
+import { useServices } from 'providers/ServicesProvider'
 
 const ASC = 'asc'
 const DES = 'des'
@@ -37,16 +38,20 @@ const emptyCluster = {
 }
 
 const Table = props => {
+  const { Api } = useServices()
   const { clear, addClusters } = useClusters()
   const [key, setKey] = useState('')
   const [order, setOrder] = useState('')
   const [version, setVersion] = useState([])
   const [allChecked, setAllChecked] = useState(false)
-  const getK8sVersion = () => {
-    Api.Provider.list('flavors').then(res => res.items.map(elm => setVersion(elm.spec.supportedK8SVersions)))
-  }
 
   useEffect(() => {
+    const getK8sVersion = () => {
+      Api.Provider.list('flavors').then(res => {
+        res.items.map(elm => setVersion(elm.spec.supportedK8SVersions))
+      })
+    }
+
     getK8sVersion()
   }, [])
 
@@ -145,6 +150,7 @@ const ColumnHeader = props => {
 }
 
 const Row = props => {
+  const { Api } = useServices()
   const [keys, setKeys] = useState([])
   const [show, setShow] = useState(false)
   const [pause, setPause] = useState(props.pause)

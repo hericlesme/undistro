@@ -1,10 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react'
 import Table from '@components/nodepoolTable'
-import Api from 'util/api'
 import moment from 'moment'
 import { useClusters } from 'providers/ClustersProvider'
 import BreadCrumb from '@components/breadcrumb'
+import { useServices } from 'providers/ServicesProvider'
 
 const headers = [
   { name: 'Name', field: 'name' },
@@ -18,46 +18,48 @@ const headers = [
 ]
 
 export default function NodepoolsPage() {
+  const { Api } = useServices()
   const [nodePools, setNodePools] = useState<any>([])
-
   const { clusters } = useClusters()
- 
+
   const getControlPlanesAndWorkers = async () => {
     let allControlPlanes: any = []
     let allWorkers: any = []
 
-    await Promise.all(clusters.map(async (cluster) => {
-      const fetchedCluster = await Api.Cluster.get(cluster.namespace, cluster.name)
-      const message: string = fetchedCluster.status.conditions[0].message.toLowerCase()
-      const controlPlane = {
-        ...fetchedCluster.spec.controlPlane,
-        age: moment(fetchedCluster.metadata.creationTimestamp)
-          .startOf('day')
-          .fromNow(),
-        labels: 0,
-        name: fetchedCluster.metadata.name,
-        status: getStatus(message),
-        taints: 0,
-        type: 'Control Plane',
-        version: fetchedCluster.spec.kubernetesVersion
-      }
+    await Promise.all(
+      clusters.map(async cluster => {
+        const fetchedCluster = await Api.Cluster.get(cluster.namespace, cluster.name)
+        const message: string = fetchedCluster.status.conditions[0].message.toLowerCase()
+        const controlPlane = {
+          ...fetchedCluster.spec.controlPlane,
+          age: moment(fetchedCluster.metadata.creationTimestamp)
+            .startOf('day')
+            .fromNow(),
+          labels: 0,
+          name: fetchedCluster.metadata.name,
+          status: getStatus(message),
+          taints: 0,
+          type: 'Control Plane',
+          version: fetchedCluster.spec.kubernetesVersion
+        }
 
-      const workers = fetchedCluster.spec.workers.map((worker: any, i: number) => ({
-        ...worker,
-        age: moment(fetchedCluster.metadata.creationTimestamp)
-          .startOf('day')
-          .fromNow(),
-        labels: Object.keys(worker.labels || {}).length,
-        name: `${fetchedCluster.metadata.name}-mp-${i}`,
-        status: getStatus(message),
-        taints: (worker.taints || []).length,
-        type: worker.infraNode ? 'InfraNode' : 'Worker',
-        version: fetchedCluster.spec.kubernetesVersion
-      }))
+        const workers = fetchedCluster.spec.workers.map((worker: any, i: number) => ({
+          ...worker,
+          age: moment(fetchedCluster.metadata.creationTimestamp)
+            .startOf('day')
+            .fromNow(),
+          labels: Object.keys(worker.labels || {}).length,
+          name: `${fetchedCluster.metadata.name}-mp-${i}`,
+          status: getStatus(message),
+          taints: (worker.taints || []).length,
+          type: worker.infraNode ? 'InfraNode' : 'Worker',
+          version: fetchedCluster.spec.kubernetesVersion
+        }))
 
-      allControlPlanes.push(controlPlane)
-      allWorkers = [...allWorkers, ...workers]
-    }))
+        allControlPlanes.push(controlPlane)
+        allWorkers = [...allWorkers, ...workers]
+      })
+    )
 
     return [...allControlPlanes, ...allWorkers]
   }
@@ -97,7 +99,7 @@ export default function NodepoolsPage() {
     return clusters.length > 1 ? 'Multiple Clusters' : clusters.map(elm => elm.name)
   }
 
-  const routes = [ 
+  const routes = [
     { name: 'Clusters', url: '/' },
     { name: getClusterName(), url: '/' }
   ]

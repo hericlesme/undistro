@@ -8,7 +8,8 @@
       "@assets/*": ["./assets/*"],
       "@modals": ["./modals/*"],
       "@store": ["./store/*"],
-      "@types": ["./types/*"]
+      "@types": ["./types/*"],
+      "@util/*": ["./util/*"]
     }
   }
 }

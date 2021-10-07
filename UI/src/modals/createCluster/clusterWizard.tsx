@@ -8,15 +8,16 @@ import ControlPlane from '@components/modals/controlPlane'
 import { generateId } from 'util/helpers'
 import Steps from './steps'
 import Modals from 'util/modals'
-import Api from 'util/api'
 import { TypeOption, TypeWorker, TypeSelectOptions } from '../../types/cluster'
 import { TypeModal, apiResponse } from '../../types/generic'
 import { ClusterCreationError } from './createClusterError'
+import { useServices } from 'providers/ServicesProvider'
 
 const HOST = window.location.hostname
-const BASE_URL = `http://${HOST}/uapi/v1`
+const BASE_URL = `https://${HOST}/uapi/v1`
 
 const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
+  const { Api } = useServices()
   const body = store.useState((s: any) => s.body)
   const [region, setRegion] = useState<string>('')
   const [clusterName, setClusterName] = useState<string>('')
@@ -83,7 +84,7 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
 
                 setNewMessage(newMessage)
               }
-            } catch (error: any) {
+            } catch (error) {
               setError({ code: error.code, message: error.message || 'Unknown error' })
 
               console.log('Error while parsing', chunk, '\n', error)

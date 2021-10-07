@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react'
 import { uid } from 'uid'
 import Button from '@components/button'
@@ -6,7 +7,7 @@ import Select from '@components/select'
 import Toggle from '@components/toggle'
 import { Grid, List } from '../common'
 import { TypeOption } from '../../../types/cluster'
-import Api from 'util/api'
+import { useServices } from 'providers/ServicesProvider'
 
 import '../index.scss'
 
@@ -70,6 +71,7 @@ const XIcon = () => {
 }
 
 export const WorkerDetails = ({ groups, onCancel: handleCancel, onSave: handleSave }: Props) => {
+  const { Api } = useServices()
   const [groupName, setGroupName] = useState('')
 
   const data = groups.find(({ name }) => name === groupName) || ({} as Group)
@@ -234,7 +236,7 @@ export const WorkerDetails = ({ groups, onCancel: handleCancel, onSave: handleSa
             label="subnet"
             placeholder="subnet"
             value={workerSubnet}
-            onChange={(e) => setWorkerSubnet(e.currentTarget.value)}
+            onChange={e => setWorkerSubnet(e.currentTarget.value)}
           />
           <Select
             className="col-span-1"

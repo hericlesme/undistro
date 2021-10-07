@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
-import Api from 'util/api'
+import { useState, useEffect, useRef } from 'react'
 import './index.scss'
 import { useClickOutside } from 'hooks/useClickOutside'
 import { useDisclosure } from 'hooks/useDisclosure'
@@ -7,26 +6,19 @@ import { DeleteNodepoolAlert } from '@components/nodepoolActionAlert'
 import { useHistory } from 'react-router'
 import Checkbox from '@components/checkbox'
 import { useClusters } from 'providers/ClustersProvider'
+import { useServices } from 'providers/ServicesProvider'
 
 const ASC = 'asc'
 const DES = 'des'
 
 const SortIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 20 20"
-    fill="currentColor"
-  >
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
     <path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" />
   </svg>
 )
 
 const AddIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 20 20"
-    fill="currentColor"
-  >
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
     <path
       fillRule="evenodd"
       d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
@@ -62,27 +54,25 @@ const Table = props => {
   })
 
   const filledRows =
-    sortedRows.length >= 20
-      ? sortedRows
-      : [...sortedRows, ...Array(20 - sortedRows.length).fill(emptyCluster)]
+    sortedRows.length >= 20 ? sortedRows : [...sortedRows, ...Array(20 - sortedRows.length).fill(emptyCluster)]
 
   return (
     <table className="table">
       <thead>
         <tr>
-        <td className='checkbox-row'>
-            <Checkbox 
-              value={allChecked} 
-              onChange={
-                (checked) => { 
-                  setAllChecked(checked)
+          <td className="checkbox-row">
+            <Checkbox
+              value={allChecked}
+              onChange={checked => {
+                setAllChecked(checked)
 
-                  if (checked) {
-                    addClusters()
-                  } else {
-                    clear()
-                  }
-              }} />
+                if (checked) {
+                  addClusters()
+                } else {
+                  clear()
+                }
+              }}
+            />
           </td>
           <td />
           {props.header.map(elm => (
@@ -92,9 +82,7 @@ const Table = props => {
                 className="icon-button"
                 onClick={() => {
                   setKey(elm.field)
-                  setOrder(
-                    !order || order === DES || key !== elm.field ? ASC : DES
-                  )
+                  setOrder(!order || order === DES || key !== elm.field ? ASC : DES)
                 }}
               >
                 <SortIcon />
@@ -105,8 +93,7 @@ const Table = props => {
       </thead>
       <tbody>
         {filledRows.map((elm, i) => {
-          const isLast =
-            filledRows.filter(({ type }) => type === elm.type).length === 1
+          const isLast = filledRows.filter(({ type }) => type === elm.type).length === 1
 
           return (
             <Row
@@ -142,6 +129,7 @@ const ColumnHeader = props => {
 }
 
 const Row = props => {
+  const { Api } = useServices()
   const [keys, setKeys] = useState([])
   const [show, setShow] = useState(false)
   const menuRef = useRef(null)
@@ -154,11 +142,7 @@ const Row = props => {
 
   console.log(props.data)
 
-  const [
-    isDeleteNodepoolAlertOpen,
-    closeDeleteNodepoolAlert,
-    openDeleteNodepoolAlert
-  ] = useDisclosure()
+  const [isDeleteNodepoolAlertOpen, closeDeleteNodepoolAlert, openDeleteNodepoolAlert] = useDisclosure()
 
   useEffect(() => {
     const headers = props.header.map(elm => elm.field)
@@ -173,7 +157,7 @@ const Row = props => {
 
   const handleRedirect = () => {
     let nodepool = ''
-    if (props.data.type === "Control Plane") nodepool = 'controlPlane'
+    if (props.data.type === 'Control Plane') nodepool = 'controlPlane'
     else nodepool = 'worker'
 
     history.push(`/${nodepool}/undistro-system/${props.data.name}`)
@@ -185,7 +169,9 @@ const Row = props => {
     <tr>
       <td className="checkbox-row">
         <Checkbox
-          value={props.isEmpty ? false : props.allChecked || !!clusters.find(cluster => cluster.name === props.data.name)}
+          value={
+            props.isEmpty ? false : props.allChecked || !!clusters.find(cluster => cluster.name === props.data.name)
+          }
           onChange={checked => {
             if (checked) {
               addCluster({ name: props.data.name, namespace: props.data.clusterGroups })
@@ -230,7 +216,7 @@ const Row = props => {
                 }
               }}
             >
-              <i className="icon-close-solid" onClick={() => handleDelete()}/> <p>Delete Nodepool</p>
+              <i className="icon-close-solid" onClick={() => handleDelete()} /> <p>Delete Nodepool</p>
             </li>
           </ul>
         )}
@@ -241,8 +227,7 @@ const Row = props => {
 
         if (['name', 'status'].includes(key)) {
           if (props.status === 'Paused') cellColorClassName = 'cluster-paused'
-          else if (props.status === 'Error')
-            cellColorClassName = 'cluster-error'
+          else if (props.status === 'Error') cellColorClassName = 'cluster-error'
         }
 
         if (key === 'status') {
@@ -261,10 +246,7 @@ const Row = props => {
         }
 
         return (
-          <td
-            key={key}
-            className={`${cellColorClassName} ${statusCellColorName}`}
-          >
+          <td key={key} className={`${cellColorClassName} ${statusCellColorName}`}>
             <div>
               <span>{key === 'status' ? props.status : props.data[key]}</span>
             </div>

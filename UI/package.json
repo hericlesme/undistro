@@ -22,12 +22,14 @@
     "can-ndjson-stream": "^1.0.2",
     "classnames": "^2.3.1",
     "compare-versions": "^3.6.0",
+    "dayjs": "^1.10.7",
     "docz": "^2.3.1",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-html": "^6.1.2",
     "gatsby-plugin-sass": "^4.7.0",
     "icon-font-generator": "^2.1.11",
     "init": "^0.1.2",
+    "js-cookie": "^3.0.1",
     "ndjson": "^2.0.0",
     "node-sass": "6.0.0",
     "pullstate": "^1.22.1",
@@ -81,6 +83,7 @@
     ]
   },
   "devDependencies": {
+    "@types/js-cookie": "^2.2.7",
     "@typescript-eslint/eslint-plugin": "^4.26.1",
     "@typescript-eslint/parser": "^4.26.1",
     "autoprefixer": "^10.2.6",
