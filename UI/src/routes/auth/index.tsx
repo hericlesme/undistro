@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import { useEffect, useState } from 'react'
@@ -60,9 +61,18 @@ const MAX_AUTH_PROVIDERS_PER_ROW = 4
 
 let isFetchingCert = false
 
-const AuthRoute = () => {
-  const { Api } = useServices()
+type AuthRouteProps = {
+  isAuthed: boolean
+  isAuthing: boolean
+}
+
+const AuthRoute = ({ isAuthed, isAuthing }: AuthRouteProps) => {
+  const { Api, hasAuthEnabled } = useServices()
   const [providers, setProviders] = useState<string[]>()
+
+  useEffect(() => {
+    if (!hasAuthEnabled || (!isAuthing && isAuthed)) window.location.href = '/'
+  }, [])
 
   useEffect(() => {
     ;(async () => {

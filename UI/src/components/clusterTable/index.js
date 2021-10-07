@@ -48,7 +48,7 @@ const Table = props => {
   useEffect(() => {
     const getK8sVersion = () => {
       Api.Provider.list('flavors').then(res => {
-        res.items.map(elm => setVersion(elm.spec.supportedK8SVersions))
+        res?.items?.map(elm => setVersion(elm.spec.supportedK8SVersions))
       })
     }
 

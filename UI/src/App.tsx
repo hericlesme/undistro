@@ -13,6 +13,7 @@ import 'styles/app.scss'
 import { useEffect, useState } from 'react'
 import { useServices } from 'providers/ServicesProvider'
 import Cookies from 'js-cookie'
+import { useHistory } from 'react-router'
 
 enum AuthStatus {
   AUTHED = 'AUTHED',
@@ -24,6 +25,7 @@ export default function App() {
   const [authStatus, setAuthStatus] = useState<AuthStatus>(AuthStatus.AUTHING)
   const { hasAuthEnabled, httpClient } = useServices()
   const location = useLocation()
+  const history = useHistory()
 
   useEffect(() => {
     if (hasAuthEnabled) {
@@ -54,7 +56,7 @@ export default function App() {
     if (window.location.pathname !== '/auth') {
       Cookies.remove('undistro-login')
 
-      window.location.href = '/auth'
+      history.push('/')
     }
   }
 
@@ -69,7 +71,9 @@ export default function App() {
             {hasAuthEnabled ? (
               !isAuthing && (
                 <>
-                  <Route exact path="/auth" component={AuthRoute} />
+                  <Route exact path="/auth">
+                    <AuthRoute isAuthed={isAuthed} isAuthing={isAuthing} />
+                  </Route>
                   <PrivateRoute isAuthed={isAuthed} exact path="/">
                     <HomePageRoute />
                   </PrivateRoute>
@@ -92,6 +96,9 @@ export default function App() {
               )
             ) : (
               <>
+                <Route exact path="/auth">
+                  <AuthRoute isAuthed={isAuthed} isAuthing={isAuthing} />
+                </Route>
                 <Route component={HomePageRoute} exact path="/" />
                 <Route component={NodepoolsPage} exact path="/nodepools" />
                 <Route component={ControlPlanePage} exact path="/controlPlane/:namespace/:clusterName" />

@@ -22,17 +22,20 @@ async function createAuthorizationHeader(httpClient: AxiosInstance) {
       withCredentials: true
     }
   )
-  const {
-    ca,
-    credentials: {
-      status: { clientCertificateData, clientKeyData }
-    },
-    endpoint
-  } = data
 
-  const authorizationStr = JSON.stringify({ ca, cert: clientCertificateData, endpoint, key: clientKeyData })
+  if (data) {
+    const {
+      ca,
+      credentials: {
+        status: { clientCertificateData, clientKeyData }
+      },
+      endpoint
+    } = data
 
-  httpClient.defaults.headers.common['Authorization'] = `Bearer ${btoa(authorizationStr)}`
+    const authorizationStr = JSON.stringify({ ca, cert: clientCertificateData, endpoint, key: clientKeyData })
+
+    httpClient.defaults.headers.common['Authorization'] = `Bearer ${btoa(authorizationStr)}`
+  }
 }
 
 ;(async function() {

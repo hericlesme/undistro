@@ -2,10 +2,12 @@ import { FC } from 'react'
 import Cookies from 'js-cookie'
 import Logo from '@assets/images/logo.png'
 import Modals from 'util/modals'
+import { useHistory } from 'react-router'
 
 import './index.scss'
 
 const MenuTopBar: FC = () => {
+  const history = useHistory()
   const showModal = () => {
     Modals.show('create-cluster', {
       title: 'Create',
@@ -35,7 +37,7 @@ const MenuTopBar: FC = () => {
           onClick={() => {
             Cookies.remove('undistro-login')
 
-            window.location.href = '/auth'
+            history.push('/auth')
           }}
         >
           Logout

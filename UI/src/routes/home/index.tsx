@@ -53,7 +53,7 @@ export default function HomePage() {
   const getClusters = () => {
     Api.Cluster.list().then(clusters => {
       setClusters(
-        clusters.items.map((elm: any) => {
+        clusters?.items?.map((elm: any) => {
           let status = ''
 
           if (typeof elm.status.conditions === 'undefined') {
