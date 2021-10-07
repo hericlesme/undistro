@@ -67,13 +67,13 @@ func (h HandlerState) HandleLogin(w http.ResponseWriter, r *http.Request) error 
 	if err != nil {
 		return err
 	}
-	if h.upstreamIdentityProviderName != "" {
-		authorizeOptions = append(authorizeOptions, oauth2.SetAuthURLParam(supervisorAuthorizeUpstreamNameParam, h.upstreamIdentityProviderName))
-		authorizeOptions = append(authorizeOptions, oauth2.SetAuthURLParam(supervisorAuthorizeUpstreamTypeParam, h.upstreamIdentityProviderType))
-	}
 	// Perform OIDC discovery.
 	if h, err = h.initOIDCDiscovery(); err != nil {
 		return err
+	}
+	if h.upstreamIdentityProviderName != "" {
+		authorizeOptions = append(authorizeOptions, oauth2.SetAuthURLParam(supervisorAuthorizeUpstreamNameParam, h.upstreamIdentityProviderName))
+		authorizeOptions = append(authorizeOptions, oauth2.SetAuthURLParam(supervisorAuthorizeUpstreamTypeParam, h.upstreamIdentityProviderType))
 	}
 	config := hr.ValuesAsMap()["config"].(map[string]interface{})
 	h.OAuth2Config.RedirectURL = config["callbackURL"].(string)
@@ -89,6 +89,7 @@ func (h HandlerState) HandleLogin(w http.ResponseWriter, r *http.Request) error 
 	if err != nil {
 		return err
 	}
+	fmt.Println(h.State.String())
 	authorizeURL := h.OAuth2Config.AuthCodeURL(h.State.String(), authorizeOptions...)
 	http.Redirect(w, r, authorizeURL, http.StatusTemporaryRedirect)
 	return nil

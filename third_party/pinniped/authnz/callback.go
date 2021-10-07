@@ -231,6 +231,7 @@ func (h HandlerState) handleAuthCodeCallback(w http.ResponseWriter, r *http.Requ
 		return err
 	}
 	h.State = state.State(session.Values["state"].(string))
+	fmt.Println(h.State.String())
 	h.Nonce = nonce.Nonce(session.Values["nonce"].(string))
 	h.PKCE = pkce.Code(session.Values["pkce"].(string))
 	h.OAuth2Config.RedirectURL = session.Values["redirectURL"].(string)

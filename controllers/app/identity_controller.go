@@ -21,7 +21,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/url"
-	"strings"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
@@ -156,7 +155,7 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 		cl.Name = "management"
 		cl.Namespace = undistro.Namespace
 		// regex to get ip or dns names
-		callbackURL := fmt.Sprintf("https://%s/callback", hostFromURL(issuer))
+		callbackURL := fmt.Sprintf("https://%s/auth/callback", hostFromURL(issuer))
 		values["config"] = map[string]interface{}{
 			"callbackURL": callbackURL,
 		}
@@ -233,45 +232,53 @@ func (r *IdentityReconciler) reconcileFederationDomain(ctx context.Context, fede
 	return nil
 }
 
-func (r *IdentityReconciler) reconcileOIDCProvider(ctx context.Context) error {
-	r.Log.Info("Reconciling OIDC provider")
+func (r *IdentityReconciler) getIdentityConfigMap(ctx context.Context) (map[string]interface{}, error) {
 	// get oidc related configmap
 	tmp := make(map[string]interface{})
 	o, err := util.GetFromConfigMap(
 		ctx, r.Client, "identity-config", undistro.Namespace, "oidcprovider.yaml", tmp)
 	if err != nil {
+		return nil, err
+	}
+	tmp = o.(map[string]interface{})
+	return tmp, nil
+}
+
+var providersOIDCProviderCfg = map[string]supervisoridpv1aplha1.OIDCIdentityProviderSpec{
+	string(appv1alpha1.Google): {
+		Issuer: "https://accounts.google.com",
+		AuthorizationConfig: supervisoridpv1aplha1.OIDCAuthorizationConfig{
+			AdditionalScopes: []string{"email", "profile"},
+		},
+		Claims: supervisoridpv1aplha1.OIDCClaims{
+			Username: "email",
+		},
+	},
+	string(appv1alpha1.Gitlab): {
+		Issuer: "https://gitlab.com",
+		Claims: supervisoridpv1aplha1.OIDCClaims{
+			Username: "nickname",
+			Groups:   "groups",
+		},
+	},
+}
+
+func (r *IdentityReconciler) reconcileOIDCProvider(ctx context.Context) error {
+	r.Log.Info("Reconciling OIDC provider")
+	cfgMap, err := r.getIdentityConfigMap(ctx)
+	if err != nil {
 		r.Log.Info(err.Error())
 		return err
 	}
-	tmp = o.(map[string]interface{})
-	name := tmp["issuer"].(map[string]interface{})["name"].(string)
+	name := cfgMap["issuer"].(map[string]interface{})["name"].(string)
 	fmtName := fmt.Sprintf("undistro-%s-idp", name)
 	spec := supervisoridpv1aplha1.OIDCIdentityProviderSpec{}
 	spec.Client = supervisoridpv1aplha1.OIDCClient{
 		SecretName: "idp-credentials",
 	}
-	switch strings.ToLower(name) {
-	case string(appv1alpha1.Google):
-		spec.Issuer = "https://accounts.google.com"
-		spec.AuthorizationConfig = supervisoridpv1aplha1.OIDCAuthorizationConfig{
-			AdditionalScopes: []string{"email", "profile"},
-		}
-		spec.Claims = supervisoridpv1aplha1.OIDCClaims{}
-	case string(appv1alpha1.Azure):
-		// Todo get tenant id from config file
-		tenantID := "<tenant-id>"
-		spec.Issuer = fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0", tenantID)
-		spec.AuthorizationConfig = supervisoridpv1aplha1.OIDCAuthorizationConfig{
-			AdditionalScopes: []string{"email", "profile"},
-		}
-		spec.Claims = supervisoridpv1aplha1.OIDCClaims{}
-	case string(appv1alpha1.Gitlab):
-		spec.Issuer = "https://gitlab.com"
-		spec.Claims = supervisoridpv1aplha1.OIDCClaims{
-			Username: "nickname",
-			Groups:   "groups",
-		}
-	}
+	spec.Issuer = providersOIDCProviderCfg[name].Issuer
+	spec.AuthorizationConfig = providersOIDCProviderCfg[name].AuthorizationConfig
+	spec.Claims = providersOIDCProviderCfg[name].Claims
 	oidcProvider := &supervisoridpv1aplha1.OIDCIdentityProvider{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "OIDCIdentityProvider",
@@ -296,9 +303,12 @@ func (r *IdentityReconciler) reconcileJWTAuthenticator(ctx context.Context, c cl
 	if err != nil {
 		return
 	}
-
 	const caSecretName = "ca-secret"
 	const caName = "ca.crt"
+	spec := conciergev1aplha1.JWTAuthenticatorSpec{
+		Issuer:   issuer,
+		Audience: r.Audience,
+	}
 	jwtAuth := conciergev1aplha1.JWTAuthenticator{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "JWTAuthenticator",
@@ -308,10 +318,7 @@ func (r *IdentityReconciler) reconcileJWTAuthenticator(ctx context.Context, c cl
 			Name:      "supervisor-jwt-authenticator",
 			Namespace: undistro.Namespace,
 		},
-		Spec: conciergev1aplha1.JWTAuthenticatorSpec{
-			Issuer:   issuer,
-			Audience: r.Audience,
-		},
+		Spec: spec,
 	}
 	if local != util.NonLocal {
 		secretByt, err := util.GetCaFromSecret(ctx, c, caSecretName, caName, undistro.Namespace)
@@ -322,7 +329,6 @@ func (r *IdentityReconciler) reconcileJWTAuthenticator(ctx context.Context, c cl
 		jwtAuth.Spec.TLS = &conciergev1aplha1.TLSSpec{
 			CertificateAuthorityData: secretData,
 		}
-
 	}
 	_, err = util.CreateOrUpdate(ctx, c, &jwtAuth)
 	if err != nil {
