@@ -44,6 +44,13 @@ class Cluster {
 
     return res.data
   }
+
+  async postIdentity(data: {}, namespace: string) {
+    const url = `apis/app.undistro.io/v1alpha1/namespaces/${namespace}/identities`
+    const res = await this.httpClient.post(url, data)
+
+    return res.data
+  }
 }
 
 export default Cluster

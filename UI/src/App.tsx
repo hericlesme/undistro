@@ -1,4 +1,4 @@
-import { Switch, Route } from 'react-router-dom'
+import { Switch, Route, useLocation } from 'react-router-dom'
 import AuthRoute from '@routes/auth'
 import HomePageRoute from '@routes/home'
 import NodepoolsPage from '@routes/nodepool'
@@ -10,39 +10,86 @@ import Modals from './modals'
 import { ClustersProvider } from 'providers/ClustersProvider'
 import { PrivateRoute } from '@components/privateRoute'
 import 'styles/app.scss'
+import { useEffect, useState } from 'react'
+import { useServices } from 'providers/ServicesProvider'
+import Cookies from 'js-cookie'
 
-type AppProps = {
-  hasAuthEnabled: boolean
+enum AuthStatus {
+  AUTHED = 'AUTHED',
+  AUTHING = 'AUTHING',
+  NOT_AUTHED = 'NOT_AUTHED'
 }
 
-export default function App({ hasAuthEnabled }: AppProps) {
+export default function App() {
+  const [authStatus, setAuthStatus] = useState<AuthStatus>(AuthStatus.AUTHING)
+  const { hasAuthEnabled, httpClient } = useServices()
+  const location = useLocation()
+
+  useEffect(() => {
+    if (hasAuthEnabled) {
+      const whoAmI = async () => {
+        const url = `${window.location.protocol}//${window.location.hostname}/_/apis/identity.concierge.pinniped.dev/v1alpha1/whoamirequests`
+
+        const { data } = await httpClient.post(url, {
+          apiVersion: 'identity.concierge.pinniped.dev/v1alpha1',
+          kind: 'WhoAmIRequest',
+          metadata: { creationTimestamp: null },
+          spec: {},
+          status: { kubernetesUserInfo: { user: { username: '' } } }
+        })
+
+        const authStatus = !!data?.status?.kubernetesUserInfo?.user?.username
+          ? AuthStatus.AUTHED
+          : AuthStatus.NOT_AUTHED
+
+        setAuthStatus(authStatus)
+      }
+
+      whoAmI()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname])
+
+  if (authStatus === AuthStatus.NOT_AUTHED) {
+    if (window.location.pathname !== '/auth') {
+      Cookies.remove('undistro-login')
+
+      window.location.href = '/auth'
+    }
+  }
+
+  const isAuthed = authStatus === AuthStatus.AUTHED
+  const isAuthing = authStatus === AuthStatus.AUTHING
+
   return (
     <ClustersProvider>
       <div className="route-container">
         <div className="route-content">
           <Switch>
             {hasAuthEnabled ? (
-              <>
-                <Route exact path="/auth" component={AuthRoute} />
-                <PrivateRoute exact path="/">
-                  <HomePageRoute />
-                </PrivateRoute>
-                <PrivateRoute exact path="/nodepools">
-                  <NodepoolsPage />
-                </PrivateRoute>
-                <PrivateRoute exact path="/controlPlane/:namespace/:clusterName">
-                  <ControlPlanePage />
-                </PrivateRoute>
-                <PrivateRoute exact path="/worker/:namespace/:clusterName">
-                  <WorkerPage />
-                </PrivateRoute>
-                <PrivateRoute exact path="/cluster/:namespace/:clusterName">
-                  <ClusterRoute />
-                </PrivateRoute>
-                <PrivateRoute exact path="/roles">
-                  <RbacPage />
-                </PrivateRoute>
-              </>
+              !isAuthing && (
+                <>
+                  <Route exact path="/auth" component={AuthRoute} />
+                  <PrivateRoute isAuthed={isAuthed} exact path="/">
+                    <HomePageRoute />
+                  </PrivateRoute>
+                  <PrivateRoute isAuthed={isAuthed} exact path="/nodepools">
+                    <NodepoolsPage />
+                  </PrivateRoute>
+                  <PrivateRoute isAuthed={isAuthed} exact path="/controlPlane/:namespace/:clusterName">
+                    <ControlPlanePage />
+                  </PrivateRoute>
+                  <PrivateRoute isAuthed={isAuthed} exact path="/worker/:namespace/:clusterName">
+                    <WorkerPage />
+                  </PrivateRoute>
+                  <PrivateRoute isAuthed={isAuthed} exact path="/cluster/:namespace/:clusterName">
+                    <ClusterRoute />
+                  </PrivateRoute>
+                  <PrivateRoute isAuthed={isAuthed} exact path="/roles">
+                    <RbacPage />
+                  </PrivateRoute>
+                </>
+              )
             ) : (
               <>
                 <Route component={HomePageRoute} exact path="/" />

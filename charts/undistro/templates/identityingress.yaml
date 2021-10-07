@@ -11,6 +11,9 @@ metadata:
     {{- if not .Values.local }}
     cert-manager.io/cluster-issuer: letsencrypt-prod
     {{- end }}
+    {{- if .Values.dev}}
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    {{- end}}
   name: undistro-ingress-identity
   namespace: {{ .Values.identity.namespace }}
 spec:

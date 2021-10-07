@@ -1,3 +1,4 @@
+import { AxiosInstance } from 'axios'
 import { createContext, useContext, ReactNode } from 'react'
 
 import Auth from './api/auth'
@@ -16,21 +17,22 @@ type API = {
 
 type ServicesContextValue = {
   Api: API
+  hasAuthEnabled: boolean
+  httpClient: AxiosInstance
 }
 
-type ServicesProviderProps = {
-  Api: API
+type ServicesProviderProps = ServicesContextValue & {
   children: ReactNode
 }
 
 const ServicesContext = createContext({} as ServicesContextValue)
 
-export const ServicesProvider = ({ Api, children }: ServicesProviderProps) => {
-  return <ServicesContext.Provider value={{ Api }}>{children}</ServicesContext.Provider>
+export const ServicesProvider = ({ Api, children, hasAuthEnabled, httpClient }: ServicesProviderProps) => {
+  return <ServicesContext.Provider value={{ Api, hasAuthEnabled, httpClient }}>{children}</ServicesContext.Provider>
 }
 
 export const useServices = () => {
-  const { Api } = useContext(ServicesContext)
+  const { Api, hasAuthEnabled, httpClient } = useContext(ServicesContext)
 
-  return { Api }
+  return { Api, hasAuthEnabled, httpClient }
 }

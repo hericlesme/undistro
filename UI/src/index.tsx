@@ -79,8 +79,8 @@ async function createAuthorizationHeader(httpClient: AxiosInstance) {
 
   ReactDOM.render(
     <Router>
-      <ServicesProvider Api={Api}>
-        <App hasAuthEnabled={hasAuthEnabled} />
+      <ServicesProvider Api={Api} hasAuthEnabled={hasAuthEnabled} httpClient={httpClient}>
+        <App />
       </ServicesProvider>
     </Router>,
     document.getElementById('root')

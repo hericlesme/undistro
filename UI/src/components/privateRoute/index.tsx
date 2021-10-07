@@ -1,15 +1,11 @@
 import { Redirect, Route, RouteProps } from 'react-router-dom'
-import Cookies from 'js-cookie'
 
-export const PrivateRoute = ({ children, ...otherProps }: RouteProps) => {
-  // #TODO: Fazer requisição para "who am I".
-  const isAuthed = Cookies.get('undistro-login')
-
+export const PrivateRoute = ({ children, isAuthed, ...otherProps }: RouteProps & { isAuthed: boolean }) => {
   return (
     <Route
       {...otherProps}
       render={({ location }) => {
-        return !!isAuthed ? (
+        return isAuthed ? (
           children
         ) : (
           <Redirect

@@ -17,7 +17,7 @@ const HOST = window.location.hostname
 const BASE_URL = `https://${HOST}/uapi/v1`
 
 const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
-  const { Api } = useServices()
+  const { Api, hasAuthEnabled } = useServices()
   const body = store.useState((s: any) => s.body)
   const [region, setRegion] = useState<string>('')
   const [clusterName, setClusterName] = useState<string>('')
@@ -150,7 +150,13 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
           region: region,
           sshKey: sshKey
         },
-        workers: getWorkers
+        workers: getWorkers,
+        network: {
+          vpc: {
+            id: id,
+            cidrBlock: cidr
+          }
+        }
       }
     }
 
@@ -166,12 +172,25 @@ const ClusterWizard: FC<TypeModal> = ({ handleClose }) => {
       }
     }
 
+    const identity = {
+      apiVersion: 'app.undistro.io/v1alpha1',
+      kind: 'Identity',
+      metadata: {
+        name: `identity-${clusterName}`,
+        namespace: namespace
+      },
+      spec: {
+        clusterName: clusterName
+      }
+    }
+
     Api.Cluster.post(data, namespace).catch(error => {
       setError({ code: error.code, message: error.message || 'Unknown error' })
     })
 
     setTimeout(() => {
       Api.Cluster.postPolicies(dataPolicies, namespace)
+      if (hasAuthEnabled) Api.Cluster.postIdentity(identity, namespace)
     }, 1000)
 
     setTimeout(() => {
