@@ -130,6 +130,10 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 		r.Log.Info(err.Error())
 		return err
 	}
+	if util.IsMgmtCluster(instance.Spec.ClusterName) {
+		cl.Name = "management"
+		cl.Namespace = undistro.Namespace
+	}
 	values := map[string]interface{}{
 		"metadata": map[string]interface{}{
 			"namespace": undistro.Namespace,
