@@ -38,6 +38,7 @@ import (
 
 const (
 	observerRequeueAfter = time.Minute * 5
+	monitoringNS         = "monitoring"
 )
 
 // ObserverReconciler reconciles a Observer object
@@ -91,7 +92,7 @@ func (r *ObserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, nil
 	}
 	r.Log.Info("Reconciling Observer state...")
-	if err := r.reconcile(ctx, req, *instance); err != nil {
+	if err := r.reconcile(ctx, *instance); err != nil {
 		r.Log.Info(err.Error())
 		return ctrl.Result{}, err
 	}
@@ -101,10 +102,162 @@ func (r *ObserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	return ctrl.Result{RequeueAfter: observerRequeueAfter}, nil
 }
 
-func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, observer appv1alpha1.Observer) error {
+func (r *ObserverReconciler) reconcile(ctx context.Context, observer appv1alpha1.Observer) (err error) {
+	err = r.reconcileMetrics(ctx, observer)
+	if err != nil {
+		return err
+	}
+	err = r.reconcileLog(ctx, observer)
+	if err != nil {
+		return err
+	}
+	return
+}
+
+func (r *ObserverReconciler) reconcileLog(ctx context.Context, observer appv1alpha1.Observer) (err error) {
+	err = r.reconcileElasticStack(ctx, observer)
+	if err != nil {
+		return err
+	}
+	err = r.reconcileFluentStack(ctx, observer)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *ObserverReconciler) reconcileFluentStack(ctx context.Context, observer appv1alpha1.Observer) (err error) {
+	values := map[string]interface{}{}
+	cl := &appv1alpha1.Cluster{}
+	if util.IsMgmtCluster(observer.Spec.ClusterName) {
+		cl.Name = "management"
+		cl.Namespace = undistro.Namespace
+	} else {
+		key := client.ObjectKey{
+			Name:      observer.Spec.ClusterName,
+			Namespace: observer.GetNamespace(),
+		}
+		err := r.Get(ctx, key, cl)
+		if client.IgnoreNotFound(err) != nil {
+			r.Log.Info(err.Error())
+			return err
+		}
+		if cl.HasInfraNodes() {
+			values = map[string]interface{}{
+				"nodeSelector": map[string]interface{}{
+					meta.LabelUndistroInfra: "true",
+				},
+				"tolerations": []map[string]interface{}{
+					{
+						"effect": "NoSchedule",
+						"key":    "dedicated",
+						"value":  "infra",
+					},
+				},
+			}
+		}
+	}
+
+	// get elasticsearch service host and user info
+
+	fluentdVersion := "0.2.11"
+	if err := r.installRelease(ctx, "fluentd", fluentdVersion, values, &observer, cl); err != nil {
+		return err
+	}
+	fluentBitVersion := "0.18.0"
+	if err := r.installRelease(ctx, "fluent-bit", fluentBitVersion, values, &observer, cl); err != nil {
+		return err
+	}
+
+	elasticFluentdPluginVersion := "12.0.0"
+	if err := r.installRelease(ctx, "fluentd-elasticsearch", elasticFluentdPluginVersion, values, &observer, cl); err != nil {
+		return err
+	}
+	return
+}
+
+func (r *ObserverReconciler) reconcileElasticStack(ctx context.Context, observer appv1alpha1.Observer) (err error) {
+	values := map[string]interface{}{}
+	cl := &appv1alpha1.Cluster{}
+	if util.IsMgmtCluster(observer.Spec.ClusterName) {
+		cl.Name = "management"
+		cl.Namespace = undistro.Namespace
+	} else {
+		key := client.ObjectKey{
+			Name:      observer.Spec.ClusterName,
+			Namespace: observer.GetNamespace(),
+		}
+		err := r.Get(ctx, key, cl)
+		if client.IgnoreNotFound(err) != nil {
+			r.Log.Info(err.Error())
+			return err
+		}
+		if cl.HasInfraNodes() {
+			values = map[string]interface{}{
+				"nodeSelector": map[string]interface{}{
+					meta.LabelUndistroInfra: "true",
+				},
+				"tolerations": []map[string]interface{}{
+					{
+						"effect": "NoSchedule",
+						"key":    "dedicated",
+						"value":  "infra",
+					},
+				},
+			}
+		}
+	}
+
+	eckOperatorVersion := "1.9.0-SNAPSHOT"
+	if err := r.installRelease(ctx, "eck-operator", eckOperatorVersion, values, &observer, cl); err != nil {
+		return err
+	}
+
+	if err := r.createElasticsearchCluster(ctx); err != nil {
+		return err
+	}
+
+	// TODO retrieve the elasticsearch svc name dynamically and assign to kibana chart values
+	kibanaVersion := "8.0.0-SNAPSHOT"
+	if err := r.installRelease(ctx, "kibana", kibanaVersion, values, &observer, cl); err != nil {
+		return err
+	}
+	return
+}
+
+func (r *ObserverReconciler) createElasticsearchCluster(ctx context.Context) error {
+	elasticsearch := `
+---
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch
+  namespace: undistro-system 
+spec:
+  version: 7.15.0
+  nodeSets:
+  - name: default
+    count: 1
+    config:
+      node.store.allow_mmap: false
+`
+	objs, err := util.ToUnstructured([]byte(elasticsearch))
+	if err != nil {
+		return err
+	}
+	for _, o := range objs {
+		_, err = util.CreateOrUpdate(ctx, r.Client, &o)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *ObserverReconciler) reconcileMetrics(ctx context.Context, observer appv1alpha1.Observer) (err error) {
 	// check kube-prometheus-stack installation from helm
 	values := map[string]interface{}{
-		"namespaceOverride": undistro.Namespace,
+		"namespaceOverride": monitoringNS,
 		"grafana": map[string]interface{}{
 			"enabled": false,
 		},
@@ -207,40 +360,45 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, req ctrl.Request, ob
 			values = util.MergeMaps(values, infraValues)
 		}
 	}
-	releaseName := "kube-prometheus-stack"
+
+	kubeStackVersion := "18.0.4"
+	if err := r.installRelease(ctx, "kube-prometheus-stack", kubeStackVersion, values, &observer, cl); err != nil {
+		return err
+	}
+	// after the kube-prometheus-stack crds install
+	if util.IsMgmtCluster(observer.Spec.ClusterName) {
+		err = r.enableUnDistroMetrics(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	return
+}
+
+func (r *ObserverReconciler) installRelease(
+	ctx context.Context, name, version string, values map[string]interface{}, observer *appv1alpha1.Observer, cl *appv1alpha1.Cluster) (err error) {
 	key := client.ObjectKey{
-		Name:      hr.GetObjectName(releaseName, observer.Spec.ClusterName),
+		Name:      hr.GetObjectName(name, observer.Spec.ClusterName),
 		Namespace: observer.GetNamespace(),
 	}
 	release := appv1alpha1.HelmRelease{}
-	msg := fmt.Sprintf("Checking if %s is installed", releaseName)
-	r.Log.Info(msg)
-	err := r.Get(ctx, key, &release)
+	err = r.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
 	}
-	release, err = hr.Prepare(releaseName, undistro.Namespace, cl.GetNamespace(), "18.0.4", observer.Spec.ClusterName, values)
+	release, err = hr.Prepare(name, monitoringNS, cl.GetNamespace(), version, observer.Spec.ClusterName, values)
 	if err != nil {
 		return err
 	}
-	msg = fmt.Sprintf("Installing %s", releaseName)
-	r.Log.Info(msg)
 	if err := hr.Install(ctx, r.Client, release, cl); err != nil {
 		return err
 	}
-	// after the kube-prometheus-stack crds install
-	if util.IsMgmtCluster(observer.Spec.ClusterName) {
-		err = r.enableUnDistroMetrics(ctx, r.Client)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return
 }
 
-func (r *ObserverReconciler) enableUnDistroMetrics(ctx context.Context, c client.Client) error {
+func (r *ObserverReconciler) enableUnDistroMetrics(ctx context.Context) error {
 	undistroServiceMonitor := `
 ---
 apiVersion: monitoring.coreos.com/v1
@@ -268,7 +426,7 @@ spec:
 		return err
 	}
 	for _, o := range objs {
-		_, err = util.CreateOrUpdate(ctx, c, &o)
+		_, err = util.CreateOrUpdate(ctx, r.Client, &o)
 		if err != nil {
 			return err
 		}

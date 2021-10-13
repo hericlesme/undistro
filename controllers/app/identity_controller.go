@@ -212,8 +212,6 @@ func (r *IdentityReconciler) reconcileFederationDomain(ctx context.Context, fede
 		return err
 	}
 	if localClus != util.NonLocal {
-		msg := fmt.Sprintf("%v", federationDomainCfg)
-		r.Log.Info(msg)
 		spec.TLS = &supervisorconfigv1aplha1.FederationDomainTLSSpec{
 			SecretName: federationDomainCfg["tlsSecretName"].(string),
 		}

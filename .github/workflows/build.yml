@@ -44,10 +44,10 @@ jobs:
       - name: Run chart-testing (lint)
         run: |
           helm repo add undistro https://registry.undistro.io/chartrepo/library
+          helm repo add prometheus https://prometheus-community.github.io/helm-charts
           helm repo add grafana https://grafana.github.io/helm-charts
-          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
           helm repo update
-          ct lint --all
+          ct lint --print-config --all --validate-chart-schema false --excluded-charts eck-operator --excluded-charts elasticsearch --excluded-charts kibana --excluded-charts fluentd
 
       - name: Get dependencies
         run: go mod download
