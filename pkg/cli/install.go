@@ -106,6 +106,7 @@ var providersInfo = map[string]metadatav1alpha1.ProviderInfo{
 type InstallOptions struct {
 	ConfigPath  string
 	ClusterName string
+	Remote      bool
 	genericclioptions.IOStreams
 }
 
@@ -121,7 +122,9 @@ func (o *InstallOptions) Complete(f *ConfigFlags, cmd *cobra.Command, args []str
 	case 0:
 		// do nothing
 	case 1:
-		o.ClusterName = args[0]
+		if o.ClusterName == "" {
+			o.ClusterName = args[0]
+		}
 	default:
 		return cmdutil.UsageErrorf(cmd, "%s", "too many arguments")
 	}
@@ -442,12 +445,15 @@ func validateSupervisorConfig(ctx context.Context, c client.Client, localClus ut
 	return nil
 }
 
-func validateLocalClusConfig(ctx context.Context, c client.Client, out io.Writer, clusTyp util.LocalClusterType) error {
+func validateLocalClusConfig(ctx context.Context, c client.Client, out io.Writer, clusTyp util.LocalClusterType, name string) error {
 	// get local cluster container ip for metallb configuration
+	if name == "" {
+		name = "kind"
+	}
 	containerName := ""
 	switch clusTyp {
 	case util.Kind:
-		containerName = "kind-control-plane"
+		containerName = fmt.Sprintf("%s-control-plane", name)
 	case util.Minikube:
 		containerName = "minikube"
 	}
@@ -522,7 +528,7 @@ func validateLocalClusConfig(ctx context.Context, c client.Client, out io.Writer
 
 func (o *InstallOptions) validateLocalEnvironment(ctx context.Context, c client.Client, clusTyp util.LocalClusterType) error {
 	fmt.Fprintln(o.IOStreams.Out, "Cluster is local. Preparing environment...")
-	err := validateLocalClusConfig(ctx, c, o.IOStreams.Out, clusTyp)
+	err := validateLocalClusConfig(ctx, c, o.IOStreams.Out, clusTyp, util.ObjectKeyFromString(o.ClusterName).Name)
 	if err != nil {
 		return err
 	}
@@ -541,7 +547,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		return err
 	}
 	restGetter := kube.NewInClusterRESTClientGetter(restCfg, ns)
-	if !util.IsMgmtCluster(o.ClusterName) {
+	if o.Remote {
 		byt, err := kubeconfig.FromSecret(cmd.Context(), c, util.ObjectKeyFromString(o.ClusterName))
 		if err != nil {
 			return err
@@ -599,7 +605,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 		return err
 	}
 	fmt.Fprint(o.IOStreams.Out, "Waiting all components to be ready")
-	deadline := time.Now().Add(10 * time.Minute)
+	deadline := time.Now().Add(30 * time.Minute)
 	ctx, cancel := context.WithDeadline(cmd.Context(), deadline)
 	defer cancel()
 	for {

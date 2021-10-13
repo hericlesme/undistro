@@ -50,29 +50,34 @@ type ClusterOptions struct {
 	K8sVersion   string
 	Region       string
 	AuthEnabled  bool
+	Addons       bool
+	CloudsFile   string
+	rawClouds    string
 }
 
 func NewClusterOptions(streams genericclioptions.IOStreams) *ClusterOptions {
 	return &ClusterOptions{
 		IOStreams: streams,
+		Addons:    true,
 	}
 }
 
 func (o *ClusterOptions) Complete(f cmdutil.Factory, cmd *cobra.Command, args []string) error {
 	var err error
-	o.Namespace, _, err = f.ToRawKubeConfigLoader().Namespace()
-	if err != nil {
-		return err
-	}
 	if o.Namespace == "" {
-		o.Namespace = "dafault"
+		o.Namespace, _, err = f.ToRawKubeConfigLoader().Namespace()
+		if err != nil {
+			return err
+		}
 	}
 	if o.K8sVersion == "" {
 		switch o.Flavor {
-		case "ec2":
+		case "openstack":
 			o.K8sVersion = "v1.21.3"
+		case "ec2":
+			o.K8sVersion = "v1.22.2"
 		case "eks":
-			o.K8sVersion = "v1.20.7"
+			o.K8sVersion = "v1.21.2"
 		}
 	}
 	if len(args) != 1 {
@@ -88,12 +93,29 @@ func (o *ClusterOptions) Complete(f cmdutil.Factory, cmd *cobra.Command, args []
 	if err != nil {
 		return err
 	}
-	o.ClusterName = args[0]
+	if o.ClusterName == "" {
+		o.ClusterName = args[0]
+	}
 	return nil
 }
 
 func (o *ClusterOptions) validateInfraFlavor() error {
 	switch o.Infra {
+	case appv1alpha1.OpenStack.String():
+		o.Flavor = o.Infra
+		if o.SshKeyName == "" {
+			return errors.New("ssh-key-name is required for openstack")
+		}
+		byt, err := os.ReadFile(o.CloudsFile)
+		if err != nil {
+			return err
+		}
+		raw, err := yaml.YAMLToJSON(byt)
+		if err != nil {
+			return err
+		}
+		o.rawClouds = string(raw)
+		return nil
 	case appv1alpha1.Amazon.String():
 		switch o.Flavor {
 		case appv1alpha1.EKS.String():
@@ -151,13 +173,16 @@ func (o *ClusterOptions) RunCreateCluster(f cmdutil.Factory, cmd *cobra.Command)
 		}
 	}
 	vars := map[string]interface{}{
-		"Flavor":      o.Flavor,
-		"SSHKey":      o.SshKeyName,
-		"Namespace":   o.Namespace,
-		"Name":        o.ClusterName,
-		"K8sVersion":  o.K8sVersion,
-		"Region":      o.Region,
-		"AuthEnabled": o.AuthEnabled,
+		"Flavor":         o.Flavor,
+		"SSHKey":         o.SshKeyName,
+		"Namespace":      o.Namespace,
+		"Name":           o.ClusterName,
+		"K8sVersion":     o.K8sVersion,
+		"Region":         o.Region,
+		"AuthEnabled":    o.AuthEnabled,
+		"Addons":         o.Addons,
+		"CloudsFilePath": o.CloudsFile,
+		"CloudsFile":     o.rawClouds,
 	}
 	objs, err := template.GetObjs(fs.DefaultArchFS, "defaultarch", o.Infra, vars)
 	if err != nil {
@@ -213,6 +238,7 @@ func (o *ClusterOptions) AddFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.Region, "region", o.Region, "the region where cluster will be created")
 	flags.BoolVar(&o.GenerateFile, "generate-file", o.GenerateFile, "Generate cluster YAML file")
 	flags.BoolVar(&o.AuthEnabled, "enable-auth", o.AuthEnabled, "Activate the Authnz management feature")
+	flags.StringVar(&o.CloudsFile, "openstack-clouds-file", o.CloudsFile, "Path of clouds.yaml (required by provider openstack)")
 }
 
 func NewCmdCluster(f cmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {

@@ -59,15 +59,19 @@ func NewMoveOptions(streams genericclioptions.IOStreams) *MoveOptions {
 func (o *MoveOptions) Complete(f *ConfigFlags, cmd *cobra.Command, args []string) error {
 	o.ConfigPath = *f.ConfigFile
 	var err error
-	o.Namespace, _, err = f.ToRawKubeConfigLoader().Namespace()
-	if err != nil {
-		return err
+	if o.Namespace == "" {
+		o.Namespace, _, err = f.ToRawKubeConfigLoader().Namespace()
+		if err != nil {
+			return err
+		}
 	}
 	switch len(args) {
 	case 0:
 		// do nothing
 	case 1:
-		o.ClusterName = args[0]
+		if o.ClusterName == "" {
+			o.ClusterName = args[0]
+		}
 	default:
 		return cmdutil.UsageErrorf(cmd, "%s", "too many arguments")
 	}
@@ -95,6 +99,7 @@ func (o *MoveOptions) RunMove(f cmdutil.Factory, cmd *cobra.Command) error {
 		ConfigPath:  o.ConfigPath,
 		ClusterName: key.String(),
 		IOStreams:   o.IOStreams,
+		Remote:      true,
 	}
 	err := iopts.RunInstall(f, cmd)
 	if err != nil {

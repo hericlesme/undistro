@@ -6,24 +6,22 @@ metadata:
   namespace: {{.Namespace}}
 spec:
   kubernetesVersion: {{.K8sVersion}}
-  {{if eq .Flavor "ec2"}}
   controlPlane:
     replicas: 3
-    machineType: m5.large
-  {{end}}
+    machineType: m1.medium
   workers:
     - replicas: 2
-      machineType:  m5.large
+      machineType:  m1.medium
     - replicas: 2
       infraNode: true
-      machineType:  m5.large
+      machineType:  m1.medium
   infrastructureProvider:
-    name: aws
+    name: openstack
     {{if .SSHKey}}
     sshKey: {{.SSHKey}}
     {{end}}
-    region: {{.Region}}
-    flavor: {{.Flavor}}
+    flavor: openstack
+    extraConfiguration: {{.CloudsFile}}
 {{- if .Addons}}
 ---
 apiVersion: app.undistro.io/v1alpha1

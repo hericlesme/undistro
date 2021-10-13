@@ -22,8 +22,9 @@ import (
 )
 
 const (
-	Namespace   = "undistro-system"
-	DefaultRepo = "https://registry.undistro.io/chartrepo/library"
+	Namespace       = "undistro-system"
+	MgmtClusterName = "management"
+	DefaultRepo     = "https://registry.undistro.io/chartrepo/library"
 )
 
 var (
@@ -42,8 +43,7 @@ const LocalCluster = "undistro"
 
 var KindCmdDestroy = `kind delete cluster --name "%s"`
 
-var KindCmdCreate = `cat <<EOF | kind create cluster --name "%s" --config=-
-kind: Cluster
+var KindCfg = `kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
   apiServerPort: 6443
@@ -67,8 +67,7 @@ nodes:
     protocol: TCP
   - containerPort: 443
     hostPort: 443
-    protocol: TCP
-EOF`
+    protocol: TCP`
 
 var TestResources = `---
 apiVersion: v1

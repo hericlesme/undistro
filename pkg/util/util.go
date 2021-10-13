@@ -30,12 +30,12 @@ import (
 	"time"
 
 	"github.com/getupio-undistro/undistro/pkg/retry"
-
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/release"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -307,6 +307,13 @@ func stringWithCharset(length int, charset string) string {
 
 func RandomString(length int) string {
 	return stringWithCharset(length, charset)
+}
+
+func LastCondition(conditons []metav1.Condition) metav1.Condition {
+	if len(conditons) > 0 {
+		return conditons[len(conditons)-1]
+	}
+	return metav1.Condition{}
 }
 
 func GetCaFromSecret(ctx context.Context, c client.Client, secretName, dataField, ns string) (crt []byte, err error) {

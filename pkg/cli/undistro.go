@@ -96,7 +96,7 @@ func NewUndistroCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	cfgFlags := NewConfigFlags()
 	cfgFlags.AddFlags(flags, flag.CommandLine)
 	ioStreams := genericclioptions.IOStreams{In: in, Out: out, ErrOut: err}
-	cmd.AddCommand(NewCmdSetup(ioStreams))
+	cmd.AddCommand(NewCmdSetup(cfgFlags, ioStreams))
 	cmd.AddCommand(NewCmdDestroy(ioStreams))
 	f := cmdutil.NewFactory(cfgFlags)
 	cmd.AddCommand(auth.NewCmdAuth(f, ioStreams))

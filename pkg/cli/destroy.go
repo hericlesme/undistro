@@ -30,8 +30,8 @@ import (
 
 type DestroyOptions struct {
 	genericclioptions.IOStreams
-	Tool string
-	Name string
+	Provider string
+	Name     string
 }
 
 func NewDestroyOptions(streams genericclioptions.IOStreams) *DestroyOptions {
@@ -45,9 +45,12 @@ func (o *DestroyOptions) AddFlags(flags *pflag.FlagSet) {
 }
 
 func (o *DestroyOptions) Complete(args []string) error {
-	o.Tool = args[0]
-	if o.Tool != "kind" {
-		return errors.Errorf("unknown tool: %s", o.Tool)
+	if len(args) == 0 {
+		return errors.New("required 1 argument with provider name")
+	}
+	o.Provider = args[0]
+	if o.Provider != "kind" {
+		return errors.Errorf("unable to destroy resources in provider %s, please use the provider UI or CLI directly", o.Provider)
 	}
 	if o.Name == "" {
 		o.Name = undistro.LocalCluster
@@ -58,7 +61,7 @@ func (o *DestroyOptions) Complete(args []string) error {
 func (o *DestroyOptions) RunDestroy(cmd *cobra.Command) error {
 	c := o.getCmd(cmd.Context())
 	if c == nil {
-		return errors.Errorf("unknown tool: %s", o.Tool)
+		return errors.Errorf("unknown provider: %s", o.Provider)
 	}
 	c.Stdin = o.IOStreams.In
 	c.Stderr = o.IOStreams.ErrOut
@@ -68,7 +71,7 @@ func (o *DestroyOptions) RunDestroy(cmd *cobra.Command) error {
 
 func (o *DestroyOptions) getCmd(ctx context.Context) *exec.Cmd {
 	var script string
-	switch o.Tool {
+	switch o.Provider {
 	case "kind":
 		script = fmt.Sprintf(undistro.KindCmdDestroy, o.Name)
 	default:
