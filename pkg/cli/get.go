@@ -18,7 +18,6 @@ package cli
 import (
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
-	"github.com/getupio-undistro/undistro/pkg/undistro"
 	pinnipedcmd "github.com/getupio-undistro/undistro/third_party/pinniped/pinniped/cmd"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -74,19 +73,19 @@ func (o *KubeconfigOptions) RunGetKubeconfig(f cmdutil.Factory, cmd *cobra.Comma
 		return errors.Errorf("unable to create client: %v", err)
 	}
 	var byt []byte
-	if o.ClusterName != "management" && o.Namespace != undistro.Namespace {
-		byt, err = kube.GetInternalKubeconfig(cmd.Context(), c, client.ObjectKey{
-			Namespace: o.Namespace,
-			Name:      o.ClusterName,
-		})
-		if err != nil {
-			return errors.Errorf("unable to get kubeconfig: %v", err)
-		}
+	byt, err = kube.GetInternalKubeconfig(cmd.Context(), c, client.ObjectKey{
+		Namespace: o.Namespace,
+		Name:      o.ClusterName,
+	})
+	if err != nil && client.IgnoreNotFound(err) != nil {
+		return errors.Errorf("unable to get kubeconfig: %v", err)
 	}
 	if o.Admin {
-		_, err = o.IOStreams.Out.Write(byt)
-		if err != nil {
-			return errors.Errorf("unable to get kubeconfig: %v", err)
+		if len(byt) > 0 {
+			_, err = o.IOStreams.Out.Write(byt)
+			if err != nil {
+				return errors.Errorf("unable to get kubeconfig: %v", err)
+			}
 		}
 	} else {
 		params.KubeconfigBytes = byt
