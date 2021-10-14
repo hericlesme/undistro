@@ -139,7 +139,20 @@ podLabels: {}
 
 priorityClassName: ""
 
-env: []
+env:
+- name: FLUENT_ELASTICSEARCH_HOST
+  value: "elasticsearch-es-http"
+- name: FLUENT_ELASTICSEARCH_PORT
+  value: "9200"
+- name: FLUENT_ELASTICSEARCH_SCHEME
+  value: "http"
+- name: FLUENT_ELASTICSEARCH_USER
+  value: elastic
+- name: FLUENT_ELASTICSEARCH_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: elasticsearch-es-elastic-user
+      key: elastic
 
 envFrom: []
 
@@ -217,19 +230,18 @@ config:
   ## https://docs.fluentbit.io/manual/pipeline/outputs
   outputs: |
     [OUTPUT]
-        Name es
-        Match kube.*
-        Host elasticsearch-master
+        Name            es
+        Match           *
+        Host            ${FLUENT_ELASTICSEARCH_HOST}
+        Port            ${FLUENT_ELASTICSEARCH_PORT}
         Logstash_Format On
-        Retry_Limit False
-
-    [OUTPUT]
-        Name es
-        Match host.*
-        Host elasticsearch-master
-        Logstash_Format On
-        Logstash_Prefix node
-        Retry_Limit False
+        Replace_Dots    On
+        Retry_Limit     False
+        HTTP_User       ${FLUENT_ELASTICSEARCH_USER}
+        HTTP_Passwd     ${FLUENT_ELASTICSEARCH_PASSWORD}
+        # Trace_Output    On
+        tls             On
+        tls.verify      Off
 
   ## https://docs.fluentbit.io/manual/pipeline/parsers
   customParsers: |

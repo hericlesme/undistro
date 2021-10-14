@@ -19,21 +19,25 @@ package app
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/hr"
+	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 )
 
 const (
@@ -157,20 +161,12 @@ func (r *ObserverReconciler) reconcileFluentStack(ctx context.Context, observer 
 			}
 		}
 	}
-
-	// get elasticsearch service host and user info
-
-	fluentdVersion := "0.2.11"
-	if err := r.installRelease(ctx, "fluentd", fluentdVersion, values, &observer, cl); err != nil {
-		return err
-	}
 	fluentBitVersion := "0.18.0"
 	if err := r.installRelease(ctx, "fluent-bit", fluentBitVersion, values, &observer, cl); err != nil {
 		return err
 	}
-
-	elasticFluentdPluginVersion := "12.0.0"
-	if err := r.installRelease(ctx, "fluentd-elasticsearch", elasticFluentdPluginVersion, values, &observer, cl); err != nil {
+	fluentdVersion := "0.2.12"
+	if err := r.installRelease(ctx, "fluentd", fluentdVersion, values, &observer, cl); err != nil {
 		return err
 	}
 	return
@@ -209,18 +205,43 @@ func (r *ObserverReconciler) reconcileElasticStack(ctx context.Context, observer
 	}
 
 	eckOperatorVersion := "1.9.0-SNAPSHOT"
-	if err := r.installRelease(ctx, "eck-operator", eckOperatorVersion, values, &observer, cl); err != nil {
+	releaseName := "eck-operator"
+	if err := r.installRelease(ctx, releaseName, eckOperatorVersion, values, &observer, cl); err != nil {
 		return err
 	}
-
-	if err := r.createElasticsearchCluster(ctx); err != nil {
+	hrKey := client.ObjectKey{
+		Namespace: monitoringNS,
+		Name:      hr.GetObjectName(releaseName, cl.Name),
+	}
+	helmRelease := &appv1alpha1.HelmRelease{}
+	err = r.Get(ctx, hrKey, helmRelease)
+	if err != nil {
+		return err
+	}
+	// maybe this will need refactoring
+	for !meta.InReadyCondition(helmRelease.Status.Conditions) {
+		r.Log.V(2).Info("waiting elasticsearch operator is ready")
+		<-time.After(5 * time.Second)
+	}
+	if err := r.createElasticsearchCluster(ctx, &observer, cl); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *ObserverReconciler) createElasticsearchCluster(ctx context.Context) error {
-	elasticsearch := `
+func (r *ObserverReconciler) createElasticsearchCluster(ctx context.Context, obs *appv1alpha1.Observer, cl *appv1alpha1.Cluster) error {
+	replicaCount := 0
+	if cl.HasInfraNodes() {
+		for _, w := range cl.Spec.Workers {
+			if w.InfraNode {
+				replicaCount = int(*w.Replicas)
+				break
+			}
+		}
+	} else {
+		replicaCount = int(cl.Status.TotalWorkerReplicas)
+	}
+	elasticsearch := fmt.Sprintf(`
 ---
 apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
@@ -229,21 +250,60 @@ metadata:
   namespace: monitoring
 spec:
   version: 7.15.0
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
   nodeSets:
-  - name: default
+  - name: master
     count: 1
     config:
-      node.store.allow_mmap: false
-`
+      node:
+        roles: [ "master" ]
+        store.allow_mmap: false
+  - name: worker
+    count: %d
+    config:
+      node:
+        store.allow_mmap: false
+`, replicaCount)
 	objs, err := util.ToUnstructured([]byte(elasticsearch))
 	if err != nil {
 		return err
 	}
-	for _, o := range objs {
-		_, err = util.CreateOrUpdate(ctx, r.Client, &o)
+	u := unstructured.Unstructured{}
+	k := client.ObjectKey{}
+	clusterClient := r.Client
+	if !util.IsMgmtCluster(obs.Spec.ClusterName) {
+		clusterClient, err = kube.NewClusterClient(ctx, r.Client, obs.Spec.ClusterName, obs.GetNamespace())
 		if err != nil {
 			return err
 		}
+	}
+	for _, o := range objs {
+		_, err = util.CreateOrUpdate(ctx, clusterClient, &o)
+		if err != nil {
+			return err
+		}
+		u.SetGroupVersionKind(o.GroupVersionKind())
+		k.Namespace = o.GetNamespace()
+		k.Name = o.GetName()
+	}
+	err = clusterClient.Get(ctx, k, &u)
+	if err != nil {
+		return err
+	}
+	health, ok, err := unstructured.NestedString(u.Object, "status", "health")
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.New("health field not present")
+	}
+	// maybe this will need refactoring
+	for strings.ToLower(health) != "green" {
+		r.Log.V(2).Info("waiting elasticsearch is ready")
+		<-time.After(5 * time.Second)
 	}
 	return nil
 }
@@ -431,6 +491,7 @@ spec:
 // SetupWithManager sets up the controller with the Manager.
 func (r *ObserverReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
 		For(&appv1alpha1.Observer{}).
 		Complete(r)
 }

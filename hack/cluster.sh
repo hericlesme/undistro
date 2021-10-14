@@ -121,6 +121,7 @@ nodes:
     nodeRegistration:
       kubeletExtraArgs:
         node-labels: "ingress-ready=true"
+        streaming-connection-idle-timeout: 4h
   extraPortMappings:
   - containerPort: 80
     hostPort: 80

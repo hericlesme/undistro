@@ -40,6 +40,7 @@ import (
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 )
 
 const (
@@ -376,6 +377,7 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 // SetupWithManager sets up the controller with the Manager.
 func (r *IdentityReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
 		For(&appv1alpha1.Identity{}).
 		Complete(r)
 }

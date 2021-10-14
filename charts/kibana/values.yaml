@@ -9,15 +9,16 @@ replicas: 1
 extraEnvs:
   - name: "NODE_OPTIONS"
     value: "--max-old-space-size=1800"
-#  - name: MY_ENVIRONMENT_VAR
-#    value: the_value_goes_here
+  - name: "ELASTICSEARCH_USERNAME"
+    value: elastic
+  - name: "ELASTICSEARCH_PASSWORD"
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch-es-elastic-user
+        key: elastic
 
 # Allows you to load environment variables from kubernetes secret or config map
 envFrom: []
-# - secretRef:
-#     name: env-secret
-# - configMapRef:
-#     name: config-map
 
 # A list of secrets and their paths to mount inside the pod
 # This is useful for mounting certificates for security and for mounting
@@ -35,7 +36,7 @@ hostAliases: []
 #  - "bar.local"
 
 image: "docker.elastic.co/kibana/kibana"
-imageTag: "8.0.0-SNAPSHOT"
+imageTag: "7.15.1"
 imagePullPolicy: "IfNotPresent"
 
 # additionals labels
@@ -61,9 +62,9 @@ healthCheckPath: "/app/kibana"
 # Allows you to add any config files in /usr/share/kibana/config/
 # such as kibana.yml
 kibanaConfig: {}
-#   kibana.yml: |
-#     key:
-#       nestedkey: value
+  #  kibana.yml: |
+  #    elasticsearch.username: "kibana_system"
+  #    elasticsearch.password: "kibanapassword"
 
 # If Pod Security Policy in use it may be required to specify security context as well as service account
 
