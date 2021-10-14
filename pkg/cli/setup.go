@@ -173,7 +173,7 @@ func (o *SetupOptions) RunSetup(cmd *cobra.Command, args []string) error {
 				break
 			}
 		}
-		byt, err := kube.GetInternalKubeconfig(cmd.Context(), c, key)
+		byt, err := kube.GetKubeconfig(cmd.Context(), c, key)
 		if err != nil {
 			return err
 		}
