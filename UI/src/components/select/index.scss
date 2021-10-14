@@ -57,6 +57,10 @@
       color: var(--gray-blue-600, $gray-blue-600);
       padding-left: 8px;
       background-color: var(--gray-blue-600, $gray-blue-600);
+    
+      [class*="-Input"]{
+        color: white !important;
+      }
     }
 
     &__Input {

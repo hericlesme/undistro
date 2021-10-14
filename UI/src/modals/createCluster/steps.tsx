@@ -66,6 +66,7 @@ const Steps: FC<Props> = ({ children, handleAction, handleClose, handleBack, err
               onClick={() => {
                 if (isCreating) handleClose()
                 if (index !== step) setIndex(index + 1)
+                if (hasFinished) window.location.reload()
               }}
               variant="primary"
               size="large"

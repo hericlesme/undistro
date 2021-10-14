@@ -99,7 +99,11 @@ const AuthRoute = ({ isAuthed, isAuthing }: AuthRouteProps) => {
                   key={provider}
                   className="auth-signin-method"
                   onClick={async () => {
-                    const authWindow = window.open(`https://${window.location.hostname}/login?idp=${provider}`)
+                    const authWindow = window.open(
+                      `https://${window.location.hostname}/login?idp=${provider}`,
+                      'popup',
+                      'resizable,width=400px,height=600px'
+                    )
 
                     const timer = setInterval(async () => {
                       if (authWindow?.closed) {

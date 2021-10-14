@@ -13,6 +13,7 @@ type ClustersContextValue = {
   addClusters: (clusters: Cluster[]) => void
   removeCluster: (name: string) => void
   clear: () => void
+  isEmpty: boolean
 }
 
 const ClustersContext = createContext({} as ClustersContextValue)
@@ -36,17 +37,18 @@ export const ClustersProvider = ({ children } : { children: ReactNode }) => {
     setClusters([])
   }
 
-  return <ClustersContext.Provider value={{ clusters, addCluster, addClusters, removeCluster, clear }}>{children}</ClustersContext.Provider>
+  return <ClustersContext.Provider value={{ clusters, addCluster, addClusters, removeCluster, clear, isEmpty: clusters.length === 0 }}>{children}</ClustersContext.Provider>
 }
 
 export const useClusters = () => {
-  const { clusters, addCluster, removeCluster, clear, addClusters } = useContext(ClustersContext)
+  const { clusters, addCluster, removeCluster, clear, addClusters, isEmpty } = useContext(ClustersContext)
 
   return {
     clusters,
     addCluster,
     removeCluster,
     clear,
-    addClusters
+    addClusters,
+    isEmpty
   }
 }

@@ -5,6 +5,7 @@ import moment from 'moment'
 import { useClusters } from 'providers/ClustersProvider'
 import BreadCrumb from '@components/breadcrumb'
 import { useServices } from 'providers/ServicesProvider'
+import { Layout } from '@components/layout'
 
 const headers = [
   { name: 'Name', field: 'name' },
@@ -109,9 +110,11 @@ export default function NodepoolsPage() {
   }, [])
 
   return (
-    <div className="home-page-route">
-      <BreadCrumb routes={routes} />
-      <Table data={nodePools || []} header={headers} />
-    </div>
+    <Layout>
+      <div className="home-page-route">
+        <BreadCrumb routes={routes} />
+        <Table data={nodePools || []} header={headers} />
+      </div>
+    </Layout>
   )
 }

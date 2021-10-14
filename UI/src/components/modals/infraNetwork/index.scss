@@ -48,6 +48,12 @@
           grid-gap: 10px;
           justify-content: center;
           margin-top: 10px;
+
+          .button-container {
+            button {
+              color: #2d2d2d;
+            }
+          }
         }
 
         ul {

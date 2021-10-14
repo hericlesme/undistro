@@ -126,6 +126,16 @@
 
       .input-container {
         margin-top: 28px;
+  
+        .button-container {
+          align-items: flex-end;
+          display: flex;
+  
+          button {
+            color: #2d2d2d;
+            margin-bottom: 8px;
+          }
+        }
       }
 
       .subnet-inputs {
@@ -192,7 +202,7 @@
       .input-container {
         display: grid;
         justify-content: center;
-        grid-template-columns: 80px 90px 90px 216px;
+        grid-template-columns: 150px 150px;
         grid-gap: 10px;
 
         .toggle-container {

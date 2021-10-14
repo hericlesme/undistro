@@ -63,6 +63,7 @@
     .select-row {
       width: 35px;
       position: relative;
+      padding-bottom: 3.5px;
 
       ul {
         position: absolute;
@@ -118,6 +119,7 @@
     }
 
     tr {
+      height: 39.5px;
       background-color: var(--gray-blue-550, $gray-blue-550);
 
       &:not(:last-child) {

@@ -79,24 +79,8 @@ const ControlPlane: FC<TypeControlPlane> = ({
     setSubnet?.(e.currentTarget.value)
   }
 
-  const formCpu = (option: TypeOption | null) => {
-    setCpu(option)
-  }
-
-  const formMem = (option: TypeOption | null) => {
-    setMemory(option)
-  }
-
   const formMachineTypes = (option: TypeOption | null) => {
     setMachineTypes(option)
-  }
-
-  const formCpuWorkers = (option: TypeOption | null) => {
-    setCpuWorkers?.(option)
-  }
-
-  const formMemWorkers = (option: TypeOption | null) => {
-    setMemoryWorkers?.(option)
   }
 
   const formMachineTypesWorkers = (option: TypeOption | null) => {
@@ -110,8 +94,6 @@ const ControlPlane: FC<TypeControlPlane> = ({
         <div className="input-container">
           <Input value={replicas} onChange={formReplica} type="text" label="replicas" />
           {isAdvanced && <Input type="text" value={subnet} onChange={formSubnet} label="Subnet" />}
-          <Select value={cpu} onChange={formCpu} options={getCpu} label="CPU" />
-          <Select value={memory} onChange={formMem} options={getMem} label="mem" />
           <Select value={machineTypes} onChange={formMachineTypes} options={getMachineTypes} label="machineType" />
         </div>
 
@@ -121,8 +103,6 @@ const ControlPlane: FC<TypeControlPlane> = ({
             <Toggle label="InfraNode" value={infraNode} onChange={() => setInfraNode?.(!infraNode)} />
             <div className="input-container">
               <Input type="text" label="replicas" value={replicasWorkers} onChange={formReplicaWorkers} />
-              <Select value={cpuWorkers} onChange={formCpuWorkers} options={getCpu} label="CPU" />
-              <Select value={memoryWorkers} onChange={formMemWorkers} options={getMem} label="mem" />
               <Select
                 value={machineTypesWorkers}
                 onChange={formMachineTypesWorkers}

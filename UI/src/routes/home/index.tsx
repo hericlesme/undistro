@@ -63,6 +63,7 @@ export default function HomePage() {
             if (message.includes('wait cluster')) status = 'Provisioning'
             else if (message.includes('error')) status = 'Error'
             else if (message.includes('paused')) status = 'Paused'
+            else if (message.includes('deleting')) status = 'Deleting'
             else status = 'Ready'
           }
 
@@ -73,8 +74,8 @@ export default function HomePage() {
             version: elm.spec.kubernetesVersion,
             clusterGroups: elm.metadata.namespace,
             machines: elm.status.controlPlane?.replicas + elm.status.totalWorkerReplicas || 0,
-            age: moment(elm.metadata.creationTimestamp)
-              .startOf('day')
+            age: moment(elm.metadata.creationTimestamp.replace('Z', '-03:00'))
+              .startOf('minute')
               .fromNow(),
             status: status
           }

@@ -13,6 +13,7 @@ type TypeSubItem = {
   name: string
   link?: string
   handleAction?: () => void | Promise<void>
+  disabled?: boolean
 }
 
 type TypeItem = {
@@ -33,7 +34,7 @@ const showModal = () => {
 
 const MenuSideBar = () => {
   const { Api } = useServices()
-  const { clusters } = useClusters()
+  const { clusters, isEmpty } = useClusters()
   const [show, setShow] = useState<any>(false)
   const history = useHistory<any>()
   const [isPauseClusterAlertOpen, closePauseClusterAlert, openPauseClusterAlert] = useDisclosure()
@@ -58,14 +59,14 @@ const MenuSideBar = () => {
 
   const SubItens: TypeSubItem[] = [
     { name: 'Create', handleAction: () => showModal() },
-    { name: 'Pause', handleAction: openPauseClusterAlert },
-    { name: 'Update', link: '/nodepools' },
-    { name: 'Settings', link: '/nodepools' }
+    { name: 'Pause', handleAction: openPauseClusterAlert, disabled: isEmpty },
+    { name: 'Update', link: '/nodepools', disabled: isEmpty },
+    { name: 'Settings', link: '/nodepools', disabled: clusters.length !== 1 }
   ]
 
   const SubItensMachines: TypeSubItem[] = [
-    { name: 'Nodepools', link: '/nodepools' },
-    { name: 'Pause', link: '/nodepools' }
+    { name: 'Nodepools', link: '/nodepools', disabled: clusters.length !== 1 },
+    { name: 'Pause', link: '/nodepools', disabled: clusters.length !== 1 }
   ]
 
   const items: TypeItem[] = [
@@ -221,7 +222,15 @@ const MenuSideBar = () => {
                 {show === i && (
                   <div className="item-menu">
                     {elm.subItens.map((elm: TypeSubItem) => (
-                      <p key={elm.name} onClick={() => elm.handleAction?.() || handleRedirect(elm.link!)}>
+                      <p
+                        key={elm.name}
+                        className={elm.disabled ? 'item-menu-disabled' : ''}
+                        onClick={() => {
+                          if (elm.disabled) return
+
+                          elm.handleAction?.() || handleRedirect(elm.link!)
+                        }}
+                      >
                         {elm.name}
                       </p>
                     ))}

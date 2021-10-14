@@ -64,6 +64,8 @@ async function createAuthorizationHeader(httpClient: AxiosInstance) {
         window.location.href = '/auth'
       }
 
+      await createAuthorizationHeader(httpClient)
+
       return error
     }
   )
