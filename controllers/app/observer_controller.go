@@ -226,7 +226,7 @@ apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
   name: elasticsearch
-  namespace: undistro-system 
+  namespace: monitoring
 spec:
   version: 7.15.0
   nodeSets:

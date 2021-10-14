@@ -72,3 +72,7 @@ jobs:
           helm chart-push undistro-openstack undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
           helm chart-push cloud-provider-openstack undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
           helm chart-push kube-prometheus-stack undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push eck-operator undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push fluentd undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push fluent-bit undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push fluentd-elasticsearch undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
