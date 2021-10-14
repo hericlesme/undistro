@@ -216,13 +216,7 @@ func (r *ObserverReconciler) reconcileElasticStack(ctx context.Context, observer
 	if err := r.createElasticsearchCluster(ctx); err != nil {
 		return err
 	}
-
-	// TODO retrieve the elasticsearch svc name dynamically and assign to kibana chart values
-	kibanaVersion := "8.0.0-SNAPSHOT"
-	if err := r.installRelease(ctx, "kibana", kibanaVersion, values, &observer, cl); err != nil {
-		return err
-	}
-	return
+	return nil
 }
 
 func (r *ObserverReconciler) createElasticsearchCluster(ctx context.Context) error {
