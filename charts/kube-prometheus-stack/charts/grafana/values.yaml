@@ -244,7 +244,7 @@ extraInitContainers: []
 extraContainers: ""
 # extraContainers: |
 # - name: proxy
-#   image: quay.io/gambol99/keycloak-proxy:latest
+#   image: registry.undistro.io/quay/gambol99/keycloak-proxy:latest
 #   args:
 #   - -provider=github
 #   - -client-id=

@@ -151,7 +151,7 @@ The Dockerfile would look something like:
 
 ```
 ARG kibana_version
-FROM docker.elastic.co/kibana/kibana:${kibana_version}
+FROM registry.undistro.io/elastic/kibana/kibana:${kibana_version}
 
 RUN bin/kibana-plugin install <plugin_url>
 ```

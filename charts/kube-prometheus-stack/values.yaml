@@ -1584,11 +1584,11 @@ prometheusOperator:
 
   ## Prometheus image to use for prometheuses managed by the operator
   ##
-  # prometheusDefaultBaseImage: quay.io/prometheus/prometheus
+  # prometheusDefaultBaseImage: registry.undistro.io/quay/prometheus/prometheus
 
   ## Alertmanager image to use for alertmanagers managed by the operator
   ##
-  # alertmanagerDefaultBaseImage: quay.io/prometheus/alertmanager
+  # alertmanagerDefaultBaseImage: registry.undistro.io/quay/prometheus/alertmanager
 
   ## Prometheus-config-reloader image to use for config and rule reloading
   ##

@@ -157,14 +157,14 @@ func (r *Cluster) validate(old *Cluster) error {
 	}
 	if old != nil && r.Spec.InfrastructureProvider.Region != old.Spec.InfrastructureProvider.Region {
 		allErrs = append(allErrs, field.Invalid(
-			field.NewPath("spec", "infrastrutureProvider", "region"),
+			field.NewPath("spec", "infrastructureProvider", "region"),
 			r.Spec.InfrastructureProvider.Region,
 			immutableMsg,
 		))
 	}
 	switch r.Spec.InfrastructureProvider.Name {
 	case Amazon.String():
-		allErrs = r.validateAWS(old, allErrs)
+		allErrs = r.validateAWS(allErrs)
 	}
 	if old == nil {
 		// check network just on creation
@@ -195,7 +195,7 @@ func (r *Cluster) validate(old *Cluster) error {
 	return apierrors.NewInvalid(GroupVersion.WithKind("Cluster").GroupKind(), r.Name, allErrs)
 }
 
-func (r *Cluster) validateAWS(old runtime.Object, allErrs field.ErrorList) field.ErrorList {
+func (r *Cluster) validateAWS(allErrs field.ErrorList) field.ErrorList {
 	if r.Spec.InfrastructureProvider.Name == Amazon.String() && r.Spec.InfrastructureProvider.Flavor == EC2.String() && r.Spec.InfrastructureProvider.SSHKey == "" {
 		allErrs = append(allErrs, field.Required(
 			field.NewPath("spec", "infrastructureProvider", "sshKey"),

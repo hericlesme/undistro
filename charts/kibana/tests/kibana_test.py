@@ -26,7 +26,7 @@ def test_defaults():
 
     c = r["deployment"][name]["spec"]["template"]["spec"]["containers"][0]
     assert c["name"] == "kibana"
-    assert c["image"].startswith("docker.elastic.co/kibana/kibana:")
+    assert c["image"].startswith("registry.undistro.io/elastic/kibana/kibana:")
     assert c["ports"][0]["containerPort"] == 5601
 
     assert c["env"][0]["name"] == "ELASTICSEARCH_HOSTS"

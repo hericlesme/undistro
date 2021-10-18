@@ -200,13 +200,7 @@ func (o *SetupOptions) RunSetup(cmd *cobra.Command, args []string) error {
 			return nil
 		})
 	}
-	destroyOpts := DestroyOptions{
-		IOStreams: o.IOStreams,
-		Name:      o.Name,
-		Provider:  "kind",
-	}
-	destroyOpts.RunDestroy(cmd)
-	return nil
+	return provider.Delete(o.Name, "")
 }
 
 func NewCmdSetup(f *ConfigFlags, streams genericclioptions.IOStreams) *cobra.Command {

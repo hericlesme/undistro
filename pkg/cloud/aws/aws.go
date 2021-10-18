@@ -166,7 +166,7 @@ func kindByFlavor(flavor string) string {
 	return ""
 }
 
-func launchTemplateRef(ctx context.Context, u unstructured.Unstructured) (appv1alpha1.LaunchTemplateReference, error) {
+func launchTemplateRef(u unstructured.Unstructured) (appv1alpha1.LaunchTemplateReference, error) {
 	var (
 		ref     appv1alpha1.LaunchTemplateReference
 		version int64
@@ -188,7 +188,7 @@ func launchTemplateRef(ctx context.Context, u unstructured.Unstructured) (appv1a
 	return ref, nil
 }
 
-func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster) error {
+func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
 	for i := range cl.Spec.Workers {
 		if !cl.Spec.InfrastructureProvider.IsManaged() {
 			key := client.ObjectKey{
@@ -202,12 +202,34 @@ func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alph
 			if err != nil {
 				return client.IgnoreNotFound(err)
 			}
-			ref, err := launchTemplateRef(ctx, u)
+			ref, err := launchTemplateRef(u)
 			if err != nil {
 				return err
 			}
 			cl.Spec.Workers[i].LaunchTemplateReference = ref
 		}
+	}
+
+	if cl.Spec.InfrastructureProvider.IsManaged() && capiCluster.Spec.ControlPlaneRef != nil {
+		oKey := client.ObjectKey{
+			Name:      capiCluster.Spec.ControlPlaneRef.Name,
+			Namespace: capiCluster.Spec.ControlPlaneRef.Namespace,
+		}
+		u := &unstructured.Unstructured{}
+		u.SetGroupVersionKind(capiCluster.Spec.ControlPlaneRef.GroupVersionKind())
+		err := r.Get(ctx, oKey, u)
+		if err != nil {
+			return err
+		}
+		roleName, _, err := unstructured.NestedString(u.Object, "spec", "roleName")
+		if err != nil {
+			return err
+		}
+		cl.Spec.InfrastructureProvider.Env = append(cl.Spec.InfrastructureProvider.Env, corev1.EnvVar{
+			Name:  "ROLE_NAME",
+			Value: roleName,
+		})
+		cl.Spec.InfrastructureProvider.Env = removeDuplicateEnv(cl.Spec.InfrastructureProvider.Env)
 	}
 	return nil
 }
@@ -232,10 +254,10 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 	if err != nil {
 		return client.IgnoreNotFound(err)
 	}
-	return clusterNetwork(ctx, cl, u)
+	return clusterNetwork(cl, u)
 }
 
-func clusterNetwork(ctx context.Context, cl *appv1alpha1.Cluster, u unstructured.Unstructured) error {
+func clusterNetwork(cl *appv1alpha1.Cluster, u unstructured.Unstructured) error {
 	host, ok, err := unstructured.NestedString(u.Object, "spec", "controlPlaneEndpoint", "host")
 	if err != nil {
 		return err
@@ -250,7 +272,7 @@ func clusterNetwork(ctx context.Context, cl *appv1alpha1.Cluster, u unstructured
 	if ok && port != 0 {
 		cl.Spec.ControlPlane.Endpoint.Port = int32(port)
 	}
-	vpc, ok, err := unstructured.NestedMap(u.Object, "spec", "networkSpec", "vpc")
+	vpc, ok, err := unstructured.NestedMap(u.Object, "spec", "network", "vpc")
 	if err != nil {
 		return err
 	}
@@ -264,7 +286,7 @@ func clusterNetwork(ctx context.Context, cl *appv1alpha1.Cluster, u unstructured
 			cl.Spec.Network.VPC.CIDRBlock = cidr.(string)
 		}
 	}
-	subnets, ok, err := unstructured.NestedSlice(u.Object, "spec", "networkSpec", "subnets")
+	subnets, ok, err := unstructured.NestedSlice(u.Object, "spec", "network", "subnets")
 	if err != nil {
 		return err
 	}
@@ -284,6 +306,18 @@ func clusterNetwork(ctx context.Context, cl *appv1alpha1.Cluster, u unstructured
 		cl.Spec.Network.Subnets = removeDuplicateNetwork(cl.Spec.Network.Subnets)
 	}
 	return nil
+}
+
+func removeDuplicateEnv(envs []corev1.EnvVar) []corev1.EnvVar {
+	nMap := make(map[string]corev1.EnvVar)
+	for _, t := range envs {
+		nMap[t.Name] = t
+	}
+	res := make([]corev1.EnvVar, 0)
+	for _, v := range nMap {
+		res = append(res, v)
+	}
+	return res
 }
 
 func removeDuplicateNetwork(n []appv1alpha1.NetworkSpec) []appv1alpha1.NetworkSpec {

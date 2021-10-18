@@ -8,7 +8,7 @@ kind: "DaemonSet"
 # replicaCount: 1
 
 image:
-  repository: "fluent/fluentd-kubernetes-daemonset"
+  repository: "registry.undistro.io/dockerhub/fluent/fluentd-kubernetes-daemonset"
   pullPolicy: "IfNotPresent"
   tag: ""
 

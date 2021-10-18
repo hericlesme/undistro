@@ -5,6 +5,9 @@ metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
 spec:
+  {{if ne .ENV.ROLE_NAME ""}}
+  roleName: {{.ENV.ROLE_NAME}}
+  {{end}}
   paused: {{.Cluster.Spec.Paused}}
   {{if .Cluster.Spec.Network}}
   clusterNetwork:
@@ -48,6 +51,7 @@ metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
 spec:
+  eksClusterName: "{{.Cluster.Name}}"
   identityRef:
     kind: AWSClusterControllerIdentity
     name: default
@@ -124,6 +128,7 @@ spec:
 {{$k8s := .Cluster.Spec.KubernetesVersion}}
 {{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
 {{$uid := .Cluster.Status.LastUsedUID}}
+{{$env := .ENV}}
 {{range $index, $element := .Cluster.Spec.Workers}}
 ---
 apiVersion: cluster.x-k8s.io/v1alpha4
@@ -153,6 +158,9 @@ metadata:
   namespace: "{{$namespace}}"
 spec:
   eksNodegroupName: "{{$name}}-mp-{{$index}}"
+  {{if ne $env.ROLE_NAME ""}}
+  roleName: "-nodegroup-iam-service-role_{{$name}}-{{$name}}-mp-{{$index}}"
+  {{end}}
   {{if $element.Labels}}
   labels:
     {{range $key, $value := $element.Labels}}

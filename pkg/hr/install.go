@@ -51,17 +51,20 @@ func Install(ctx context.Context, c client.Client, hr appv1alpha1.HelmRelease, c
 }
 
 func Prepare(releaseName, targetNs, clusterNs, version, clName string, v map[string]interface{}) (appv1alpha1.HelmRelease, error) {
-	byt, err := json.Marshal(v)
-	if err != nil {
-		return appv1alpha1.HelmRelease{}, err
-	}
-	values := apiextensionsv1.JSON{
-		Raw: byt,
+	var values *apiextensionsv1.JSON
+	if v != nil {
+		byt, err := json.Marshal(v)
+		if err != nil {
+			return appv1alpha1.HelmRelease{}, err
+		}
+		values = &apiextensionsv1.JSON{
+			Raw: byt,
+		}
 	}
 	hrSpec := appv1alpha1.HelmReleaseSpec{
 		ReleaseName:     releaseName,
 		TargetNamespace: targetNs,
-		Values:          &values,
+		Values:          values,
 		Chart: appv1alpha1.ChartSource{
 			RepoChartSource: appv1alpha1.RepoChartSource{
 				RepoURL: undistro.DefaultRepo,

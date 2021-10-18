@@ -3,33 +3,33 @@ apiVersion: app.undistro.io/v1alpha1
 kind: HelmRelease
 metadata:
   name: nginx
-  namespace: example
+  namespace: undistro-system
 spec:
   targetNamespace: ingress-nginx
-  clusterName: example/example-ec2
+  # clusterName in <namespace/name> format
+  clusterName: undistro-system/management
   chart:
-    repository: https://kubernetes.github.io/ingress-nginx
+    repository: https://registry.undistro.io/chartrepo/library
     name: ingress-nginx
-    version: 3.30.0
+    version: 4.0.6
   autoUpgrade: true
   values:
     podLabels:
       network.undistro.io/ingress: allow
       network.undistro.io/egress: allow
-
 ---
 apiVersion: app.undistro.io/v1alpha1
 kind: HelmRelease
 metadata:
   name: kubernetes-dashboard
-  namespace: example
+  namespace: undistro-system
 spec:
-  clusterName: example/example-ec2
+  clusterName: undistro-system/management
   dependencies:
     - apiVersion: app.undistro.io/v1alpha1
       kind: HelmRelease
       name: nginx
-      namespace: example
+      namespace: undistro-system
   chart:
     repository: https://kubernetes.github.io/dashboard
     name: kubernetes-dashboard
@@ -47,7 +47,7 @@ spec:
       subjects:
         - kind: ServiceAccount
           name: undistro-quickstart-dash
-          namespace: example
+          namespace: undistro-system
   values:
     podLabels:
       network.undistro.io/ingress: allow

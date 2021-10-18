@@ -17,6 +17,7 @@ package cloud
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/Masterminds/semver/v3"
@@ -24,6 +25,8 @@ import (
 	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws"
 	"github.com/getupio-undistro/undistro/pkg/cloud/openstack"
+	"github.com/getupio-undistro/undistro/pkg/util"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -76,10 +79,10 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 }
 
 // ReconcileLaunchTemplate from clouds
-func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster) error {
+func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
 	switch cl.Spec.InfrastructureProvider.Name {
 	case appv1alpha1.Amazon.String():
-		return aws.ReconcileLaunchTemplate(ctx, r, cl)
+		return aws.ReconcileLaunchTemplate(ctx, r, cl, capiCluster)
 	case appv1alpha1.OpenStack.String():
 		return openstack.ReconcileClusterSecret(ctx, r, cl)
 	}
@@ -95,15 +98,28 @@ func ReconcileIntegration(ctx context.Context, r client.Client, cl *appv1alpha1.
 	return nil
 }
 
-func CalicoValues(flavor string) map[string]interface{} {
-	values := make(map[string]interface{})
+func CalicoObject(flavor string) (unstructured.Unstructured, error) {
+	var obj = `
+---
+apiVersion: operator.tigera.io/v1
+kind: Installation
+metadata:
+  name: default
+spec:
+  registry: registry.undistro.io/quay
+  cni:
+    type: %s`
 	switch flavor {
 	case appv1alpha1.EKS.String():
-		values["vxlan"] = true
+		obj = fmt.Sprintf(obj, "AmazonVPC")
 	default:
-		values["vxlan"] = false
+		obj = fmt.Sprintf(obj, "Calico")
 	}
-	return values
+	objs, err := util.ToUnstructured([]byte(obj))
+	if err != nil {
+		return unstructured.Unstructured{}, err
+	}
+	return objs[0], nil
 }
 
 func GetAccount(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (Account, error) {

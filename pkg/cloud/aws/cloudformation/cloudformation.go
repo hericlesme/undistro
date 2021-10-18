@@ -17,6 +17,33 @@ package cloudformation
 
 const Template = `AWSTemplateFormatVersion: 2010-09-09
 Resources:
+  AWSEBSCSIPolicyController:
+    Properties:
+      Description: For the AWS EBS CSI Driver for Kubernetes
+      ManagedPolicyName: csi.cluster-api-provider-aws.sigs.k8s.io
+      PolicyDocument:
+        Statement:
+        - Action:
+          - ec2:AttachVolume
+          - ec2:CreateSnapshot
+          - ec2:CreateTags
+          - ec2:CreateVolume
+          - ec2:DeleteSnapshot
+          - ec2:DeleteTags
+          - ec2:DeleteVolume
+          - ec2:DescribeAvailabilityZones
+          - ec2:DescribeInstances
+          - ec2:DescribeSnapshots
+          - ec2:DescribeTags
+          - ec2:DescribeVolumes
+          - ec2:DescribeVolumesModifications
+          - ec2:DetachVolume
+          - ec2:ModifyVolume
+          Effect: Allow
+          Resource:
+          - '*'
+        Version: 2012-10-17
+    Type: AWS::IAM::ManagedPolicy
   AWSIAMInstanceProfileControlPlane:
     Properties:
       InstanceProfileName: control-plane.cluster-api-provider-aws.sigs.k8s.io
@@ -82,7 +109,6 @@ Resources:
           - elasticloadbalancing:ModifyLoadBalancerAttributes
           - elasticloadbalancing:RegisterInstancesWithLoadBalancer
           - elasticloadbalancing:SetLoadBalancerPoliciesForBackendServer
-          - elasticloadbalancing:AddTags
           - elasticloadbalancing:CreateListener
           - elasticloadbalancing:CreateTargetGroup
           - elasticloadbalancing:DeleteListener
@@ -267,6 +293,17 @@ Resources:
           Effect: Allow
           Resource:
           - arn:*:secretsmanager:*:*:secret:aws.cluster.x-k8s.io/*
+        Version: 2012-10-17
+      Roles:
+      - Ref: AWSIAMRoleControllers
+      - Ref: AWSIAMRoleControlPlane
+    Type: AWS::IAM::ManagedPolicy
+  AWSIAMManagedPolicyControllersEKS:
+    Properties:
+      Description: For the Kubernetes Cluster API Provider AWS Controllers
+      ManagedPolicyName: controllers-eks.cluster-api-provider-aws.sigs.k8s.io
+      PolicyDocument:
+        Statement:
         - Action:
           - ssm:GetParameter
           Effect: Allow

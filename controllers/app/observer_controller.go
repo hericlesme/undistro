@@ -210,8 +210,8 @@ func (r *ObserverReconciler) reconcileElasticStack(ctx context.Context, observer
 		return err
 	}
 	hrKey := client.ObjectKey{
-		Namespace: monitoringNS,
 		Name:      hr.GetObjectName(releaseName, cl.Name),
+		Namespace: undistro.Namespace,
 	}
 	helmRelease := &appv1alpha1.HelmRelease{}
 	err = r.Get(ctx, hrKey, helmRelease)
@@ -220,8 +220,12 @@ func (r *ObserverReconciler) reconcileElasticStack(ctx context.Context, observer
 	}
 	// maybe this will need refactoring
 	for !meta.InReadyCondition(helmRelease.Status.Conditions) {
-		r.Log.V(2).Info("waiting elasticsearch operator is ready")
+		r.Log.Info("waiting elasticsearch operator is ready")
 		<-time.After(5 * time.Second)
+		err = r.Get(ctx, hrKey, helmRelease)
+		if err != nil {
+			return err
+		}
 	}
 	if err := r.createElasticsearchCluster(ctx, &observer, cl); err != nil {
 		return err
@@ -304,6 +308,17 @@ spec:
 	for strings.ToLower(health) != "green" {
 		r.Log.V(2).Info("waiting elasticsearch is ready")
 		<-time.After(5 * time.Second)
+		err = clusterClient.Get(ctx, k, &u)
+		if err != nil {
+			return err
+		}
+		health, ok, err = unstructured.NestedString(u.Object, "status", "health")
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return errors.New("health field not present")
+		}
 	}
 	return nil
 }

@@ -73,7 +73,7 @@ func (o *KubeconfigOptions) RunGetKubeconfig(f cmdutil.Factory, cmd *cobra.Comma
 		return errors.Errorf("unable to create client: %v", err)
 	}
 	var byt []byte
-	byt, err = kube.GetInternalKubeconfig(cmd.Context(), c, client.ObjectKey{
+	byt, err = kube.GetKubeconfig(cmd.Context(), c, client.ObjectKey{
 		Namespace: o.Namespace,
 		Name:      o.ClusterName,
 	})
@@ -104,7 +104,7 @@ func NewCmdKubeconfig(f cmdutil.Factory, streams genericclioptions.IOStreams) *c
 		DisableFlagsInUseLine: true,
 		Short:                 "Get kubeconfig of a cluster",
 		Long:                  LongDesc(`Get kubeconfig of a cluster created or imported by UnDistro.`),
-		Example: Examples(`		
+		Example: Examples(`
 		# Get kubeconfig of a cluster in default namespace
 		undistro get kubeconfig cool-cluster
 		# Get kubeconfig of a cluster in others namespace

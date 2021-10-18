@@ -1,10 +1,29 @@
-apiVersion: bootstrap.aws.infrastructure.cluster.x-k8s.io/v1alpha1
+apiVersion: bootstrap.aws.infrastructure.cluster.x-k8s.io/v1beta1
 kind: AWSIAMConfiguration
 spec:
-  eks:
+  clusterAPIControllers:
     disable: false
-    iamRoleCreation: true # Set to true if you plan to use the EKSEnableIAM feature flag to enable automatic creation of IAM roles
+  controlPlane:
+    disable: false
+    disableCloudProviderPolicy: false
+    enableCSIPolicy: true
+  eks:
     defaultControlPlaneRole:
-      disable: false # Set to false to enable creation of the default control plane role
+      disable: false
+    disable: false
+    fargate:
+      disable: true
+    iamRoleCreation: true
+    kmsAliasPrefix: cluster-api-provider-aws-*
     managedMachinePool:
-      disable: false # Set to false to enable creation of the default node role for managed machine pools
+      disable: false
+  eventBridge: {}
+  nameSuffix: .cluster-api-provider-aws.sigs.k8s.io
+  nodes:
+    disable: false
+    disableCloudProviderPolicy: false
+    ec2ContainerRegistryReadOnly: true
+  partition: aws
+  secureSecretBackends:
+  - secrets-manager
+  stackName: cluster-api-provider-aws-sigs-k8s-io

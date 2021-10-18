@@ -138,6 +138,10 @@ func ReconcileCloudProvider(ctx context.Context, c client.Client, cl *appv1alpha
 	if err != nil {
 		return err
 	}
+	if release.Labels == nil {
+		release.Labels = make(map[string]string)
+	}
+	release.Labels[meta.LabelUndistroMove] = ""
 	if release.Annotations == nil {
 		release.Annotations = make(map[string]string)
 	}

@@ -195,7 +195,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 			}
 		}
 	}
-	err = cloud.ReconcileLaunchTemplate(ctx, r.Client, &cl)
+	err = cloud.ReconcileLaunchTemplate(ctx, r.Client, &cl, &capiCluster)
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.ReconcileLaunchTemplateFailed, err.Error()), ctrl.Result{}, err
 	}
@@ -291,26 +291,47 @@ func (r *ClusterReconciler) hasDiff(cl *appv1alpha1.Cluster) bool {
 
 func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cluster) error {
 	const (
-		cniCalicoName = "calico"
-		calicoVersion = "3.19.1"
+		cniCalicoName = "tigera-operator"
+		calicoVersion = "1.20.4"
 	)
 
-	v := cloud.CalicoValues(cl.Spec.InfrastructureProvider.Flavor)
+	calicoObj, err := cloud.CalicoObject(cl.Spec.InfrastructureProvider.Flavor)
+	if err != nil {
+		return err
+	}
 	key := client.ObjectKey{
 		Name:      hr.GetObjectName(cniCalicoName, cl.Name),
 		Namespace: cl.GetNamespace(),
 	}
 	release := appv1alpha1.HelmRelease{}
-	err := r.Get(ctx, key, &release)
+	err = r.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
 	}
-	release, err = hr.Prepare(cniCalicoName, "kube-system", cl.GetNamespace(), calicoVersion, cl.Name, v)
+	if meta.InReadyCondition(release.Status.Conditions) {
+		clusterClient := r.Client
+		if !util.IsMgmtCluster(release.Spec.ClusterName) {
+			clusterClient, err = kube.NewClusterClient(ctx, r.Client, cl.Name, cl.GetNamespace())
+			if err != nil {
+				return err
+			}
+		}
+		_, err = util.CreateOrUpdate(ctx, clusterClient, &calicoObj)
+		if err != nil {
+			return err
+		}
+		meta.SetResourceCondition(cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
+	}
+	release, err = hr.Prepare(cniCalicoName, "calico-system", cl.GetNamespace(), calicoVersion, cl.Name, nil)
 	if err != nil {
 		return err
 	}
+	if release.Labels == nil {
+		release.Labels = make(map[string]string)
+	}
+	release.Labels[meta.LabelUndistroMove] = ""
 	if release.Annotations == nil {
 		release.Annotations = make(map[string]string)
 	}
@@ -318,9 +339,6 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 	err = hr.Install(ctx, r.Client, release, cl)
 	if err != nil {
 		return err
-	}
-	if meta.InReadyCondition(release.Status.Conditions) {
-		meta.SetResourceCondition(cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
 	}
 	return nil
 }

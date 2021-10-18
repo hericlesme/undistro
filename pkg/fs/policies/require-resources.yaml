@@ -22,6 +22,7 @@ spec:
             - ingress-*
             - kube-system
             - undistro-system
+            - calico-system
       match:
         resources:
           kinds:

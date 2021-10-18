@@ -135,7 +135,7 @@ func defaultValues(ctx context.Context, c client.Client, name string) map[string
 						"default-ssl-certificate": undistro.Namespace + "/undistro-ingress-cert",
 					},
 					"admissionWebhooks": map[string]interface{}{
-						"enabled": false,
+						"enabled": true,
 					},
 				},
 			}

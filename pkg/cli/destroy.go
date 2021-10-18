@@ -45,10 +45,12 @@ func (o *DestroyOptions) AddFlags(flags *pflag.FlagSet) {
 }
 
 func (o *DestroyOptions) Complete(args []string) error {
-	if len(args) == 0 {
-		return errors.New("required 1 argument with provider name")
+	if o.Provider == "" {
+		if len(args) == 0 {
+			return errors.New("required 1 argument with provider name")
+		}
+		o.Provider = args[0]
 	}
-	o.Provider = args[0]
 	if o.Provider != "kind" {
 		return errors.Errorf("unable to destroy resources in provider %s, please use the provider UI or CLI directly", o.Provider)
 	}
