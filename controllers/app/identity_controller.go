@@ -26,6 +26,7 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/hr"
 	"github.com/getupio-undistro/undistro/pkg/kube"
+	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
@@ -366,6 +367,10 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 	if err != nil {
 		return err
 	}
+	if release.Labels == nil {
+		release.Labels = make(map[string]string)
+	}
+	release.Labels[meta.LabelUndistroMove] = ""
 	msg = fmt.Sprintf("Installing %s component: %s", identityManager, pc)
 	r.Log.Info(msg)
 	if err := hr.Install(ctx, r.Client, release, cl); err != nil {

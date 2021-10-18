@@ -148,6 +148,10 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 	if err != nil {
 		return appv1alpha1.DefaultPoliciesNotReady(p, meta.ObjectsApliedFailedReason, err.Error()), ctrl.Result{}, err
 	}
+	if release.Labels == nil {
+		release.Labels = make(map[string]string)
+	}
+	release.Labels[meta.LabelUndistroMove] = ""
 	err = hr.Install(ctx, r.Client, release, cl)
 	if err != nil {
 		return appv1alpha1.DefaultPoliciesNotReady(p, meta.ObjectsApliedFailedReason, err.Error()), ctrl.Result{}, err

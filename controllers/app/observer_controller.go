@@ -461,6 +461,10 @@ func (r *ObserverReconciler) installRelease(
 	if err != nil {
 		return err
 	}
+	if release.Labels == nil {
+		release.Labels = make(map[string]string)
+	}
+	release.Labels[meta.LabelUndistroMove] = ""
 	if err := hr.Install(ctx, r.Client, release, cl); err != nil {
 		return err
 	}
