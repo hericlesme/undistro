@@ -23,7 +23,7 @@ import (
 
 const (
 	Namespace       = "undistro-system"
-	MgmtClusterName = "undistro-management"
+	MgmtClusterName = "undistro"
 	DefaultRepo     = "https://registry.undistro.io/chartrepo/library"
 )
 
