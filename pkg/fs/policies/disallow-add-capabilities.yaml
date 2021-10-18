@@ -21,6 +21,8 @@ spec:
             - linkerd-*
             - ingress-*
             - cattle-*
+            - calico-system
+            - tigera-operator
       match:
         resources:
           kinds:
@@ -47,6 +49,8 @@ spec:
             - linkerd-*
             - ingress-*
             - cattle-*
+            - calico-system
+            - tigera-operator
       match:
         resources:
           kinds:

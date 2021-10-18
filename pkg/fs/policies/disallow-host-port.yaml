@@ -27,6 +27,8 @@ spec:
             - cattle-*
             - ingress-*
             - undistro-system
+            - calico-system
+            - tigera-operator
       validate:
         message:
           Use of host ports is disallowed. The fields spec.containers[*].ports[*].hostPort

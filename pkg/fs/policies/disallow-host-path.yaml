@@ -27,6 +27,8 @@ spec:
             - cattle-*
             - linkerd-*
             - undistro-system
+            - calico-system
+            - tigera-operator
       validate:
         message:
           HostPath volumes are forbidden. The fields spec.volumes[*].hostPath

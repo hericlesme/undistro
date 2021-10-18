@@ -28,6 +28,8 @@ spec:
             - linkerd
             - cattle-*
             - undistro-system
+            - calico-system
+            - tigera-operator
       validate:
         message:
           Sharing the host namespaces is disallowed. The fields spec.hostNetwork,
