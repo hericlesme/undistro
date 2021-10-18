@@ -23,7 +23,6 @@ spec:
             - kube-system
             - undistro-system
             - calico-system
-            - calico-system
             - tigera-operator
       match:
         resources:
