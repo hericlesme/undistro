@@ -29,6 +29,8 @@ kind: DefaultPolicies
 metadata:
   name: "defaultpolicies-{{.Name}}"
   namespace: {{.Namespace}}
+  labels:
+    undistro.io/move: ""
 spec:
   clusterName: {{.Name}}
 ---
@@ -37,6 +39,8 @@ kind: Observer
 metadata:
   name: "undistro-observer-{{.Name}}"
   namespace: {{.Namespace}}
+  labels:
+    undistro.io/move: ""
 spec:
   clusterName: {{.Name}}
   paused: false
@@ -47,6 +51,8 @@ kind: Identity
 metadata:
   name: "undistro-identity-{{.Name}}"
   namespace: {{.Namespace}}
+  labels:
+    undistro.io/move: ""
 spec:
   clusterName: {{.Name}}
   paused: false
