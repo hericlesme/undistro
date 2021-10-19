@@ -16,15 +16,22 @@ limitations under the License.
 package undistro
 
 import (
+	"context"
 	"sync"
 
+	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/rest"
+	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	Namespace       = "undistro-system"
-	MgmtClusterName = "undistro"
-	DefaultRepo     = "https://registry.undistro.io/chartrepo/library"
+	Namespace           = "undistro-system"
+	MgmtClusterName     = "undistro"
+	DefaultRepo         = "https://registry.undistro.io/chartrepo/library"
+	loginAudienceSecret = "undistro-login-audience"
 )
 
 var (
@@ -34,7 +41,36 @@ var (
 
 func GetRequestAudience() string {
 	once.Do(func() {
-		requestAudience = util.RandomString(24)
+		cfg, err := rest.InClusterConfig()
+		if err != nil {
+			klog.Fatal(err)
+		}
+		c, err := client.New(cfg, client.Options{
+			Scheme: scheme.Scheme,
+		})
+		if err != nil {
+			klog.Fatal(err)
+		}
+		sec := corev1.Secret{}
+		key := client.ObjectKey{
+			Name:      loginAudienceSecret,
+			Namespace: Namespace,
+		}
+		err = c.Get(context.Background(), key, &sec)
+		if err != nil {
+			if client.IgnoreNotFound(err) != nil {
+				klog.Fatal(err)
+				return
+			}
+			requestAudience = util.RandomString(24)
+			sec.Data["audience"] = []byte(requestAudience)
+			err = c.Create(context.Background(), &sec)
+			if err != nil {
+				klog.Error(err)
+			}
+		}
+		requestAudience = string(sec.Data["audience"])
+
 	})
 	return requestAudience
 }
