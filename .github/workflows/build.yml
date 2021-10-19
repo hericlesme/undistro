@@ -52,6 +52,12 @@ jobs:
       - name: Get dependencies
         run: go mod download
 
+      - name: Build UI
+        working-directory: ./UI
+        run: |
+          yarn
+          yarn build
+
       - name: Build CLI
         run: make cli
 
@@ -60,12 +66,6 @@ jobs:
 
       - name: Build AWS Init
         run: make aws-init
-
-      - name: Build UI
-        working-directory: ./UI
-        run: |
-          yarn
-          yarn build
 
       - name: Test
         run: make test

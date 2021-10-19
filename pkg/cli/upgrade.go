@@ -21,7 +21,6 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/helm"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
-	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -97,8 +96,7 @@ func (o *UpgradeOptions) RunUpgrade(f cmdutil.Factory, cmd *cobra.Command) error
 	}
 	p.Spec.Chart.RepoChartSource.Version = o.Version
 	p.Spec.Paused = false
-	_, err = util.CreateOrUpdate(cmd.Context(), workloadClient, &p)
-	return err
+	return workloadClient.Update(cmd.Context(), &p)
 }
 
 func NewCmdUpgrade(f cmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {
