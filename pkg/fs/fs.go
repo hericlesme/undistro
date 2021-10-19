@@ -23,7 +23,7 @@ import (
 	"path"
 )
 
-//go:embed clustertemplates/*
+//go:embed clustertemplates
 var FS embed.FS
 
 //go:generate helm package -u ../../charts/metallb -d chart
@@ -33,24 +33,16 @@ var FS embed.FS
 //go:generate helm package -u ../../charts/undistro -d chart
 //go:generate helm package -u ../../charts/undistro-aws -d chart
 //go:generate helm package -u ../../charts/undistro-openstack -d chart
-//go:embed chart/*
+//go:embed chart
 var ChartFS embed.FS
 
-//go:embed frontend/*
+//go:embed frontend
 var frontFS embed.FS
 
-//go:embed defaultarch/*
+//go:embed defaultarch
 var DefaultArchFS embed.FS
 
-//go:embed policies/disallow-add-capabilities.yaml
-//go:embed policies/disallow-default-namespace.yaml
-//go:embed policies/disallow-delete-kyverno.yaml
-//go:embed policies/disallow-host-namespace.yaml
-//go:embed policies/disallow-host-path.yaml
-//go:embed policies/disallow-host-port.yaml
-//go:embed policies/disallow-latest-tag.yaml
-//go:embed policies/require-resources.yaml
-//go:embed policies/network-policy.yaml
+//go:embed policies
 var PoliciesFS embed.FS
 
 type fsFunc func(name string) (fs.File, error)
