@@ -387,6 +387,8 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, getter gen
 			}
 		}
 	}
+	rolledBack := false
+	var rollErr error
 	if err != nil {
 		if errors.Is(err, driver.ErrNoDeployedReleases) {
 			slist := corev1.SecretList{}
@@ -407,6 +409,8 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, getter gen
 		if util.ReleaseRevision(rel) <= releaseRevision {
 			log.Info("skip, no new revision created")
 		} else {
+			rolledBack = true
+			rollErr = err
 			err = runner.Rollback(hr)
 			err = r.handleHelmActionResult(&hr, revision, err, "rollback", meta.RemediatedCondition, meta.RollbackSucceededReason, meta.RollbackSucceededReason)
 		}
@@ -418,6 +422,10 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, getter gen
 	hr.Status.LastReleaseRevision = util.ReleaseRevision(rel)
 	if err != nil {
 		return appv1alpha1.HelmReleaseNotReady(hr, meta.ReconciliationFailedReason, err.Error()), err
+	}
+	hr.Spec.Chart.RepoChartSource.Version = rel.Chart.Metadata.Version
+	if rolledBack {
+		return appv1alpha1.HelmReleaseNotReady(hr, meta.RollbackSucceededReason, rollErr.Error()), nil
 	}
 	return appv1alpha1.HelmReleaseReady(hr), nil
 }

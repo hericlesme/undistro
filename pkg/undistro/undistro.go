@@ -62,6 +62,9 @@ func GetRequestAudience() string {
 				klog.Fatal(err)
 				return
 			}
+			if sec.Data == nil {
+				sec.Data = make(map[string][]byte)
+			}
 			requestAudience = util.RandomString(24)
 			sec.Data["audience"] = []byte(requestAudience)
 			err = c.Create(context.Background(), &sec)
