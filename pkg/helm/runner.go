@@ -92,7 +92,6 @@ func (r *Runner) Upgrade(hr appv1alpha1.HelmRelease, chart *chart.Chart, values 
 	upgrade.Wait = *hr.Spec.Wait
 	upgrade.Force = *hr.Spec.ForceUpgrade
 	upgrade.Recreate = true
-	upgrade.CleanupOnFail = true
 	upgrade.Devel = true
 	upgrade.Install = true
 	rel, err := upgrade.Run(hr.Spec.ReleaseName, chart, values.AsMap())
@@ -119,7 +118,6 @@ func (r *Runner) Rollback(hr appv1alpha1.HelmRelease) error {
 	rollback.DisableHooks = hr.Spec.Rollback.DisableHooks
 	rollback.Force = hr.Spec.Rollback.Force
 	rollback.Recreate = hr.Spec.Rollback.Recreate
-	rollback.CleanupOnFail = true
 	return rollback.Run(hr.Spec.ReleaseName)
 }
 
