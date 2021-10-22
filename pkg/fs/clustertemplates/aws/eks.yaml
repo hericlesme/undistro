@@ -13,14 +13,14 @@ spec:
   clusterNetwork:
     {{if .Cluster.Spec.Network.Pods}}
     pods:
-      {{range .Cluster.Spec.Network.Pods}}
+      {{range .Cluster.Spec.Network.Pods.CIDRBlocks}}
       cidrBlocks:
         - {{. | quote}}
       {{end}}
     {{end}}
     {{if .Cluster.Spec.Network.Services}}
     services:
-      {{range .Cluster.Spec.Network.Services}}
+      {{range .Cluster.Spec.Network.Services.CIDRBlocks}}
       cidrBlocks:
         - {{. | quote}}
       {{end}}

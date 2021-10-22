@@ -181,7 +181,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 		return cl, ctrl.Result{}, err
 	}
 
-	err = cloud.ReconcileIntegration(ctx, r.Client, &cl)
+	err = cloud.ReconcileIntegration(ctx, r.Client, &cl, &capiCluster)
 	if err != nil {
 		meta.SetResourceCondition(&cl, meta.CloudProviderInstalledCondition, metav1.ConditionFalse, meta.CloudProvideInstalledFailedReason, err.Error())
 		return cl, ctrl.Result{}, err
@@ -292,39 +292,25 @@ func (r *ClusterReconciler) hasDiff(cl *appv1alpha1.Cluster) bool {
 func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cluster) error {
 	const (
 		cniCalicoName = "tigera-operator"
-		calicoVersion = "1.20.4"
+		calicoVersion = "1.20.4-undistro"
 	)
 
-	calicoObj, err := cloud.CalicoObject(cl.Spec.InfrastructureProvider.Flavor)
-	if err != nil {
-		return err
-	}
+	calicoValues := cloud.CalicoValues(cl.Spec.InfrastructureProvider.Flavor)
 	key := client.ObjectKey{
 		Name:      hr.GetObjectName(cniCalicoName, cl.Name),
 		Namespace: cl.GetNamespace(),
 	}
 	release := appv1alpha1.HelmRelease{}
-	err = r.Get(ctx, key, &release)
+	err := r.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return err
 		}
 	}
 	if meta.InReadyCondition(release.Status.Conditions) {
-		clusterClient := r.Client
-		if !util.IsMgmtCluster(release.Spec.ClusterName) {
-			clusterClient, err = kube.NewClusterClient(ctx, r.Client, cl.Name, cl.GetNamespace())
-			if err != nil {
-				return err
-			}
-		}
-		_, err = util.CreateOrUpdate(ctx, clusterClient, &calicoObj)
-		if err != nil {
-			return err
-		}
 		meta.SetResourceCondition(cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
 	}
-	release, err = hr.Prepare(cniCalicoName, "calico-system", cl.GetNamespace(), calicoVersion, cl.Name, nil)
+	release, err = hr.Prepare(cniCalicoName, "calico-system", cl.GetNamespace(), calicoVersion, cl.Name, calicoValues)
 	if err != nil {
 		return err
 	}

@@ -23,6 +23,7 @@ import (
 	"text/template"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/cloud/cloudutil"
 	"github.com/getupio-undistro/undistro/pkg/hr"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
@@ -31,6 +32,8 @@ import (
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -48,6 +51,11 @@ ca-file=/etc/config/cacert
 
 [BlockStorage]
 bs-version=v2
+
+[LoadBalancer]
+use-octavia=true
+floating-network-id={{.ExternalNetworkID}}
+manage-security-groups=true
 
 [Networking]
 public-network-name=public
@@ -70,10 +78,11 @@ type config struct {
 }
 
 type CloudConf struct {
-	AuthURL     string
-	ProjectName string
-	SecretID    string
-	SecretKey   string
+	AuthURL           string
+	ProjectName       string
+	SecretID          string
+	SecretKey         string
+	ExternalNetworkID string
 }
 
 func (c CloudConf) renderConf() (string, error) {
@@ -89,19 +98,9 @@ func (c CloudConf) renderConf() (string, error) {
 	return credsFileStr.String(), nil
 }
 
-func ReconcileCloudProvider(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) error {
+func ReconcileCloudProvider(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
 	cfg := config{}
 	err := json.Unmarshal(cl.Spec.InfrastructureProvider.ExtraConfiguration.Raw, &cfg)
-	if err != nil {
-		return err
-	}
-	conf := CloudConf{
-		AuthURL:     cfg.Clouds.Openstack.Auth.AuthURL,
-		ProjectName: cfg.Clouds.Openstack.Auth.ProjectName,
-		SecretID:    cfg.Clouds.Openstack.Auth.ApplicationCredentialID,
-		SecretKey:   cfg.Clouds.Openstack.Auth.ApplicationCredentialSecret,
-	}
-	cfgFile, err := conf.renderConf()
 	if err != nil {
 		return err
 	}
@@ -111,6 +110,17 @@ func ReconcileCloudProvider(ctx context.Context, c client.Client, cl *appv1alpha
 		Namespace: undistro.Namespace,
 	}
 	err = c.Get(ctx, nm, &secret)
+	if err != nil {
+		return err
+	}
+	conf := CloudConf{
+		AuthURL:           cfg.Clouds.Openstack.Auth.AuthURL,
+		ProjectName:       cfg.Clouds.Openstack.Auth.ProjectName,
+		SecretID:          cfg.Clouds.Openstack.Auth.ApplicationCredentialID,
+		SecretKey:         cfg.Clouds.Openstack.Auth.ApplicationCredentialSecret,
+		ExternalNetworkID: string(secret.Data["externalNetworkID"]),
+	}
+	cfgFile, err := conf.renderConf()
 	if err != nil {
 		return err
 	}
@@ -167,10 +177,14 @@ func ReconcileClusterSecret(ctx context.Context, c client.Client, cl *appv1alpha
 		return err
 	}
 	dnsNameServers := string(secret.Data["dnsNameServers"])
+	externalNetworkID := string(secret.Data["externalNetworkID"])
+	cl.Spec.InfrastructureProvider.Env = append(cl.Spec.InfrastructureProvider.Env, corev1.EnvVar{
+		Name:  "EXTERNAL_NETWORK_ID",
+		Value: externalNetworkID,
+	})
 	if cl.Spec.InfrastructureProvider.ExtraConfiguration == nil {
 		return errors.New("clouds.yaml is required")
 	}
-
 	m := make(map[string]interface{})
 	err = json.Unmarshal(cl.Spec.InfrastructureProvider.ExtraConfiguration.Raw, &m)
 	if err != nil {
@@ -182,11 +196,10 @@ func ReconcileClusterSecret(ctx context.Context, c client.Client, cl *appv1alpha
 			return errors.New("invalid clouds.yaml")
 		}
 		for k := range clouds {
-			e := corev1.EnvVar{
+			cl.Spec.InfrastructureProvider.Env = append(cl.Spec.InfrastructureProvider.Env, corev1.EnvVar{
 				Name:  "CLOUD_NAME",
 				Value: k,
-			}
-			cl.Spec.InfrastructureProvider.Env = append(cl.Spec.InfrastructureProvider.Env, e)
+			})
 		}
 	}
 	byt, err := yaml.JSONToYAML(cl.Spec.InfrastructureProvider.ExtraConfiguration.Raw)
@@ -211,10 +224,43 @@ func ReconcileClusterSecret(ctx context.Context, c client.Client, cl *appv1alpha
 	if err != nil {
 		return err
 	}
-	e := corev1.EnvVar{
+	cl.Spec.InfrastructureProvider.Env = append(cl.Spec.InfrastructureProvider.Env, corev1.EnvVar{
 		Name:  "DNS_NAME_SERVER",
 		Value: dnsNameServers,
+	})
+	cl.Spec.InfrastructureProvider.Env = cloudutil.RemoveDuplicateEnv(cl.Spec.InfrastructureProvider.Env)
+	return nil
+}
+
+func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
+	u := unstructured.Unstructured{}
+	key := client.ObjectKey{}
+	u.SetGroupVersionKind(capiCluster.Spec.InfrastructureRef.GroupVersionKind())
+	key = client.ObjectKey{
+		Name:      capiCluster.Spec.InfrastructureRef.Name,
+		Namespace: capiCluster.Spec.InfrastructureRef.Namespace,
 	}
-	cl.Spec.InfrastructureProvider.Env = append(cl.Spec.InfrastructureProvider.Env, e)
+	err := r.Get(ctx, key, &u)
+	if err != nil {
+		return client.IgnoreNotFound(err)
+	}
+	return clusterNetwork(cl, u)
+}
+
+func clusterNetwork(cl *appv1alpha1.Cluster, u unstructured.Unstructured) error {
+	host, ok, err := unstructured.NestedString(u.Object, "spec", "controlPlaneEndpoint", "host")
+	if err != nil {
+		return err
+	}
+	if ok && host != "" {
+		cl.Spec.ControlPlane.Endpoint.Host = host
+	}
+	port, ok, err := unstructured.NestedInt64(u.Object, "spec", "controlPlaneEndpoint", "port")
+	if err != nil {
+		return err
+	}
+	if ok && port != 0 {
+		cl.Spec.ControlPlane.Endpoint.Port = int32(port)
+	}
 	return nil
 }

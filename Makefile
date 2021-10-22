@@ -111,7 +111,7 @@ kustomize: ## Download kustomize locally if necessary.
 
 # Build cli binary
 cli: generate fmt vet
-	go generate ./... && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -o bin/undistro ./cmd/undistro
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "$(LDFLAGS)" -o bin/undistro ./cmd/undistro
 
 # Build manager binary
 manager: generate fmt vet

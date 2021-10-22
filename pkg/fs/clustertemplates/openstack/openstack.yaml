@@ -10,14 +10,14 @@ spec:
   clusterNetwork:
     {{if .Cluster.Spec.Network.Pods}}
     pods:
-      {{range .Cluster.Spec.Network.Pods}}
+      {{range .Cluster.Spec.Network.Pods.CIDRBlocks}}
       cidrBlocks:
         - {{. | quote}}
       {{end}}
     {{end}}
     {{if .Cluster.Spec.Network.Services}}
     services:
-      {{range .Cluster.Spec.Network.Services}}
+      {{range .Cluster.Spec.Network.Services.CIDRBlocks}}
       cidrBlocks:
         - {{. | quote}}
       {{end}}
@@ -47,14 +47,13 @@ metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
 spec:
+  externalNetworkId: {{.ENV.EXTERNAL_NETWORK_ID}}
   cloudName: {{.ENV.CLOUD_NAME}}
   identityRef:
     name: "{{.Cluster.Name}}-cloud-config"
     namespace: "{{.Cluster.Namespace}}"
     kind: Secret
-  # For now we're keeping this as disabled until we have a LB service
-  # working properly
-  managedAPIServerLoadBalancer: false
+  managedAPIServerLoadBalancer: true
   managedSecurityGroups: true
   allowAllInClusterTraffic: true
   {{if .Cluster.Spec.Network}}
@@ -136,7 +135,7 @@ spec:
   template:
     spec:
       flavor: "{{.Cluster.Spec.ControlPlane.MachineType}}"
-      image: ubuntu-2004-kube-{{.Cluster.Spec.KubernetesVersion}} 
+      image: ubuntu-2004-kube-{{.Cluster.Spec.KubernetesVersion}}
       {{if .Cluster.Spec.InfrastructureProvider.SSHKey}}
       sshKeyName: "{{ .Cluster.Spec.InfrastructureProvider.SSHKey}}"
       {{end}}
@@ -209,7 +208,7 @@ spec:
   template:
     spec:
       flavor: "{{$element.MachineType}}"
-      image: ubuntu-2004-kube-{{$k8s}} 
+      image: ubuntu-2004-kube-{{$k8s}}
       {{if $sshKey}}
       sshKeyName: "{{$sshKey}}"
       {{end}}

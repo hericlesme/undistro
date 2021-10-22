@@ -96,6 +96,12 @@ func (r *Cluster) Default() {
 			}}
 		}
 	}
+	calicoPodNetwork := "192.168.0.0/16"
+	if r.Spec.Network.Pods == nil && r.Spec.InfrastructureProvider.Name == OpenStack.String() {
+		r.Spec.Network.Pods = &capi.NetworkRanges{
+			CIDRBlocks: []string{calicoPodNetwork},
+		}
+	}
 }
 
 //+kubebuilder:webhook:path=/validate-app-undistro-io-v1alpha1-cluster,mutating=false,failurePolicy=fail,sideEffects=None,groups=app.undistro.io,resources=clusters,verbs=create;update,versions=v1alpha1,name=vcluster.undistro.io,admissionReviewVersions={v1,v1beta1}

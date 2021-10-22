@@ -38,6 +38,7 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws/cloudformation"
+	"github.com/getupio-undistro/undistro/pkg/cloud/cloudutil"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -229,7 +230,7 @@ func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alph
 			Name:  "ROLE_NAME",
 			Value: roleName,
 		})
-		cl.Spec.InfrastructureProvider.Env = removeDuplicateEnv(cl.Spec.InfrastructureProvider.Env)
+		cl.Spec.InfrastructureProvider.Env = cloudutil.RemoveDuplicateEnv(cl.Spec.InfrastructureProvider.Env)
 	}
 	return nil
 }
@@ -303,33 +304,9 @@ func clusterNetwork(cl *appv1alpha1.Cluster, u unstructured.Unstructured) error 
 			}
 			cl.Spec.Network.Subnets = append(cl.Spec.Network.Subnets, n)
 		}
-		cl.Spec.Network.Subnets = removeDuplicateNetwork(cl.Spec.Network.Subnets)
+		cl.Spec.Network.Subnets = cloudutil.RemoveDuplicateNetwork(cl.Spec.Network.Subnets)
 	}
 	return nil
-}
-
-func removeDuplicateEnv(envs []corev1.EnvVar) []corev1.EnvVar {
-	nMap := make(map[string]corev1.EnvVar)
-	for _, t := range envs {
-		nMap[t.Name] = t
-	}
-	res := make([]corev1.EnvVar, 0)
-	for _, v := range nMap {
-		res = append(res, v)
-	}
-	return res
-}
-
-func removeDuplicateNetwork(n []appv1alpha1.NetworkSpec) []appv1alpha1.NetworkSpec {
-	nMap := make(map[appv1alpha1.NetworkSpec]struct{})
-	for _, t := range n {
-		nMap[t] = struct{}{}
-	}
-	res := make([]appv1alpha1.NetworkSpec, 0)
-	for k := range nMap {
-		res = append(res, k)
-	}
-	return res
 }
 
 type AwsCredentials struct {

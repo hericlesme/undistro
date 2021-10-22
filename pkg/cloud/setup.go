@@ -17,7 +17,6 @@ package cloud
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/Masterminds/semver/v3"
@@ -25,8 +24,6 @@ import (
 	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws"
 	"github.com/getupio-undistro/undistro/pkg/cloud/openstack"
-	"github.com/getupio-undistro/undistro/pkg/util"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -74,6 +71,8 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 	switch cl.Spec.InfrastructureProvider.Name {
 	case appv1alpha1.Amazon.String():
 		return aws.ReconcileNetwork(ctx, r, cl, capiCluster)
+	case appv1alpha1.OpenStack.String():
+		return openstack.ReconcileNetwork(ctx, r, cl, capiCluster)
 	}
 	return nil
 }
@@ -90,36 +89,24 @@ func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alph
 }
 
 // ReconcileIntegration from clouds
-func ReconcileIntegration(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster) error {
+func ReconcileIntegration(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
 	switch cl.Spec.InfrastructureProvider.Name {
 	case appv1alpha1.OpenStack.String():
-		return openstack.ReconcileCloudProvider(ctx, r, cl)
+		return openstack.ReconcileCloudProvider(ctx, r, cl, capiCluster)
 	}
 	return nil
 }
 
-func CalicoObject(flavor string) (unstructured.Unstructured, error) {
-	var obj = `
----
-apiVersion: operator.tigera.io/v1
-kind: Installation
-metadata:
-  name: default
-spec:
-  registry: registry.undistro.io/quay
-  cni:
-    type: %s`
+func CalicoValues(flavor string) map[string]interface{} {
+	m := make(map[string]interface{})
 	switch flavor {
 	case appv1alpha1.EKS.String():
-		obj = fmt.Sprintf(obj, "AmazonVPC")
+		m["cniType"] = "AmazonVPC"
 	default:
-		obj = fmt.Sprintf(obj, "Calico")
+		m["cniType"] = ""
+
 	}
-	objs, err := util.ToUnstructured([]byte(obj))
-	if err != nil {
-		return unstructured.Unstructured{}, err
-	}
-	return objs[0], nil
+	return m
 }
 
 func GetAccount(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (Account, error) {
