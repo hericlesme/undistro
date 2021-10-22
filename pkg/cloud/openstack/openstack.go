@@ -25,9 +25,11 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/cloudutil"
 	"github.com/getupio-undistro/undistro/pkg/hr"
+	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
+	"github.com/go-logr/logr"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -98,9 +100,25 @@ func (c CloudConf) renderConf() (string, error) {
 	return credsFileStr.String(), nil
 }
 
-func ReconcileCloudProvider(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
+func ReconcileCloudProvider(ctx context.Context, c client.Client, log logr.Logger, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
+	clusterClient, err := kube.NewClusterClient(ctx, c, cl.Name, cl.GetNamespace())
+	if err != nil {
+		log.Info("cluster not ready", "err", err)
+		return nil
+	}
+	nodeList := corev1.NodeList{}
+	err = clusterClient.List(ctx, &nodeList)
+	if err != nil {
+		log.Info("cluster not ready", "err", err)
+		return nil
+	}
+	nodeCount := int(*cl.Status.ControlPlane.Replicas) + int(cl.Status.TotalWorkerReplicas)
+	if len(nodeList.Items) != nodeCount {
+		log.Info("wait all nodes to be available", "gettable nodes", len(nodeList.Items), "node count", nodeCount)
+		return nil
+	}
 	cfg := config{}
-	err := json.Unmarshal(cl.Spec.InfrastructureProvider.ExtraConfiguration.Raw, &cfg)
+	err = json.Unmarshal(cl.Spec.InfrastructureProvider.ExtraConfiguration.Raw, &cfg)
 	if err != nil {
 		return err
 	}

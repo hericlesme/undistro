@@ -24,6 +24,7 @@ import (
 	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/aws"
 	"github.com/getupio-undistro/undistro/pkg/cloud/openstack"
+	"github.com/go-logr/logr"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -89,10 +90,10 @@ func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alph
 }
 
 // ReconcileIntegration from clouds
-func ReconcileIntegration(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
+func ReconcileIntegration(ctx context.Context, r client.Client, log logr.Logger, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
 	switch cl.Spec.InfrastructureProvider.Name {
 	case appv1alpha1.OpenStack.String():
-		return openstack.ReconcileCloudProvider(ctx, r, cl, capiCluster)
+		return openstack.ReconcileCloudProvider(ctx, r, log, cl, capiCluster)
 	}
 	return nil
 }

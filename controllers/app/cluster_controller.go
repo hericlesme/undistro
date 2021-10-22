@@ -181,7 +181,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 		return cl, ctrl.Result{}, err
 	}
 
-	err = cloud.ReconcileIntegration(ctx, r.Client, &cl, &capiCluster)
+	err = cloud.ReconcileIntegration(ctx, r.Client, r.Log, &cl, &capiCluster)
 	if err != nil {
 		meta.SetResourceCondition(&cl, meta.CloudProviderInstalledCondition, metav1.ConditionFalse, meta.CloudProvideInstalledFailedReason, err.Error())
 		return cl, ctrl.Result{}, err
