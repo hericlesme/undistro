@@ -626,10 +626,9 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 					}
 					unCfg := undistroCfg{}
 					err = json.Unmarshal(hr.Spec.Values.Raw, &unCfg)
-					if err != nil {
-						continue
+					if err == nil {
+						addrs = append(unCfg.Ingress.IpAddresses, unCfg.Ingress.Hosts...)
 					}
-					addrs = append(unCfg.Ingress.IpAddresses, unCfg.Ingress.Hosts...)
 				}
 				_, err = util.CreateOrUpdate(ctx, c, &hr)
 				if err != nil {
