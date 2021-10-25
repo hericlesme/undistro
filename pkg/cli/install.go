@@ -627,7 +627,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 					unCfg := undistroCfg{}
 					err = json.Unmarshal(hr.Spec.Values.Raw, &unCfg)
 					if err != nil {
-						return err
+						continue
 					}
 					addrs = append(unCfg.Ingress.IpAddresses, unCfg.Ingress.Hosts...)
 				}
@@ -649,9 +649,11 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 				}
 			}
 			if ready {
-				guiUrl := fmt.Sprintf("https://%s", addrs[0])
-				msg := fmt.Sprintf("\n\nManagement cluster is ready to use. \nUI is available at %s\n", guiUrl)
-				fmt.Fprintln(o.IOStreams.Out, msg)
+				fmt.Fprintln(o.IOStreams.Out, "\n\nManagement cluster is ready to use.")
+				if len(addrs) > 0 {
+					guiUrl := fmt.Sprintf("https://%s", addrs[0])
+					fmt.Fprintf(o.IOStreams.Out, "I is available at %s\n", guiUrl)
+				}
 				return nil
 			}
 			fmt.Fprint(o.IOStreams.Out, ".")
