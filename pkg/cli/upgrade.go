@@ -88,6 +88,7 @@ func (o *UpgradeOptions) RunUpgrade(f cmdutil.Factory, cmd *cobra.Command) error
 			return errors.Errorf("chart %s not found", releaseName)
 		}
 		version := versions[0]
+		fmt.Fprintf(o.IOStreams.Out, "Upgrading to %s version\n", version.Version)
 		_, err = chartRepo.Get(releaseName, version.Version)
 		if err != nil {
 			return err

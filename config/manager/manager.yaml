@@ -54,4 +54,4 @@ spec:
               cpu: "0.5"
               memory: 256Mi
       serviceAccountName: controller-manager
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 60

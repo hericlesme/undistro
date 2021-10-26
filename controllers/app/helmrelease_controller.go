@@ -77,6 +77,7 @@ type HelmReleaseReconciler struct {
 }
 
 func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	start := time.Now()
 	hr := appv1alpha1.HelmRelease{}
 	if err := r.Get(ctx, req.NamespacedName, &hr); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -88,7 +89,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 	defer func() {
-		patchOpts := []patch.Option{}
+		var patchOpts []patch.Option
 		if err == nil {
 			patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
 		}
@@ -111,7 +112,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		hr = appv1alpha1.HelmReleaseDeleting(hr)
 		return r.reconcileDelete(ctx, log, hr)
 	}
-	if hr.Spec.ClusterName != "" {
+	if !util.IsMgmtCluster(hr.Spec.ClusterName) {
 		key := util.ObjectKeyFromString(hr.Spec.ClusterName)
 		cl := appv1alpha1.Cluster{}
 		err = r.Get(ctx, key, &cl)
@@ -132,6 +133,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			hr = appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "wait cluster to be ready")
 			return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
+
 		policies := appv1alpha1.DefaultPoliciesList{}
 		opts := make([]client.ListOption, 0)
 		if cl.Namespace != "" {
@@ -150,18 +152,25 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 	hr, result, err := r.reconcile(ctx, log, hr)
+
+	// Log reconciliation duration
+	durationMsg := fmt.Sprintf("reconcilation finished in %s", time.Now().Sub(start).String())
+	if result.RequeueAfter > 0 {
+		durationMsg = fmt.Sprintf("%s, next run in %s", durationMsg, result.RequeueAfter.String())
+	}
+	log.Info(durationMsg)
 	return result, err
 }
 
 func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, hr appv1alpha1.HelmRelease) (appv1alpha1.HelmRelease, ctrl.Result, error) {
 	var clientOpts []getter.Option
 	if hr.Spec.Chart.SecretRef != nil {
-		name := types.NamespacedName{
+		resourceNamespacedName := types.NamespacedName{
 			Name:      hr.Spec.Chart.SecretRef.Name,
 			Namespace: hr.GetNamespace(),
 		}
 		var secret corev1.Secret
-		err := r.Client.Get(ctx, name, &secret)
+		err := r.Client.Get(ctx, resourceNamespacedName, &secret)
 		if err != nil {
 			err = fmt.Errorf("auth secret error: %w", err)
 			hr = appv1alpha1.HelmReleaseNotReady(hr, meta.AuthenticationFailedReason, err.Error())
@@ -240,7 +249,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		}
 		log.Info("all dependencies are ready, proceeding with release")
 	}
-	getter, err := r.getRESTClientGetter(ctx, hr)
+	restClientGetter, err := r.getRESTClientGetter(ctx, hr)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return hr, ctrl.Result{}, err
@@ -250,7 +259,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		}
 		return hr, ctrl.Result{}, nil
 	}
-	restCfg, err := getter.ToRESTConfig()
+	restCfg, err := restClientGetter.ToRESTConfig()
 	if err != nil {
 		if _, isCNIChart := hr.Annotations[meta.SetupAnnotation]; isCNIChart {
 			return appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "wait kubeconfig to be available"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
@@ -278,7 +287,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 	if err != nil {
 		return hr, ctrl.Result{}, err
 	}
-	// install helm secrets in undistro-system so this namespace need to exists in workload clusters
+	// install helm secrets in undistro-system so this namespace need to exist in workload clusters
 	_, err = util.CreateOrUpdate(ctx, workloadClient, &corev1.Namespace{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -308,7 +317,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.StorageOperationFailedReason, err.Error())
 		return hr, ctrl.Result{}, err
 	}
-	hr, err = r.reconcileRelease(ctx, getter, workloadClient, log, hr, hc, values)
+	hr, err = r.reconcileRelease(ctx, restClientGetter, workloadClient, log, hr, hc, values)
 	if err != nil {
 		if errors.Is(err, driver.ErrNoDeployedReleases) {
 			return hr, ctrl.Result{Requeue: true}, nil
@@ -341,10 +350,11 @@ func (r *HelmReleaseReconciler) applyObjs(ctx context.Context, c client.Client, 
 	return nil
 }
 
-func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, getter genericclioptions.RESTClientGetter, workloadClient client.Client, log logr.Logger,
+func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, restClientGetter genericclioptions.RESTClientGetter, workloadClient client.Client, log logr.Logger,
 	hr appv1alpha1.HelmRelease, chart *chart.Chart, values chartutil.Values) (appv1alpha1.HelmRelease, error) {
-
-	runner, err := helm.NewRunner(getter, hr.Spec.TargetNamespace, log)
+	log.Info("Reconciling release", "release name", chart.Name())
+	// Initialize Helm action runner
+	runner, err := helm.NewRunner(restClientGetter, hr.Spec.TargetNamespace, log)
 	if err != nil {
 		return appv1alpha1.HelmReleaseNotReady(hr, meta.InitFailedReason, "failed to initialize Helm action runner"), err
 	}
@@ -360,7 +370,7 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, getter gen
 		hr = appv1alpha1.HelmReleaseProgressing(hr)
 	}
 	if hr.Labels[meta.LabelProviderType] == "core" && rel != nil {
-		if rel.Chart.Metadata.Version == hr.Spec.Chart.Version {
+		if rel.Chart.Metadata.Version == hr.Spec.Chart.Version && rel.Info.Status == release.StatusDeployed {
 			return appv1alpha1.HelmReleaseReady(hr), nil
 		}
 	}
@@ -368,10 +378,17 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, getter gen
 	if meta.InReadyCondition(hr.Status.Conditions) && !hasNewState && rel != nil && rel.Info.Deleted.IsZero() {
 		return appv1alpha1.HelmReleaseReady(hr), nil
 	}
-	if rel == nil {
+	if rel == nil || rel.Version == 0 {
 		rel, err = runner.Install(hr, chart, values)
 		err = r.handleHelmActionResult(&hr, revision, err, "install", meta.ReleasedCondition, meta.InstallSucceededReason, meta.InstallFailedReason)
-	} else if (rel.Info.Status == release.StatusDeployed && hasNewState) || rel.Info.Status == release.StatusUninstalled {
+	} else if (rel.Info.Status == release.StatusDeployed && hasNewState) || rel.Info.Status == release.StatusUninstalled || rel.Info.Status == release.StatusPendingUpgrade {
+		if rel.Info.Status == release.StatusPendingUpgrade {
+			err := runner.UpdateState(rel)
+			if err != nil {
+				return hr, err
+			}
+			return hr, nil
+		}
 		if rel.Info.Status == release.StatusUninstalled {
 			hr.Spec.ForceUpgrade = pointer.Bool(true)
 		}

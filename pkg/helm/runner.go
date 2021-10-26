@@ -65,6 +65,11 @@ func NewRunner(getter genericclioptions.RESTClientGetter, storageNamespace strin
 	return &Runner{config: cfg, client: c}, nil
 }
 
+func (r *Runner) UpdateState(re *release.Release) error {
+	re.SetStatus(release.StatusDeployed, "status deployed")
+	return r.config.Releases.Update(re)
+}
+
 func (r *Runner) Install(hr appv1alpha1.HelmRelease, chart *chart.Chart, values chartutil.Values) (*release.Release, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -79,7 +84,7 @@ func (r *Runner) Install(hr appv1alpha1.HelmRelease, chart *chart.Chart, values 
 	return install.Run(chart, values.AsMap())
 }
 
-// Upgrade runs an Helm upgrade action for the given v2beta1.HelmRelease.
+// Upgrade runs a Helm upgrade action for the given v2beta1.HelmRelease.
 func (r *Runner) Upgrade(hr appv1alpha1.HelmRelease, chart *chart.Chart, values chartutil.Values) (*release.Release, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -98,7 +103,7 @@ func (r *Runner) Upgrade(hr appv1alpha1.HelmRelease, chart *chart.Chart, values 
 	return rel, err
 }
 
-// Test runs an Helm test action for the given v2beta1.HelmRelease.
+// Test runs a Helm test action for the given v2beta1.HelmRelease.
 func (r *Runner) Test(hr appv1alpha1.HelmRelease) (*release.Release, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
