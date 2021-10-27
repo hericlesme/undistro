@@ -651,7 +651,7 @@ func (o *InstallOptions) RunInstall(f cmdutil.Factory, cmd *cobra.Command) error
 				fmt.Fprintln(o.IOStreams.Out, "\n\nManagement cluster is ready to use.")
 				if len(addrs) > 0 {
 					guiUrl := fmt.Sprintf("https://%s", addrs[0])
-					fmt.Fprintf(o.IOStreams.Out, "I is available at %s\n", guiUrl)
+					fmt.Fprintf(o.IOStreams.Out, "UI is available at %s\n", guiUrl)
 				}
 				return nil
 			}
