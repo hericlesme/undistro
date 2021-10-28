@@ -19,6 +19,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -285,8 +286,19 @@ func (r *ClusterReconciler) hasDiff(cl *appv1alpha1.Cluster) bool {
 		if cl.Spec.ControlPlane.MachineType != cl.Status.ControlPlane.MachineType {
 			return true
 		}
+		if !reflect.DeepEqual(*cl.Spec.ControlPlane, cl.Status.ControlPlane) {
+			return true
+		}
 	}
-	return false
+	if len(cl.Spec.Workers) != len(cl.Status.Workers) {
+		return true
+	}
+	for i, w := range cl.Spec.Workers {
+		if !reflect.DeepEqual(w, cl.Status.Workers[i]) {
+			return true
+		}
+	}
+	return !reflect.DeepEqual(cl.Spec.Bastion, cl.Status.BastionConfig)
 }
 
 func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cluster) error {
