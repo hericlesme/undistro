@@ -220,6 +220,8 @@ const Row = props => {
 
   const { clusters, addCluster, removeCluster } = useClusters()
 
+  console.log(clusters)
+
   return (
     <tr>
       <td className="checkbox-row">

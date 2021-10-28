@@ -6,6 +6,7 @@ import Default from './default'
 import CreateCluster from './createCluster/createCluster'
 import AdvancedCluster from './createCluster/clusterAdvanced'
 import WizardCluster from './createCluster/clusterWizard'
+import CreateRole from './createRole'
 
 function RenderModal() {
   const id = store.useState((s: any) => s.id)
@@ -27,6 +28,8 @@ function RenderModal() {
       return <WizardCluster handleClose={handleClose} />
     case 'advanced-cluster':
       return <AdvancedCluster handleClose={handleClose} />
+    case 'create-role':
+      return <CreateRole handleClose={handleClose} />
     default:
       return null
   }

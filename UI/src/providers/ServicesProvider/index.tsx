@@ -6,6 +6,7 @@ import Cluster from './api/cluster'
 import Nodepool from './api/nodepool'
 import Provider from './api/provider'
 import Secret from './api/secret'
+import Rbac from './api/rbac'
 
 type API = {
   Auth: Auth
@@ -13,6 +14,7 @@ type API = {
   Nodepool: Nodepool
   Provider: Provider
   Secret: Secret
+  Rbac: Rbac
 }
 
 type ServicesContextValue = {

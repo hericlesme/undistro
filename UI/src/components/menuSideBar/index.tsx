@@ -23,12 +23,21 @@ type TypeItem = {
   url: string
 }
 
-const showModal = () => {
+const showModalCluster = () => {
   Modal.show('create-cluster', {
     title: 'Create',
     ndTitle: 'Cluster',
     width: '720',
     height: '600'
+  })
+}
+
+const showModalRole = () => {
+  Modal.show('create-role', {
+    title: 'Create',
+    ndTitle: 'Role',
+    width: '774',
+    height: '771'
   })
 }
 
@@ -58,10 +67,15 @@ const MenuSideBar = () => {
   }
 
   const SubItens: TypeSubItem[] = [
-    { name: 'Create', handleAction: () => showModal() },
+    { name: 'Create', handleAction: () => showModalCluster() },
     { name: 'Pause', handleAction: openPauseClusterAlert, disabled: isEmpty },
     { name: 'Update', link: '/nodepools', disabled: isEmpty },
     { name: 'Settings', link: '/nodepools', disabled: clusters.length !== 1 }
+  ]
+
+  const SubItensAccess: TypeSubItem[] = [
+    { name: 'List', handleAction: () => history.push('/roles') },
+    { name: 'Create', handleAction: () => showModalRole() },
   ]
 
   const SubItensMachines: TypeSubItem[] = [
@@ -133,7 +147,7 @@ const MenuSideBar = () => {
       url: '/nodepools'
     },
     {
-      name: 'Rbac Roles',
+      name: 'Access Control',
       icon: (
         <svg
           width="24"
@@ -169,7 +183,7 @@ const MenuSideBar = () => {
           />
         </svg>
       ),
-      subItens: SubItens,
+      subItens: SubItensAccess,
       url: '/roles'
     }
   ]

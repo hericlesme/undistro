@@ -11,6 +11,7 @@ import Cluster from 'providers/ServicesProvider/api/cluster'
 import Nodepool from 'providers/ServicesProvider/api/nodepool'
 import Provider from 'providers/ServicesProvider/api/provider'
 import Secret from 'providers/ServicesProvider/api/secret'
+import Rbac from 'providers/ServicesProvider/api/rbac' 
 
 import '@assets/font-icon/icons.css'
 import 'styles/app.scss'
@@ -79,7 +80,8 @@ async function createAuthorizationHeader(httpClient: AxiosInstance) {
     Cluster: new Cluster(httpClient),
     Nodepool: new Nodepool(httpClient),
     Provider: new Provider(httpClient),
-    Secret: new Secret(httpClient)
+    Secret: new Secret(httpClient),
+    Rbac: new Rbac(httpClient)
   }
 
   ReactDOM.render(

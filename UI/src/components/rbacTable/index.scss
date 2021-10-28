@@ -1,0 +1,53 @@
+.rbac-table {
+  width: 100%;
+  color: white;
+  font-size: 14px;
+  border: #373C43 1px solid;
+  padding: 16px;
+  margin-top: 16px;
+
+  thead {
+    height: 20px;
+    text-transform: uppercase;
+    color: #D7D7D7;
+
+    tr {
+      td {
+        .header {
+          margin: 0 0 8px;
+          padding: 0 10px;
+        }
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      .user {
+        width: 240px;
+        background-color: #282C31;
+        padding: 10px 8px;
+      }
+
+      .role {
+        padding: 0 10px;
+        width: 1096px;
+        background-color: #22262B;
+      }
+
+      .add-role-text {
+        width: 131px;
+        background-color: #657F97;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 10px 16px;
+
+        i {
+          margin-right: 8px;
+          display: flex;
+        }
+      }
+    }
+  }
+}
