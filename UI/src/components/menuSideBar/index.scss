@@ -4,6 +4,9 @@
   width: 240px;
   background-color: var(--menu-top, $menu-top);
   height: calc(100% - 48px);
+  position: fixed;
+  left: 0;
+  top: 48px;
 
   .side-itens {
     font-size: 14px;
@@ -25,7 +28,7 @@
   justify-content: center;
 }
 
-.side-item {
+.item-disabled, .side-item {
   display: flex;
   height: 42px;
   color: var(--text-gray-middle, $text-gray-middle);
@@ -34,9 +37,13 @@
   align-items: center;
   position: relative;
 
-  .icon-arrow-down,
-  .icon-arrow-up {
-    font-size: 9px;
+  .icon-arrow-right-solid {
+    font-size: 12px;
+    transition: all 0.4s ease;
+  }
+
+  .icon-arrow-right-solid.show {
+    transform: rotateZ(90deg);
   }
 
   i {
@@ -51,16 +58,6 @@
     letter-spacing: 0.06em;
     font-weight: 500;
     color: var(--text-gray-middle, $text-gray-middle);
-  }
-
-  &::before {
-    position: absolute;
-    content: '';
-    width: 210px;
-    height: 1px;
-    background-color: var(--menu-left-dividers, $menu-left-dividers);
-    box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.2);
-    bottom: 0;
   }
 
   &.active,
@@ -99,5 +96,24 @@
 }
 
 .item-menu-disabled {
-  color: #6c6c6c !important;
+  color: var(--gray-800, $gray-800) !important;
+
+  &:hover {
+    font-weight: 400 !important;
+    cursor: default;
+  }
+}
+
+.item-disabled {
+  color: var(--gray-800, $gray-800) !important;
+  cursor: default;
+
+  p, i, svg {
+    color: var(--gray-800, $gray-800) !important;
+  }
+
+  &:hover {
+    color: var(--gray-800, $gray-800);
+    background-color: var(--menu-top, $menu-top);
+  }
 }

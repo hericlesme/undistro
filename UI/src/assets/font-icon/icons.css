@@ -1,10 +1,10 @@
 @font-face {
     font-family: "icons";
-    src: url("./icons.eot?86be1c0a58babeb9d1f93e30909bcbd9?#iefix") format("embedded-opentype"),
-url("./icons.woff2?86be1c0a58babeb9d1f93e30909bcbd9") format("woff2"),
-url("./icons.woff?86be1c0a58babeb9d1f93e30909bcbd9") format("woff"),
-url("./icons.ttf?86be1c0a58babeb9d1f93e30909bcbd9") format("truetype"),
-url("./icons.svg?86be1c0a58babeb9d1f93e30909bcbd9#icons") format("svg");
+    src: url("./icons.eot?1cbccf76e37c4d928f78a17fab6fa492?#iefix") format("embedded-opentype"),
+url("./icons.woff2?1cbccf76e37c4d928f78a17fab6fa492") format("woff2"),
+url("./icons.woff?1cbccf76e37c4d928f78a17fab6fa492") format("woff"),
+url("./icons.ttf?1cbccf76e37c4d928f78a17fab6fa492") format("truetype"),
+url("./icons.svg?1cbccf76e37c4d928f78a17fab6fa492#icons") format("svg");
 }
 
 i[class^="icon-"]:before, i[class*=" icon-"]:before {
@@ -18,69 +18,78 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
     -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-add-circle:before {
+.icon-access:before {
     content: "\f101";
 }
-.icon-arrow-down:before {
+.icon-add-circle:before {
     content: "\f102";
 }
-.icon-arrow-right:before {
+.icon-arrow-down:before {
     content: "\f103";
 }
-.icon-arrow-solid-up:before {
+.icon-arrow-right-solid:before {
     content: "\f104";
 }
-.icon-arrow-up:before {
+.icon-arrow-right:before {
     content: "\f105";
 }
-.icon-beetle:before {
+.icon-arrow-solid-up:before {
     content: "\f106";
 }
-.icon-check:before {
+.icon-arrow-up:before {
     content: "\f107";
 }
-.icon-close-solid:before {
+.icon-beetle:before {
     content: "\f108";
 }
-.icon-close:before {
+.icon-check:before {
     content: "\f109";
 }
-.icon-cluster:before {
+.icon-close-solid:before {
     content: "\f10a";
 }
-.icon-clustersIcon:before {
+.icon-close:before {
     content: "\f10b";
 }
-.icon-dots:before {
+.icon-cluster:before {
     content: "\f10c";
 }
-.icon-git:before {
+.icon-clustersIcon:before {
     content: "\f10d";
 }
-.icon-helm:before {
+.icon-dots:before {
     content: "\f10e";
 }
-.icon-network:before {
+.icon-git:before {
     content: "\f10f";
 }
-.icon-node:before {
+.icon-helm:before {
     content: "\f110";
 }
-.icon-play:before {
+.icon-logs:before {
     content: "\f111";
 }
-.icon-plus:before {
+.icon-network:before {
     content: "\f112";
 }
-.icon-settings:before {
+.icon-node:before {
     content: "\f113";
 }
-.icon-stop:before {
+.icon-play:before {
     content: "\f114";
 }
-.icon-union:before {
+.icon-plus:before {
     content: "\f115";
 }
-.icon-workload:before {
+.icon-settings:before {
     content: "\f116";
+}
+.icon-stop:before {
+    content: "\f117";
+}
+.icon-union:before {
+    content: "\f118";
+}
+.icon-workload:before {
+    content: "\f119";
 }

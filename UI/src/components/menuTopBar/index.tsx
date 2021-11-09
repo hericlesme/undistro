@@ -27,20 +27,26 @@ const MenuTopBar: FC = () => {
           <p onClick={() => showModal()}>Create</p>
         </li>
         <li>
-          <p>Manage</p>
+          <p className='disabled'>Modify</p>
         </li>
         <li>
-          <p>Preferences</p>
+          <p className='disabled'>Manage</p>
+        </li>
+        <li>
+          <p className='disabled'>Preferences</p>
+        </li>
+        <li>
+          <p className='disabled'>About</p>
         </li>
         <li
-          style={{ color: '#fff', marginLeft: 'auto' }}
+          className='logout'
           onClick={() => {
             Cookies.remove('undistro-login')
 
             history.push('/auth')
           }}
         >
-          Logout
+          <p>Logout</p>
         </li>
       </ul>
     </div>
