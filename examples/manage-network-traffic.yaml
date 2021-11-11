@@ -3,37 +3,38 @@ apiVersion: app.undistro.io/v1alpha1
 kind: HelmRelease
 metadata:
   name: nginx
-  namespace: undistro-system
+  namespace: e2e
 spec:
   targetNamespace: ingress-nginx
   # clusterName in <namespace/name> format
-  clusterName: undistro-system/management
+  clusterName: e2e/teste-undistro-e2e
   chart:
     repository: https://registry.undistro.io/chartrepo/library
     name: ingress-nginx
     version: 4.0.6
   autoUpgrade: true
   values:
-    podLabels:
-      network.undistro.io/ingress: allow
-      network.undistro.io/egress: allow
+    controller:
+      podLabels:
+        network.undistro.io/ingress: allow
+        network.undistro.io/egress: allow
 ---
 apiVersion: app.undistro.io/v1alpha1
 kind: HelmRelease
 metadata:
   name: kubernetes-dashboard
-  namespace: undistro-system
+  namespace: e2e
 spec:
-  clusterName: undistro-system/management
+  clusterName: e2e/teste-undistro-e2e
   dependencies:
     - apiVersion: app.undistro.io/v1alpha1
       kind: HelmRelease
       name: nginx
-      namespace: undistro-system
+      namespace: e2e
   chart:
     repository: https://kubernetes.github.io/dashboard
     name: kubernetes-dashboard
-    version: 4.0.0
+    version: 5.0.4
   autoUpgrade: true
   afterApplyObjects:
     - apiVersion: rbac.authorization.k8s.io/v1
@@ -46,13 +47,14 @@ spec:
         name: cluster-admin
       subjects:
         - kind: ServiceAccount
-          name: undistro-quickstart-dash
-          namespace: undistro-system
+          name: teste-undistro-e2e-dash
+          namespace: e2e
   values:
     podLabels:
       network.undistro.io/ingress: allow
       network.undistro.io/egress: allow
     ingress:
       enabled: true
+      className: nginx
     serviceAccount:
-      name: undistro-quickstart-dash
+      name: teste-undistro-e2e-dash
