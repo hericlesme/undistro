@@ -55,7 +55,6 @@ spec:
     kind: Secret
   managedAPIServerLoadBalancer: true
   managedSecurityGroups: true
-  allowAllInClusterTraffic: true
   {{if .Cluster.Spec.Network}}
   {{if .Cluster.Spec.Network.VPC.CIDRBlock}}
   nodeCidr: {{.Cluster.Spec.Network.VPC.CIDRBlock}}

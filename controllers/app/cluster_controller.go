@@ -67,6 +67,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	log := r.Log.WithValues("cluster", req.NamespacedName, "infra", cl.Spec.InfrastructureProvider.Name, "flavor", cl.Spec.InfrastructureProvider.Flavor)
+	r.Log.Info("Checking object age")
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&cl, r.Client)
 	if err != nil {
@@ -82,6 +83,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			err = kerrors.NewAggregate([]error{patchErr, err})
 		}
 	}()
+
 	// Add our finalizer if it does not exist
 	if !controllerutil.ContainsFinalizer(&cl, meta.Finalizer) {
 		controllerutil.AddFinalizer(&cl, meta.Finalizer)
@@ -286,7 +288,13 @@ func (r *ClusterReconciler) hasDiff(cl *appv1alpha1.Cluster) bool {
 		if cl.Spec.ControlPlane.MachineType != cl.Status.ControlPlane.MachineType {
 			return true
 		}
-		if !reflect.DeepEqual(*cl.Spec.ControlPlane, cl.Status.ControlPlane) {
+		if !reflect.DeepEqual(cl.Spec.ControlPlane.Labels, cl.Status.ControlPlane.Labels) {
+			return true
+		}
+		if !reflect.DeepEqual(cl.Spec.ControlPlane.Taints, cl.Status.ControlPlane.Taints) {
+			return true
+		}
+		if !reflect.DeepEqual(cl.Spec.ControlPlane.ProviderTags, cl.Status.ControlPlane.ProviderTags) {
 			return true
 		}
 	}
@@ -294,7 +302,22 @@ func (r *ClusterReconciler) hasDiff(cl *appv1alpha1.Cluster) bool {
 		return true
 	}
 	for i, w := range cl.Spec.Workers {
-		if !reflect.DeepEqual(w, cl.Status.Workers[i]) {
+		if *w.Replicas != *cl.Status.Workers[i].Replicas {
+			return true
+		}
+		if w.MachineType != cl.Status.Workers[i].MachineType {
+			return true
+		}
+		if !reflect.DeepEqual(w.Labels, cl.Status.Workers[i].Labels) {
+			return true
+		}
+		if !reflect.DeepEqual(w.Taints, cl.Status.Workers[i].Taints) {
+			return true
+		}
+		if !reflect.DeepEqual(w.ProviderTags, cl.Status.Workers[i].ProviderTags) {
+			return true
+		}
+		if !reflect.DeepEqual(w.Autoscale, cl.Status.Workers[i].Autoscale) {
 			return true
 		}
 	}
@@ -303,11 +326,11 @@ func (r *ClusterReconciler) hasDiff(cl *appv1alpha1.Cluster) bool {
 
 func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cluster) error {
 	const (
-		cniCalicoName = "tigera-operator"
-		calicoVersion = "1.20.4-undistro"
+		cniCalicoName = "calico"
+		calicoVersion = "3.19.1"
 	)
 
-	calicoValues := cloud.CalicoValues(cl.Spec.InfrastructureProvider.Flavor)
+	calicoValues := cloud.CalicoValues(cl)
 	key := client.ObjectKey{
 		Name:      hr.GetObjectName(cniCalicoName, cl.Name),
 		Namespace: cl.GetNamespace(),
@@ -322,7 +345,7 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 	if meta.InReadyCondition(release.Status.Conditions) {
 		meta.SetResourceCondition(cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
 	}
-	release, err = hr.Prepare(cniCalicoName, "calico-system", cl.GetNamespace(), calicoVersion, cl.Name, calicoValues)
+	release, err = hr.Prepare(cniCalicoName, "kube-system", cl.GetNamespace(), calicoVersion, cl.Name, calicoValues)
 	if err != nil {
 		return err
 	}

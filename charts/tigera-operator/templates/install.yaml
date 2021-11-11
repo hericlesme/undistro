@@ -10,3 +10,13 @@ spec:
   cni:
     type: {{.Values.cniType}}
   {{end}}
+  {{if .Values.calicoNetwork}}
+  calicoNetwork:
+    {{if .Values.calicoNetwork.ipPools}}
+    ipPools:
+    {{- toYaml .Values.calicoNetwork.ipPools | nindent 6 }}
+    {{end}}
+    {{if .Values.calicoNetwork.mtu}}
+    mtu: {{.Values.calicoNetwork.mtu}}
+    {{end}}
+  {{end}}

@@ -98,16 +98,15 @@ func ReconcileIntegration(ctx context.Context, r client.Client, log logr.Logger,
 	return nil
 }
 
-func CalicoValues(flavor string) map[string]interface{} {
-	m := make(map[string]interface{})
-	switch flavor {
+func CalicoValues(cl *appv1alpha1.Cluster) map[string]interface{} {
+	values := make(map[string]interface{})
+	switch cl.Spec.InfrastructureProvider.Flavor {
 	case appv1alpha1.EKS.String():
-		m["cniType"] = "AmazonVPC"
+		values["vxlan"] = true
 	default:
-		m["cniType"] = ""
-
+		values["vxlan"] = false
 	}
-	return m
+	return values
 }
 
 func GetAccount(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (Account, error) {

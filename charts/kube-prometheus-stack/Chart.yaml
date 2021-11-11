@@ -6,8 +6,6 @@ type: application
 maintainers:
   - name: vsliouniaev
   - name: bismarck
-  - name: gianrubio
-    email: gianrubio@gmail.com
   - name: gkarthiks
     email: github.gkarthiks@gmail.com
   - name: scottrigby
