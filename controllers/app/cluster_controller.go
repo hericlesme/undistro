@@ -62,6 +62,7 @@ type ClusterReconciler struct {
 // +kubebuilder:rbac:groups=*,resources=*,verbs=*
 
 func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	start := time.Now()
 	cl := appv1alpha1.Cluster{}
 	if err := r.Get(ctx, req.NamespacedName, &cl); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -101,11 +102,17 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 	if !cl.DeletionTimestamp.IsZero() {
-		log.Info("Deleting")
+		log.Info("Object is under deletion")
 		cl = appv1alpha1.ClusterDeleting(cl)
 		return r.reconcileDelete(ctx, cl)
 	}
 	cl, result, err := r.reconcile(ctx, cl, capiCluster)
+
+	durationMsg := fmt.Sprintf("Reconcilation finished in %s", time.Since(start).String())
+	if result.RequeueAfter > 0 {
+		durationMsg = fmt.Sprintf("%s, next run in %s", durationMsg, result.RequeueAfter.String())
+	}
+	log.Info(durationMsg)
 	return result, err
 }
 
@@ -357,7 +364,7 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 		release.Annotations = make(map[string]string)
 	}
 	release.Annotations[meta.SetupAnnotation] = cniCalicoName
-	err = hr.Install(ctx, r.Client, release, cl)
+	err = hr.Install(ctx, r.Client, r.Log, release, cl)
 	if err != nil {
 		return err
 	}

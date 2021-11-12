@@ -48,7 +48,7 @@ require (
 	k8s.io/utils v0.0.0-20210820185131-d34e5cb4466e
 	sigs.k8s.io/cluster-api v0.4.2
 	sigs.k8s.io/cluster-api/test/framework v0.0.0-20200304170348-97097699f713
-	sigs.k8s.io/controller-runtime v0.10.0
+	sigs.k8s.io/controller-runtime v0.10.2
 	sigs.k8s.io/kind v0.11.1
 	sigs.k8s.io/yaml v1.2.0
 )

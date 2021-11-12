@@ -42,11 +42,14 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
-	identityRequeueAfter = time.Minute * 2
-	identityManager      = "pinniped"
+	identityRequeueAfter  = time.Minute * 5
+	identityManager       = "pinniped"
+	conciergeReleaseName  = "pinniped-concierge"
+	supervisorReleaseName = "pinniped-supervisor"
 )
 
 type PinnipedComponent string
@@ -95,32 +98,39 @@ func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			r.Log.Info("failed to Patch identity")
 		}
 	}()
-
+	r.Log.Info("Checking object age")
+	if instance.Generation < instance.Status.ObservedGeneration {
+		r.Log.Info("Skipping this old version of reconciled object")
+		return ctrl.Result{}, nil
+	}
 	r.Log.Info("Checking paused")
 	if instance.Spec.Paused {
 		r.Log.Info("Reconciliation is paused for this object")
 		instance = appv1alpha1.IdentityPaused(*instance)
 		return ctrl.Result{}, nil
 	}
-	r.Log.Info("Checking object age")
-	if instance.Generation < instance.Status.ObservedGeneration {
-		r.Log.Info("Skipping this old version of reconciled object")
+	// Add our finalizer if it does not exist
+	if !controllerutil.ContainsFinalizer(instance, meta.Finalizer) {
+		controllerutil.AddFinalizer(instance, meta.Finalizer)
 		return ctrl.Result{}, nil
 	}
-	r.Log.Info("Checking if the Pinniped components are installed")
-	if err := r.reconcile(ctx, *instance); err != nil {
-		r.Log.Info(err.Error())
-		return ctrl.Result{}, err
-	}
 
-	elapsed := time.Since(start)
-	msg := fmt.Sprintf("Queueing after %s", elapsed.String())
-	r.Log.Info(msg)
-	return ctrl.Result{RequeueAfter: identityRequeueAfter}, nil
+	if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
+		return r.reconcileDelete(ctx, *instance)
+	}
+	r.Log.Info("Checking if the Pinniped components are installed")
+	result, err := r.reconcile(ctx, *instance)
+
+	durationMsg := fmt.Sprintf("Reconcilation finished in %s", time.Since(start).String())
+	if result.RequeueAfter > 0 {
+		durationMsg = fmt.Sprintf("%s, next run in %s", durationMsg, result.RequeueAfter.String())
+	}
+	r.Log.Info(durationMsg)
+	return result, err
 }
 
-// reconcile ensures that Pinniped is installed
-func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1.Identity) error {
+// reconcile ensures that, if identity is enabled, pinniped is installed in clusters
+func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1.Identity) (ctrl.Result, error) {
 	cl := &appv1alpha1.Cluster{}
 	clusterClient := r.Client
 	key := client.ObjectKey{
@@ -129,8 +139,8 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 	}
 	err := r.Get(ctx, key, cl)
 	if client.IgnoreNotFound(err) != nil {
-		r.Log.Info(err.Error())
-		return err
+		r.Log.Error(err, err.Error())
+		return ctrl.Result{}, err
 	}
 	if util.IsMgmtCluster(instance.Spec.ClusterName) {
 		cl.Name = "management"
@@ -143,23 +153,20 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 	}
 	err = r.reconcileComponentInstallation(ctx, cl, instance, concierge, undistro.Namespace, "0.10.0", values)
 	if err != nil {
-		r.Log.Info(err.Error())
-		return err
+		r.Log.Error(err, err.Error())
+		return ctrl.Result{}, err
 	}
 	fedo := make(map[string]interface{})
 	o, err := util.GetFromConfigMap(
 		ctx, clusterClient, "identity-config", undistro.Namespace, "federationdomain.yaml", fedo)
 	fedo = o.(map[string]interface{})
 	if err != nil {
-		r.Log.Info(err.Error())
-		return err
+		r.Log.Error(err, err.Error())
+		return ctrl.Result{}, err
 	}
 	issuer := fedo["issuer"].(string)
 	if util.IsMgmtCluster(instance.Spec.ClusterName) {
 		r.Log.Info("Installing Pinniped components in cluster ", "cluster-name", instance.Spec.ClusterName)
-		r.Log.Info("Installing components in management cluster")
-		cl.Name = "management"
-		cl.Namespace = undistro.Namespace
 		// regex to get ip or dns names
 		callbackURL := fmt.Sprintf("https://%s/callback", hostFromURL(issuer))
 		values["config"] = map[string]interface{}{
@@ -167,33 +174,45 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 		}
 		err = r.reconcileComponentInstallation(ctx, cl, instance, supervisor, undistro.Namespace, "0.10.0-undistro", values)
 		if err != nil {
-			r.Log.Info(err.Error())
-			return err
+			r.Log.Error(err, err.Error())
+			return ctrl.Result{}, err
 		}
 		err = r.reconcileFederationDomain(ctx, fedo)
 		if err != nil {
-			r.Log.Info(err.Error())
-			return err
+			r.Log.Error(err, err.Error())
+			return ctrl.Result{}, err
 		}
 		err = r.reconcileOIDCProvider(ctx)
 		if err != nil {
-			r.Log.Info(err.Error())
-			return err
+			r.Log.Error(err, err.Error())
+			return ctrl.Result{}, err
 		}
 	} else {
 		clusterClient, err = kube.NewClusterClient(ctx, r.Client, instance.Spec.ClusterName, cl.GetNamespace())
 		if err != nil {
-			r.Log.Info(err.Error())
-			return err
+			r.Log.Error(err, err.Error())
+			return ctrl.Result{}, err
 		}
 	}
-
 	err = r.reconcileJWTAuthenticator(ctx, clusterClient, issuer)
 	if err != nil {
-		r.Log.Info(err.Error())
-		return err
+		r.Log.Error(err, err.Error())
+		return ctrl.Result{}, err
 	}
-	return err
+	return ctrl.Result{RequeueAfter: identityRequeueAfter}, err
+}
+
+func (r *IdentityReconciler) reconcileDelete(ctx context.Context, instance appv1alpha1.Identity) (ctrl.Result, error) {
+	// Todo check if is required delete resources created in undistro chart installation
+	res, err := hr.Uninstall(ctx, r.Client, r.Log, conciergeReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
+	if err != nil {
+		return ctrl.Result{Requeue: true}, err
+	}
+	res, err = hr.Uninstall(ctx, r.Client, r.Log, supervisorReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
+	if err != nil {
+		return ctrl.Result{Requeue: true}, err
+	}
+	return res, nil
 }
 
 func hostFromURL(input string) string {
@@ -373,7 +392,7 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 	release.Labels[meta.LabelUndistroMove] = ""
 	msg = fmt.Sprintf("Installing %s component: %s", identityManager, pc)
 	r.Log.Info(msg)
-	if err := hr.Install(ctx, r.Client, release, cl); err != nil {
+	if err := hr.Install(ctx, r.Client, r.Log, release, cl); err != nil {
 		return err
 	}
 	return

@@ -19,6 +19,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/go-logr/logr"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/meta"
@@ -30,10 +31,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func Install(ctx context.Context, c client.Client, hr appv1alpha1.HelmRelease, cl *appv1alpha1.Cluster) error {
-	msg := fmt.Sprintf("%s installation", hr.Name)
+func Install(ctx context.Context, c client.Client, log logr.Logger, hr appv1alpha1.HelmRelease, cl *appv1alpha1.Cluster) error {
+	msg := fmt.Sprintf("Check condition for %s release", hr.Name)
+	log.Info(msg, "lastAppliedVersion", hr.Status.LastAppliedRevision)
 	if meta.InReadyCondition(hr.Status.Conditions) {
 		meta.SetResourceCondition(cl, meta.ReadyCondition, metav1.ConditionTrue, meta.InstallSucceededReason, msg)
 	}
@@ -88,6 +91,48 @@ func Prepare(releaseName, targetNs, clusterNs, version, clName string, v map[str
 		Spec: hrSpec,
 	}
 	return *hr, nil
+}
+
+func Uninstall(ctx context.Context, c client.Client, log logr.Logger, releaseName, clusterName, ns string) (ctrl.Result, error) {
+	// retrieve helmrelease
+	release := appv1alpha1.HelmRelease{}
+	key := client.ObjectKey{
+		Name:      GetObjectName(releaseName, clusterName),
+		Namespace: ns,
+	}
+
+	err := c.Get(ctx, key, &release)
+	if err != nil {
+		log.Info("error getting helm release", "error", err.Error())
+		if client.IgnoreNotFound(err) != nil {
+			return ctrl.Result{}, err
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+	log.Info("deleting helm release", "releaseNameMeta", release.ObjectMeta.Name, "releaseName", release.Name)
+	// delete helmrelease
+	err = c.Delete(ctx, &release)
+	if err != nil {
+		log.Info("error deleting helm release", "error", err.Error())
+		return ctrl.Result{Requeue: true}, err
+	}
+	// check if hr yet exists, if y requeue
+	err = c.Get(ctx, key, &release)
+	if err != nil {
+		log.Info("error getting helm release", "error", err.Error())
+		if client.IgnoreNotFound(err) != nil {
+			return ctrl.Result{}, err
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+	// Remove our finalizer from the list and update it.
+	controllerutil.RemoveFinalizer(&release, meta.Finalizer)
+	if err := c.Update(ctx, &release); err != nil {
+		return ctrl.Result{Requeue: true}, err
+	}
+	return ctrl.Result{}, nil
 }
 
 func GetObjectName(release, clName string) string {

@@ -378,9 +378,12 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, restClient
 	if meta.InReadyCondition(hr.Status.Conditions) && !hasNewState && rel != nil && rel.Info.Deleted.IsZero() {
 		return appv1alpha1.HelmReleaseReady(hr), nil
 	}
+	var isInstallation bool
+	var installErr error
 	if rel == nil || rel.Version == 0 {
-		rel, err = runner.Install(hr, chart, values)
-		err = r.handleHelmActionResult(&hr, revision, err, "install", meta.ReleasedCondition, meta.InstallSucceededReason, meta.InstallFailedReason)
+		isInstallation = true
+		rel, installErr = runner.Install(hr, chart, values)
+		installErr = r.handleHelmActionResult(&hr, revision, err, "install", meta.ReleasedCondition, meta.InstallSucceededReason, meta.InstallFailedReason)
 	} else if (rel.Info.Status == release.StatusDeployed && hasNewState) || rel.Info.Status == release.StatusUninstalled || rel.Info.Status == release.StatusPendingUpgrade {
 		if rel.Info.Status == release.StatusPendingUpgrade {
 			err := runner.UpdateState(rel)
@@ -425,24 +428,29 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, restClient
 		}
 		if util.ReleaseRevision(rel) <= releaseRevision {
 			log.Info("skip, no new revision created")
-		} else {
+		} else if !isInstallation {
 			rolledBack = true
 			rollErr = err
 			err = runner.Rollback(hr)
 			err = r.handleHelmActionResult(&hr, revision, err, "rollback", meta.RemediatedCondition, meta.RollbackSucceededReason, meta.RollbackSucceededReason)
 		}
 	}
-	rel, observeLastReleaseErr := runner.ObserveLastRelease(hr)
-	if observeLastReleaseErr != nil {
-		err = observeLastReleaseErr
+	if !isInstallation {
+		rel, observeLastReleaseErr := runner.ObserveLastRelease(hr)
+		if observeLastReleaseErr != nil {
+			err = observeLastReleaseErr
+		}
+		hr.Status.LastReleaseRevision = util.ReleaseRevision(rel)
+		if err != nil {
+			return appv1alpha1.HelmReleaseNotReady(hr, meta.ReconciliationFailedReason, err.Error()), err
+		}
+		hr.Spec.Chart.RepoChartSource.Version = rel.Chart.Metadata.Version
+		if rolledBack {
+			return appv1alpha1.HelmReleaseNotReady(hr, meta.RollbackSucceededReason, rollErr.Error()), nil
+		}
 	}
-	hr.Status.LastReleaseRevision = util.ReleaseRevision(rel)
-	if err != nil {
-		return appv1alpha1.HelmReleaseNotReady(hr, meta.ReconciliationFailedReason, err.Error()), err
-	}
-	hr.Spec.Chart.RepoChartSource.Version = rel.Chart.Metadata.Version
-	if rolledBack {
-		return appv1alpha1.HelmReleaseNotReady(hr, meta.RollbackSucceededReason, rollErr.Error()), nil
+	if installErr != nil {
+		return appv1alpha1.HelmReleaseNotReady(hr, meta.InstallFailedReason, installErr.Error()), nil
 	}
 	return appv1alpha1.HelmReleaseReady(hr), nil
 }

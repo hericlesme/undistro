@@ -48,6 +48,11 @@ type DefaultPoliciesReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+const (
+	kyvernoReleaseName    = "kyverno"
+	kyvernoReleaseVersion = "1.4.2"
+)
+
 func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	p := appv1alpha1.DefaultPolicies{}
 	if err := r.Get(ctx, req.NamespacedName, &p); err != nil {
@@ -72,6 +77,9 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	if !controllerutil.ContainsFinalizer(&p, meta.Finalizer) {
 		controllerutil.AddFinalizer(&p, meta.Finalizer)
 		return ctrl.Result{}, nil
+	}
+	if !p.ObjectMeta.DeletionTimestamp.IsZero() {
+		return r.reconcileDelete(ctx, p)
 	}
 	if p.Spec.Paused {
 		log.Info("Reconciliation is paused for this object")
@@ -100,13 +108,10 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 		return p, ctrl.Result{}, nil
 	}
 	var err error
-	const (
-		releaseName = "kyverno"
-		version     = "1.4.2"
-	)
+
 	values := map[string]interface{}{
-		"fullnameOverride": releaseName,
-		"namespace":        releaseName,
+		"fullnameOverride": kyvernoReleaseName,
+		"namespace":        kyvernoReleaseName,
 		"resources": map[string]interface{}{
 			"limits": map[string]interface{}{
 				"cpu":    "2000m",
@@ -135,7 +140,7 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 	}
 	release := appv1alpha1.HelmRelease{}
 	key := client.ObjectKey{
-		Name:      hr.GetObjectName(releaseName, p.Spec.ClusterName),
+		Name:      hr.GetObjectName(kyvernoReleaseName, p.Spec.ClusterName),
 		Namespace: p.GetNamespace(),
 	}
 	err = r.Get(ctx, key, &release)
@@ -144,7 +149,7 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 			return p, ctrl.Result{}, err
 		}
 	}
-	release, err = hr.Prepare(releaseName, releaseName, p.GetNamespace(), version, p.Spec.ClusterName, values)
+	release, err = hr.Prepare(kyvernoReleaseName, kyvernoReleaseName, p.GetNamespace(), kyvernoReleaseVersion, p.Spec.ClusterName, values)
 	if err != nil {
 		return appv1alpha1.DefaultPoliciesNotReady(p, meta.ObjectsApliedFailedReason, err.Error()), ctrl.Result{}, err
 	}
@@ -152,7 +157,7 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 		release.Labels = make(map[string]string)
 	}
 	release.Labels[meta.LabelUndistroMove] = ""
-	err = hr.Install(ctx, r.Client, release, cl)
+	err = hr.Install(ctx, r.Client, r.Log, release, cl)
 	if err != nil {
 		return appv1alpha1.DefaultPoliciesNotReady(p, meta.ObjectsApliedFailedReason, err.Error()), ctrl.Result{}, err
 	}
@@ -172,6 +177,11 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 		appv1alpha1.DefaultPoliciesNotReady(p, meta.ArtifactFailedReason, err.Error())
 	}
 	return appv1alpha1.DefaultPoliciesReady(p), ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
+}
+
+func (r *DefaultPoliciesReconciler) reconcileDelete(ctx context.Context, instance appv1alpha1.DefaultPolicies) (ctrl.Result, error) {
+	// retrieve kyverno helmrelease
+	return hr.Uninstall(ctx, r.Client, r.Log, kyvernoReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
 }
 
 func (r *DefaultPoliciesReconciler) applyPolicies(ctx context.Context, log logr.Logger, clusterClient client.Client, p appv1alpha1.DefaultPolicies) (appv1alpha1.DefaultPolicies, error) {

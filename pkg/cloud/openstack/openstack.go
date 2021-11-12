@@ -158,12 +158,12 @@ func ReconcileCloudProvider(ctx context.Context, c client.Client, log logr.Logge
 		release.Annotations = make(map[string]string)
 	}
 	release.Annotations[meta.SetupAnnotation] = cloudHelm
-	err = hr.Install(ctx, c, release, cl)
+	err = hr.Install(ctx, c, log, release, cl)
 	if err != nil {
 		return err
 	}
 	if meta.InReadyCondition(release.Status.Conditions) {
-		meta.SetResourceCondition(cl, meta.CloudProviderInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "opestack cloud integration installed")
+		meta.SetResourceCondition(cl, meta.CloudProviderInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "openstack cloud integration installed")
 	}
 	return nil
 }
