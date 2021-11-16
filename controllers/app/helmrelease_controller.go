@@ -47,7 +47,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
@@ -83,21 +82,22 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	log := r.Log.WithValues("helmrelease", req.NamespacedName, "chart repo", hr.Spec.Chart.RepoURL, "chart name", hr.Spec.Chart.Name, "chart version", hr.Spec.Chart.Version)
+
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&hr, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	defer func() {
-		var patchOpts []patch.Option
-		if err == nil {
-			patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
-		}
-		patchErr := patchHelper.Patch(ctx, &hr, patchOpts...)
-		if patchErr != nil {
-			err = kerrors.NewAggregate([]error{patchErr, err})
-		}
-	}()
+	defer patchInstance(Instance{
+		Ctx:        ctx,
+		Log:        log,
+		Controller: "DefaultPoliciesController",
+		Request:    req.String(),
+		Object:     &hr,
+		Error:      err,
+		Helper:     patchHelper,
+	})
+
 	// Add our finalizer if it does not exist
 	if !controllerutil.ContainsFinalizer(&hr, meta.Finalizer) {
 		controllerutil.AddFinalizer(&hr, meta.Finalizer)

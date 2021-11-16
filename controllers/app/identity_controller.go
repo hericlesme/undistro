@@ -30,14 +30,12 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
-	"github.com/pkg/errors"
 	conciergev1aplha1 "go.pinniped.dev/generated/latest/apis/concierge/authentication/v1alpha1"
 	supervisorconfigv1aplha1 "go.pinniped.dev/generated/latest/apis/supervisor/config/v1alpha1"
 	supervisoridpv1aplha1 "go.pinniped.dev/generated/latest/apis/supervisor/idp/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -71,12 +69,12 @@ type IdentityReconciler struct {
 // +kubebuilder:rbac:groups=*,resources=*,verbs=*
 
 func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	start := time.Now()
 	// Fetch the Identity instance.
+	start := time.Now()
 	instance := &appv1alpha1.Identity{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		if apierrors.IsNotFound(err) {
-			return ctrl.Result{}, nil
+			return ctrl.Result{}, client.IgnoreNotFound(err)
 		} else {
 			return ctrl.Result{}, err
 		}
@@ -85,30 +83,31 @@ func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(instance, r.Client)
 	if err != nil {
-		return ctrl.Result{}, errors.Wrap(err, "failed to init patch helper")
+		return ctrl.Result{}, err
 	}
-	defer func() {
-		var patchOpts []patch.Option
-		if err == nil {
-			patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
-		}
-		patchErr := patchHelper.Patch(ctx, instance, patchOpts...)
-		if patchErr != nil {
-			err = kerrors.NewAggregate([]error{patchErr, err})
-			r.Log.Info("failed to Patch identity")
-		}
-	}()
+	defer patchInstance(Instance{
+		Ctx:        ctx,
+		Log:        r.Log,
+		Controller: "DefaultPoliciesController",
+		Request:    req.String(),
+		Object:     instance,
+		Error:      err,
+		Helper:     patchHelper,
+	})
+
 	r.Log.Info("Checking object age")
 	if instance.Generation < instance.Status.ObservedGeneration {
 		r.Log.Info("Skipping this old version of reconciled object")
 		return ctrl.Result{}, nil
 	}
+
 	r.Log.Info("Checking paused")
 	if instance.Spec.Paused {
 		r.Log.Info("Reconciliation is paused for this object")
 		instance = appv1alpha1.IdentityPaused(*instance)
 		return ctrl.Result{}, nil
 	}
+
 	// Add our finalizer if it does not exist
 	if !controllerutil.ContainsFinalizer(instance, meta.Finalizer) {
 		controllerutil.AddFinalizer(instance, meta.Finalizer)
@@ -202,15 +201,14 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 	return ctrl.Result{RequeueAfter: identityRequeueAfter}, err
 }
 
-func (r *IdentityReconciler) reconcileDelete(ctx context.Context, instance appv1alpha1.Identity) (ctrl.Result, error) {
-	// Todo check if is required delete resources created in undistro chart installation
-	res, err := hr.Uninstall(ctx, r.Client, r.Log, conciergeReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
-	if err != nil {
-		return ctrl.Result{Requeue: true}, err
-	}
-	res, err = hr.Uninstall(ctx, r.Client, r.Log, supervisorReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
-	if err != nil {
-		return ctrl.Result{Requeue: true}, err
+func (r *IdentityReconciler) reconcileDelete(ctx context.Context, instance appv1alpha1.Identity) (res ctrl.Result, err error) {
+	releases := []string{conciergeReleaseName, supervisorReleaseName}
+	for _, release := range releases {
+		r.Log.Info("Deleting charts", "release", release, "namespace", instance.GetNamespace())
+		res, err = hr.Uninstall(ctx, r.Client, r.Log, release, instance.Spec.ClusterName, instance.GetNamespace())
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 	return res, nil
 }
@@ -225,7 +223,6 @@ func hostFromURL(input string) string {
 
 func (r *IdentityReconciler) reconcileFederationDomain(ctx context.Context, federationDomainCfg map[string]interface{}) error {
 	r.Log.Info("Reconciling Federation Domain")
-
 	spec := supervisorconfigv1aplha1.FederationDomainSpec{}
 	spec.Issuer = federationDomainCfg["issuer"].(string)
 	localClus, err := util.IsLocalCluster(ctx, r.Client)
@@ -315,7 +312,6 @@ func (r *IdentityReconciler) reconcileOIDCProvider(ctx context.Context) error {
 	}
 	_, err = util.CreateOrUpdate(ctx, r.Client, oidcProvider)
 	if err != nil {
-		r.Log.Info(err.Error())
 		return err
 	}
 	return nil

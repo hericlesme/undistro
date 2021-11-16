@@ -33,7 +33,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -80,20 +79,17 @@ func (r *ObserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(instance, r.Client)
 	if err != nil {
-		return ctrl.Result{}, errors.Wrap(err, "failed to init patch helper")
+		return ctrl.Result{}, err
 	}
-	defer func() {
-		var patchOpts []patch.Option
-		if err == nil {
-			patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
-		}
-		patchErr := patchHelper.Patch(ctx, instance, patchOpts...)
-		if patchErr != nil {
-			err = kerrors.NewAggregate([]error{patchErr, err})
-			r.Log.Error(err, "failed to Patch Observer", "observerName", instance.Name)
-		}
-		r.Log.Info("Instance patched", "request", req.String())
-	}()
+	defer patchInstance(Instance{
+		Ctx:        ctx,
+		Log:        r.Log,
+		Controller: "DefaultPoliciesController",
+		Request:    req.String(),
+		Object:     instance,
+		Error:      err,
+		Helper:     patchHelper,
+	})
 
 	r.Log.Info("Checking paused")
 	if instance.Spec.Paused {
@@ -285,7 +281,7 @@ spec:
 	for _, o := range objs {
 		_, err = util.CreateOrUpdate(ctx, clusterClient, &o)
 		if err != nil {
-			return ctrl.Result{Requeue: true}, err
+			return ctrl.Result{}, err
 		}
 		u.SetGroupVersionKind(o.GroupVersionKind())
 		k.Namespace = o.GetNamespace()
@@ -295,7 +291,6 @@ spec:
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-
 	health, ok, err := unstructured.NestedString(u.Object, "status", "health")
 	if err != nil {
 		return ctrl.Result{}, err
@@ -433,7 +428,6 @@ func (r *ObserverReconciler) reconcileMetrics(ctx context.Context, observer appv
 	if err := r.installRelease(ctx, kubeStackReleaseName, kubeStackVersion, values, &observer, cl); err != nil {
 		return ctrl.Result{}, err
 	}
-
 	// after the kube-prometheus-stack crds install
 	if util.IsMgmtCluster(observer.Spec.ClusterName) {
 		err := r.enableUnDistroMetrics(ctx)
@@ -523,23 +517,13 @@ spec:
 
 func (r *ObserverReconciler) reconcileDelete(ctx context.Context, instance *appv1alpha1.Observer) (res ctrl.Result, err error) {
 	r.Log.Info("Reconciling delete", "clusterName", instance.Spec.ClusterName)
-	r.Log.Info("Deleting metrics stack", "release", kubeStackReleaseName, "namespace", instance.GetNamespace())
-	res, err = hr.Uninstall(ctx, r.Client, r.Log, kubeStackReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	r.Log.Info("Deleting logs stack")
-	res, err = hr.Uninstall(ctx, r.Client, r.Log, eckOperatorReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	res, err = hr.Uninstall(ctx, r.Client, r.Log, fluentBitReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	res, err = hr.Uninstall(ctx, r.Client, r.Log, fluentdReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
-	if err != nil {
-		return ctrl.Result{}, err
+	releases := []string{kubeStackReleaseName, eckOperatorReleaseName, fluentBitVersion, fluentdReleaseName}
+	for _, release := range releases {
+		r.Log.Info("Deleting charts", "release", release, "namespace", instance.GetNamespace())
+		res, err = hr.Uninstall(ctx, r.Client, r.Log, release, instance.Spec.ClusterName, instance.GetNamespace())
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 	return res, nil
 }

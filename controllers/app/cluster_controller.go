@@ -38,7 +38,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	capicp "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha4"
@@ -62,30 +61,38 @@ type ClusterReconciler struct {
 
 func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	start := time.Now()
+
+	// Retrieve cluster instance
 	cl := appv1alpha1.Cluster{}
 	if err := r.Get(ctx, req.NamespacedName, &cl); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	log := r.Log.WithValues("cluster", req.NamespacedName, "infra", cl.Spec.InfrastructureProvider.Name, "flavor", cl.Spec.InfrastructureProvider.Flavor)
-	r.Log.Info("Checking object age")
+
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&cl, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	defer func() {
-		var patchOpts []patch.Option
-		if err == nil {
-			patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
-		}
-		patchErr := patchHelper.Patch(ctx, &cl, patchOpts...)
-		if patchErr != nil {
-			err = kerrors.NewAggregate([]error{patchErr, err})
-		}
-	}()
+	defer patchInstance(Instance{
+		Ctx:        ctx,
+		Log:        log,
+		Controller: "ClusterController",
+		Request:    req.String(),
+		Object:     &cl,
+		Error:      err,
+		Helper:     patchHelper,
+	})
+
+	log.Info("Checking object age")
+	if cl.Generation < cl.Status.ObservedGeneration {
+		log.Info("Skipping this old version of reconciled object")
+		return ctrl.Result{}, nil
+	}
 
 	// Add our finalizer if it does not exist
 	if !controllerutil.ContainsFinalizer(&cl, meta.Finalizer) {
+		log.Info("Adding Finalizer")
 		controllerutil.AddFinalizer(&cl, meta.Finalizer)
 		return ctrl.Result{}, nil
 	}

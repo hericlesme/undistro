@@ -32,7 +32,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -59,20 +58,22 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	log := r.Log.WithValues("defaultpolicies", req.NamespacedName)
+
+	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&p, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	defer func() {
-		var patchOpts []patch.Option
-		if err == nil {
-			patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
-		}
-		patchErr := patchHelper.Patch(ctx, &p, patchOpts...)
-		if patchErr != nil {
-			err = kerrors.NewAggregate([]error{patchErr, err})
-		}
-	}()
+	defer patchInstance(Instance{
+		Ctx:        ctx,
+		Log:        log,
+		Controller: "DefaultPoliciesController",
+		Request:    req.String(),
+		Object:     &p,
+		Error:      err,
+		Helper:     patchHelper,
+	})
+
 	// Add our finalizer if it does not exist
 	if !controllerutil.ContainsFinalizer(&p, meta.Finalizer) {
 		controllerutil.AddFinalizer(&p, meta.Finalizer)
