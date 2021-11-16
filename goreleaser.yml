@@ -1,6 +1,10 @@
 before:
   hooks:
     - go generate ./...
+
+changelog:
+  use: github-native
+
 builds:
   - binary: undistro
     id: undistro
