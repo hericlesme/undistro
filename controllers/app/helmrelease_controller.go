@@ -383,7 +383,7 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, restClient
 	if rel == nil || rel.Version == 0 {
 		isInstallation = true
 		rel, installErr = runner.Install(hr, chart, values)
-		installErr = r.handleHelmActionResult(&hr, revision, err, "install", meta.ReleasedCondition, meta.InstallSucceededReason, meta.InstallFailedReason)
+		installErr = r.handleHelmActionResult(&hr, revision, installErr, "install", meta.ReleasedCondition, meta.InstallSucceededReason, meta.InstallFailedReason)
 	} else if (rel.Info.Status == release.StatusDeployed && hasNewState) || rel.Info.Status == release.StatusUninstalled || rel.Info.Status == release.StatusPendingUpgrade {
 		if rel.Info.Status == release.StatusPendingUpgrade {
 			err := runner.UpdateState(rel)

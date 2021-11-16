@@ -42,7 +42,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/uuid"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
 	capicp "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1alpha4"
-	capiexp "sigs.k8s.io/cluster-api/exp/api/v1alpha4"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -385,24 +384,6 @@ func (r *ClusterReconciler) reconcileDelete(ctx context.Context, cl appv1alpha1.
 	err = r.Delete(ctx, &capiCluster)
 	if err != nil {
 		return ctrl.Result{}, err
-	}
-	for i := range cl.Spec.Workers {
-		key := client.ObjectKey{
-			Name:      fmt.Sprintf("%s-mp-%d", cl.Name, i),
-			Namespace: cl.GetNamespace(),
-		}
-		mp := capiexp.MachinePool{}
-		err = r.Get(ctx, key, &mp)
-		if err != nil {
-			if client.IgnoreNotFound(err) != nil {
-				return ctrl.Result{}, err
-			}
-			continue
-		}
-		err = r.Delete(ctx, &mp)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
 	}
 	err = r.removeDeps(ctx, cl)
 	if err != nil {
