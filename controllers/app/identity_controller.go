@@ -104,6 +104,7 @@ func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	r.Log.Info("Checking paused")
 	if instance.Spec.Paused {
 		r.Log.Info("Reconciliation is paused for this object")
+		// nolint
 		instance = appv1alpha1.IdentityPaused(*instance)
 		return ctrl.Result{}, nil
 	}
