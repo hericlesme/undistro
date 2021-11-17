@@ -24,6 +24,7 @@ spec:
             - undistro-system
             - calico-system
             - tigera-operator
+            - harbor
       match:
         resources:
           kinds:
