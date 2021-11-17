@@ -157,7 +157,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 		if *cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
 			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, capiCluster)
 			if err != nil {
-				return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{Requeue: true}, nil
+				return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{RequeueAfter: 2 * time.Second}, nil
 			}
 		}
 	}
