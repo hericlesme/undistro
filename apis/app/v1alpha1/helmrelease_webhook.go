@@ -59,7 +59,7 @@ func (r *HelmRelease) Default() {
 	r.Labels[meta.LabelUndistro] = ""
 	key := util.ObjectKeyFromString(r.Spec.ClusterName)
 	r.Labels[meta.LabelUndistroClusterName] = key.Name
-	r.Labels[capi.ClusterLabelName] = r.Name
+	r.Labels[capi.ClusterLabelName] = key.Name
 	if r.Spec.ClusterName == "" {
 		r.Labels[meta.LabelUndistroClusterType] = "management"
 	} else {

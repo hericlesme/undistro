@@ -19,6 +19,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	corev1 "k8s.io/api/core/v1"
@@ -62,9 +63,13 @@ func GetRequestAudience() string {
 				klog.Fatal(err)
 				return
 			}
+			if sec.Labels == nil {
+				sec.Labels = make(map[string]string)
+			}
 			if sec.Data == nil {
 				sec.Data = make(map[string][]byte)
 			}
+			sec.Labels[meta.LabelUndistroMove] = ""
 			requestAudience = util.RandomString(24)
 			sec.Data["audience"] = []byte(requestAudience)
 			err = c.Create(context.Background(), &sec)
