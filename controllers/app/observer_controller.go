@@ -23,6 +23,7 @@ import (
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/controllerlib"
 	"github.com/getupio-undistro/undistro/pkg/hr"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
@@ -57,7 +58,6 @@ const (
 type ObserverReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
-	Log    logr.Logger
 }
 
 //+kubebuilder:rbac:groups=app.undistro.io,resources=observers,verbs=get;list;watch;create;update;patch;delete
@@ -66,7 +66,8 @@ type ObserverReconciler struct {
 
 func (r *ObserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	start := time.Now()
-	r.Log.Info("Reconciling Observer state", "request", req.String())
+
+	// Fetch the Observer instance.
 	instance := &appv1alpha1.Observer{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -76,50 +77,61 @@ func (r *ObserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
+	keysAndValues := []interface{}{
+		"observer", req.String(),
+		"clusterName", instance.Spec.ClusterName,
+		"paused", instance.Spec.Paused,
+	}
+
+	log := logr.FromContext(ctx).WithValues(keysAndValues...)
+	log.Info("Reconciling Observer state")
+
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(instance, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	defer patchInstance(Instance{
-		Ctx:        ctx,
-		Log:        r.Log,
-		Controller: "DefaultPoliciesController",
+	defer controllerlib.PatchInstance(ctx, controllerlib.InstanceOpts{
+		Controller: "ObserverController",
 		Request:    req.String(),
 		Object:     instance,
 		Error:      err,
 		Helper:     patchHelper,
 	})
 
-	r.Log.Info("Checking paused")
+	log.Info("Checking paused")
 	if instance.Spec.Paused {
-		r.Log.Info("Reconciliation is paused for this object")
+		log.Info("Reconciliation is paused for this object")
 		// nolint
 		instance = appv1alpha1.ObserverPaused(*instance)
 		return ctrl.Result{}, nil
 	}
-	r.Log.Info("Checking object age")
+
+	log.Info("Checking object age")
 	if instance.Generation < instance.Status.ObservedGeneration {
-		r.Log.Info("Skipping this old version of reconciled object")
+		log.Info("Skipping this old version of reconciled object")
 		return ctrl.Result{}, nil
 	}
-	r.Log.Info("Checking if object is under deletion")
+
+	log.Info("Checking if object is under deletion")
 	if instance.DeletionTimestamp.IsZero() {
 		// Add our finalizer if it does not exist
 		if !controllerutil.ContainsFinalizer(instance, meta.Finalizer) {
-			r.Log.Info("Adding finalizer", "finalizer", meta.Finalizer)
+			log.Info("Adding finalizer", "finalizer", meta.Finalizer)
 			controllerutil.AddFinalizer(instance, meta.Finalizer)
 			return ctrl.Result{}, nil
 		}
 	} else {
 		return r.reconcileDelete(ctx, instance)
 	}
+
 	result, err := r.reconcile(ctx, *instance)
+
 	durationMsg := fmt.Sprintf("Reconcilation finished in %s", time.Since(start).String())
 	if result.RequeueAfter > 0 {
 		durationMsg = fmt.Sprintf("%s, next run in %s", durationMsg, result.RequeueAfter.String())
 	}
-	r.Log.Info(durationMsg)
+	log.Info(durationMsg)
 	return result, err
 }
 
@@ -137,17 +149,20 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, observer appv1alpha1
 }
 
 func (r *ObserverReconciler) reconcileLog(ctx context.Context, observer appv1alpha1.Observer) (ctrl.Result, error) {
-	r.Log.Info("Reconciling log stack", "observerName", observer.Name)
+	log := logr.FromContext(ctx)
+	log.Info("Reconciling log stack")
 	res, err := r.reconcileElasticStack(ctx, observer)
 	if err != nil {
-		r.Log.Info("error reconciling elastic eck operator", "error", err.Error())
+		log.Info("error reconciling elastic eck operator", "error", err.Error())
 		return res, err
 	}
 	return r.reconcileFluentStack(ctx, observer)
 }
 
 func (r *ObserverReconciler) reconcileFluentStack(ctx context.Context, observer appv1alpha1.Observer) (ctrl.Result, error) {
-	r.Log.Info("Reconciling fluent stack", "observerName", observer.Name)
+	log := logr.FromContext(ctx)
+	log.Info("Reconciling fluent stack")
+
 	values := map[string]interface{}{}
 	cl := &appv1alpha1.Cluster{}
 	if util.IsMgmtCluster(observer.Spec.ClusterName) {
@@ -177,6 +192,7 @@ func (r *ObserverReconciler) reconcileFluentStack(ctx context.Context, observer 
 			}
 		}
 	}
+
 	if err := r.installRelease(ctx, fluentBitReleaseName, fluentBitVersion, values, &observer, cl); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -187,7 +203,8 @@ func (r *ObserverReconciler) reconcileFluentStack(ctx context.Context, observer 
 }
 
 func (r *ObserverReconciler) reconcileElasticStack(ctx context.Context, observer appv1alpha1.Observer) (ctrl.Result, error) {
-	r.Log.Info("Reconciling elastic stack", "observerName", observer.Name)
+	log := logr.FromContext(ctx)
+	log.Info("Reconciling elastic stack")
 	values := map[string]interface{}{}
 	cl := &appv1alpha1.Cluster{}
 	if util.IsMgmtCluster(observer.Spec.ClusterName) {
@@ -224,12 +241,13 @@ func (r *ObserverReconciler) reconcileElasticStack(ctx context.Context, observer
 }
 
 func (r *ObserverReconciler) createElasticsearchCluster(ctx context.Context, obs *appv1alpha1.Observer, cl *appv1alpha1.Cluster) (ctrl.Result, error) {
+	log := logr.FromContext(ctx)
 	replicaCount := 0
 	if cl.HasInfraNodes() {
 		for _, w := range cl.Spec.Workers {
 			if w.InfraNode {
 				replicaCount = int(*w.Replicas)
-				r.Log.Info("Replicas incremented", "replicaCount", replicaCount)
+				log.Info("Replicas incremented", "replicaCount", replicaCount)
 				break
 			}
 		}
@@ -302,7 +320,7 @@ spec:
 	desiredHealth := "green"
 	// maybe this will need refactoring
 	for strings.ToLower(health) != desiredHealth {
-		r.Log.Info("Waiting elasticsearch", "health", health, "desiredHealth", desiredHealth)
+		log.Info("Waiting elasticsearch", "health", health, "desiredHealth", desiredHealth)
 		err = clusterClient.Get(ctx, k, &u)
 		if err != nil {
 			return ctrl.Result{}, err
@@ -320,7 +338,8 @@ spec:
 }
 
 func (r *ObserverReconciler) reconcileMetrics(ctx context.Context, observer appv1alpha1.Observer) (ctrl.Result, error) {
-	r.Log.Info("Reconciling metrics stack", "observerName", observer.Name)
+	log := logr.FromContext(ctx)
+	log.Info("Reconciling metrics stack")
 	values := map[string]interface{}{
 		"namespaceOverride": monitoringNs,
 		"grafana": map[string]interface{}{
@@ -331,9 +350,9 @@ func (r *ObserverReconciler) reconcileMetrics(ctx context.Context, observer appv
 	if util.IsMgmtCluster(observer.Spec.ClusterName) {
 		cl.Name = "management"
 		cl.Namespace = undistro.Namespace
-		r.Log.Info("Cluster is a management cluster", "name", cl.Name, "namespace", undistro.Namespace)
+		log.Info("Cluster is a management cluster", "name", cl.Name, "namespace", undistro.Namespace)
 	} else {
-		r.Log.Info("Cluster is a managed cluster", "name", cl.Name, "namespace", undistro.Namespace)
+		log.Info("Cluster is a managed cluster", "name", cl.Name, "namespace", undistro.Namespace)
 		key := client.ObjectKey{
 			Name:      observer.Spec.ClusterName,
 			Namespace: observer.GetNamespace(),
@@ -441,7 +460,8 @@ func (r *ObserverReconciler) reconcileMetrics(ctx context.Context, observer appv
 
 func (r *ObserverReconciler) installRelease(
 	ctx context.Context, name, version string, values map[string]interface{}, observer *appv1alpha1.Observer, cl *appv1alpha1.Cluster) (err error) {
-	r.Log.Info("Installing release", "releaseName", name, "observerName", observer.Name)
+	log := logr.FromContext(ctx)
+	log.Info("Installing release", "releaseName", name)
 	key := client.ObjectKey{
 		Name:      hr.GetObjectName(name, observer.Spec.ClusterName),
 		Namespace: observer.GetNamespace(),
@@ -461,7 +481,7 @@ func (r *ObserverReconciler) installRelease(
 		release.Labels = make(map[string]string)
 	}
 	release.Labels[meta.LabelUndistroMove] = ""
-	if err := hr.Install(ctx, r.Client, r.Log, release, cl); err != nil {
+	if err := hr.Install(ctx, r.Client, log, release, cl); err != nil {
 		return err
 	}
 	for !meta.InReadyCondition(release.Status.Conditions) {
@@ -472,10 +492,10 @@ func (r *ObserverReconciler) installRelease(
 		if meta.InReadyCondition(release.Status.Conditions) {
 			continue
 		} else {
-			r.Log.Info("Waiting release is ready", "release", release.Name, "namespace", release.Namespace)
+			log.Info("Waiting release is ready", "release", release.Name, "namespace", release.Namespace)
 			<-time.After(1 * time.Minute)
 		}
-		r.Log.Info("HelmRelease status", "lastAppliedVersion", release.Status.LastAppliedRevision)
+		log.Info("HelmRelease status", "lastAppliedVersion", release.Status.LastAppliedRevision)
 	}
 	return
 }
@@ -517,11 +537,12 @@ spec:
 }
 
 func (r *ObserverReconciler) reconcileDelete(ctx context.Context, instance *appv1alpha1.Observer) (res ctrl.Result, err error) {
-	r.Log.Info("Reconciling delete", "clusterName", instance.Spec.ClusterName)
+	log := logr.FromContext(ctx)
+	log.Info("Reconciling delete")
 	releases := []string{kubeStackReleaseName, eckOperatorReleaseName, fluentBitVersion, fluentdReleaseName}
 	for _, release := range releases {
-		r.Log.Info("Deleting charts", "release", release, "namespace", instance.GetNamespace())
-		res, err = hr.Uninstall(ctx, r.Client, r.Log, release, instance.Spec.ClusterName, instance.GetNamespace())
+		log.Info("Deleting charts", "release", release, "namespace", instance.GetNamespace())
+		res, err = hr.Uninstall(ctx, r.Client, log, release, instance.Spec.ClusterName, instance.GetNamespace())
 		if err != nil {
 			return ctrl.Result{}, err
 		}

@@ -25,6 +25,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getupio-undistro/undistro/pkg/controllerlib"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/helm"
 	"github.com/getupio-undistro/undistro/pkg/kube"
@@ -70,7 +71,6 @@ var (
 // HelmReleaseReconciler reconciles a HelmRelease object
 type HelmReleaseReconciler struct {
 	client.Client
-	Log    logr.Logger
 	Scheme *runtime.Scheme
 	config *rest.Config
 }
@@ -81,17 +81,22 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if err := r.Get(ctx, req.NamespacedName, &hr); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	log := r.Log.WithValues("helmrelease", req.NamespacedName, "chart repo", hr.Spec.Chart.RepoURL, "chart name", hr.Spec.Chart.Name, "chart version", hr.Spec.Chart.Version)
+
+	keysAndValues := []interface{}{
+		"helmrelease", req.NamespacedName,
+		"chartRepo", hr.Spec.Chart.RepoURL,
+		"chartName", hr.Spec.Chart.Name,
+		"chartVersion", hr.Spec.Chart.Version,
+	}
+	log := logr.FromContext(ctx).WithValues(keysAndValues...)
 
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&hr, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	defer patchInstance(Instance{
-		Ctx:        ctx,
-		Log:        log,
-		Controller: "DefaultPoliciesController",
+	defer controllerlib.PatchInstance(ctx, controllerlib.InstanceOpts{
+		Controller: "HelmReleaseController",
 		Request:    req.String(),
 		Object:     &hr,
 		Error:      err,
@@ -110,7 +115,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 	if !hr.DeletionTimestamp.IsZero() {
 		hr = appv1alpha1.HelmReleaseDeleting(hr)
-		return r.reconcileDelete(ctx, log, hr)
+		return r.reconcileDelete(ctx, hr)
 	}
 	if !util.IsMgmtCluster(hr.Spec.ClusterName) {
 		key := util.ObjectKeyFromString(hr.Spec.ClusterName)
@@ -151,7 +156,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			}
 		}
 	}
-	hr, result, err := r.reconcile(ctx, log, hr)
+	hr, result, err := r.reconcile(ctx, hr)
 
 	// Log reconciliation duration
 	durationMsg := fmt.Sprintf("reconcilation finished in %s", time.Since(start).String())
@@ -162,7 +167,8 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	return result, err
 }
 
-func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, hr appv1alpha1.HelmRelease) (appv1alpha1.HelmRelease, ctrl.Result, error) {
+func (r *HelmReleaseReconciler) reconcile(ctx context.Context, hr appv1alpha1.HelmRelease) (appv1alpha1.HelmRelease, ctrl.Result, error) {
+	log := logr.FromContext(ctx)
 	var clientOpts []getter.Option
 	if hr.Spec.Chart.SecretRef != nil {
 		resourceNamespacedName := types.NamespacedName{
@@ -317,7 +323,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, log logr.Logger, 
 		hr = appv1alpha1.HelmReleaseNotReady(hr, meta.StorageOperationFailedReason, err.Error())
 		return hr, ctrl.Result{}, err
 	}
-	hr, err = r.reconcileRelease(ctx, restClientGetter, workloadClient, log, hr, hc, values)
+	hr, err = r.reconcileRelease(ctx, restClientGetter, workloadClient, hr, hc, values)
 	if err != nil {
 		if errors.Is(err, driver.ErrNoDeployedReleases) {
 			return hr, ctrl.Result{Requeue: true}, nil
@@ -350,8 +356,9 @@ func (r *HelmReleaseReconciler) applyObjs(ctx context.Context, c client.Client, 
 	return nil
 }
 
-func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, restClientGetter genericclioptions.RESTClientGetter, workloadClient client.Client, log logr.Logger,
+func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, restClientGetter genericclioptions.RESTClientGetter, workloadClient client.Client,
 	hr appv1alpha1.HelmRelease, chart *chart.Chart, values chartutil.Values) (appv1alpha1.HelmRelease, error) {
+	log := logr.FromContext(ctx)
 	log.Info("Reconciling release", "release name", chart.Name())
 	// Initialize Helm action runner
 	runner, err := helm.NewRunner(restClientGetter, hr.Spec.TargetNamespace, log)
@@ -383,7 +390,7 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, restClient
 	if rel == nil || rel.Version == 0 {
 		isInstallation = true
 		rel, installErr = runner.Install(hr, chart, values)
-		installErr = r.handleHelmActionResult(&hr, revision, installErr, "install", meta.ReleasedCondition, meta.InstallSucceededReason, meta.InstallFailedReason)
+		installErr = r.handleHelmActionResult(ctx, &hr, revision, installErr, "install", meta.ReleasedCondition, meta.InstallSucceededReason, meta.InstallFailedReason)
 	} else if (rel.Info.Status == release.StatusDeployed && hasNewState) || rel.Info.Status == release.StatusUninstalled || rel.Info.Status == release.StatusPendingUpgrade {
 		if rel.Info.Status == release.StatusPendingUpgrade {
 			err := runner.UpdateState(rel)
@@ -396,12 +403,12 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, restClient
 			hr.Spec.ForceUpgrade = pointer.Bool(true)
 		}
 		rel, err = runner.Upgrade(hr, chart, values)
-		err = r.handleHelmActionResult(&hr, revision, err, "upgrade", meta.ReleasedCondition, meta.UpgradeSucceededReason, meta.UpgradeFailedReason)
+		err = r.handleHelmActionResult(ctx, &hr, revision, err, "upgrade", meta.ReleasedCondition, meta.UpgradeSucceededReason, meta.UpgradeFailedReason)
 	}
 	if util.ReleaseRevision(rel) > releaseRevision {
 		if err == nil && hr.Spec.Test.Enable {
 			_, err = runner.Test(hr)
-			err = r.handleHelmActionResult(&hr, revision, err, "test", meta.TestSuccessCondition, meta.TestSucceededReason, meta.TestFailedReason)
+			err = r.handleHelmActionResult(ctx, &hr, revision, err, "test", meta.TestSuccessCondition, meta.TestSucceededReason, meta.TestFailedReason)
 			if err != nil && hr.Spec.Test.IgnoreFailures {
 				err = nil
 			}
@@ -432,7 +439,7 @@ func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, restClient
 			rolledBack = true
 			rollErr = err
 			err = runner.Rollback(hr)
-			err = r.handleHelmActionResult(&hr, revision, err, "rollback", meta.RemediatedCondition, meta.RollbackSucceededReason, meta.RollbackSucceededReason)
+			err = r.handleHelmActionResult(ctx, &hr, revision, err, "rollback", meta.RemediatedCondition, meta.RollbackSucceededReason, meta.RollbackSucceededReason)
 		}
 	}
 	if !isInstallation {
@@ -481,7 +488,9 @@ func (r *HelmReleaseReconciler) checkDependencies(ctx context.Context, hr appv1a
 	return nil
 }
 
-func (r *HelmReleaseReconciler) handleHelmActionResult(hr *appv1alpha1.HelmRelease, revision string, err error, action string, condition string, succeededReason string, failedReason string) error {
+func (r *HelmReleaseReconciler) handleHelmActionResult(ctx context.Context, hr *appv1alpha1.HelmRelease, revision string, err error, action string, condition string, succeededReason string, failedReason string) error {
+	log := logr.FromContext(ctx)
+	log.Info("Release revision", "revision", revision)
 	if err != nil {
 		msg := fmt.Sprintf("Helm %s failed: %s", action, err.Error())
 		meta.SetResourceCondition(hr, condition, metav1.ConditionFalse, failedReason, msg)
@@ -497,8 +506,9 @@ func (r *HelmReleaseReconciler) handleHelmActionResult(hr *appv1alpha1.HelmRelea
 // and merges them as defined. Referenced resources are only retrieved once
 // to ensure a single version is taken into account during the merge.
 func (r *HelmReleaseReconciler) composeValues(ctx context.Context, hr appv1alpha1.HelmRelease) (chartutil.Values, error) {
-	result := chartutil.Values{}
+	log := logr.FromContext(ctx)
 
+	result := chartutil.Values{}
 	configMaps := make(map[string]*corev1.ConfigMap)
 	secrets := make(map[string]*corev1.Secret)
 
@@ -518,7 +528,7 @@ func (r *HelmReleaseReconciler) composeValues(ctx context.Context, hr appv1alpha
 				if err := r.Get(ctx, namespacedName, resource); err != nil {
 					if apierrors.IsNotFound(err) {
 						if v.Optional {
-							r.Log.Info("could not find optional %s '%s'", v.Kind, namespacedName)
+							log.Info("could not find optional %s '%s'", v.Kind, namespacedName)
 							continue
 						}
 						return nil, fmt.Errorf("could not find %s '%s'", v.Kind, namespacedName)
@@ -529,7 +539,7 @@ func (r *HelmReleaseReconciler) composeValues(ctx context.Context, hr appv1alpha
 			}
 			if resource == nil {
 				if v.Optional {
-					r.Log.Info("could not find optional %s '%s'", v.Kind, namespacedName)
+					log.Info("could not find optional %s '%s'", v.Kind, namespacedName)
 					continue
 				}
 				return nil, fmt.Errorf("could not find %s '%s'", v.Kind, namespacedName)
@@ -550,7 +560,7 @@ func (r *HelmReleaseReconciler) composeValues(ctx context.Context, hr appv1alpha
 				if err := r.Get(ctx, namespacedName, resource); err != nil {
 					if apierrors.IsNotFound(err) {
 						if v.Optional {
-							r.Log.Info("could not find optional %s '%s'", v.Kind, namespacedName)
+							log.Info("could not find optional %s '%s'", v.Kind, namespacedName)
 							continue
 						}
 						return nil, fmt.Errorf("could not find %s '%s'", v.Kind, namespacedName)
@@ -561,7 +571,7 @@ func (r *HelmReleaseReconciler) composeValues(ctx context.Context, hr appv1alpha
 			}
 			if resource == nil {
 				if v.Optional {
-					r.Log.Info("could not find optional %s '%s'", v.Kind, namespacedName)
+					log.Info("could not find optional %s '%s'", v.Kind, namespacedName)
 					continue
 				}
 				return nil, fmt.Errorf("could not find %s '%s'", v.Kind, namespacedName)
@@ -610,7 +620,8 @@ func (r *HelmReleaseReconciler) getRESTClientGetter(ctx context.Context, hr appv
 	return kube.NewMemoryRESTClientGetter(kubeConfig, hr.Spec.TargetNamespace), nil
 }
 
-func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, logger logr.Logger, hr appv1alpha1.HelmRelease) (ctrl.Result, error) {
+func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, hr appv1alpha1.HelmRelease) (ctrl.Result, error) {
+	log := logr.FromContext(ctx)
 	restClient, err := r.getRESTClientGetter(ctx, hr)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
@@ -618,7 +629,7 @@ func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, logger logr
 		}
 		return ctrl.Result{}, nil
 	}
-	runner, err := helm.NewRunner(restClient, hr.Spec.TargetNamespace, logger)
+	runner, err := helm.NewRunner(restClient, hr.Spec.TargetNamespace, log)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

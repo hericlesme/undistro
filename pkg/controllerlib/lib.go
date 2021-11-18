@@ -1,4 +1,4 @@
-package app
+package controllerlib
 
 import (
 	"context"
@@ -10,9 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type Instance struct {
-	Ctx        context.Context
-	Log        logr.Logger
+type InstanceOpts struct {
 	Controller string
 	Request    string
 	client.Object
@@ -20,36 +18,35 @@ type Instance struct {
 	*patch.Helper
 }
 
-func patchInstance(i Instance) {
+func PatchInstance(ctx context.Context, i InstanceOpts) {
+	log := logr.FromContext(ctx)
+
 	if err := i.validate(); err != nil {
 		return
 	}
 	keysAndValues := []interface{}{
 		"requestInfo", i.Request, "controller", i.Controller,
 	}
-	i.Log.Info("Patching object instance", keysAndValues...)
+	log.Info("Patching object instance", keysAndValues...)
 	var patchOpts []patch.Option
 	if i.Error == nil {
 		patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
 	}
-	patchErr := i.Helper.Patch(i.Ctx, i.Object, patchOpts...)
+	patchErr := i.Helper.Patch(ctx, i.Object, patchOpts...)
 	if patchErr != nil {
 		i.Error = kerrors.NewAggregate([]error{patchErr, i.Error})
-		i.Log.Info("Error patching object instance", keysAndValues...)
+		log.Info("Error patching object instance", keysAndValues...)
 		return
 	}
-	i.Log.Info("Object instance patched", keysAndValues...)
+	log.Info("Object instance patched", keysAndValues...)
 }
 
-func (i *Instance) validate() (err error) {
+func (i *InstanceOpts) validate() (err error) {
 	if i.Controller == "" {
 		return errors.New("Controller name empty")
 	}
 	if i.Request == "" {
 		return errors.New("Object name empty")
-	}
-	if i.Log == nil {
-		return errors.New("Log is nil")
 	}
 	if i.Object == nil {
 		return errors.New("Object is nil")

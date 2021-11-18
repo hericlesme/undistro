@@ -23,6 +23,7 @@ import (
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/controllerlib"
 	"github.com/getupio-undistro/undistro/pkg/fs"
 	"github.com/getupio-undistro/undistro/pkg/hr"
 	"github.com/getupio-undistro/undistro/pkg/kube"
@@ -44,7 +45,6 @@ import (
 // DefaultPoliciesReconciler reconciles a DefaultPolicies object
 type DefaultPoliciesReconciler struct {
 	client.Client
-	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
@@ -61,16 +61,14 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	log := r.Log.WithValues("defaultpolicies", p.Name)
+	log := logr.FromContext(ctx).WithValues("defaultpolicies", req.String())
 
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&p, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	defer patchInstance(Instance{
-		Ctx:        ctx,
-		Log:        log,
+	defer controllerlib.PatchInstance(ctx, controllerlib.InstanceOpts{
 		Controller: "DefaultPoliciesController",
 		Request:    req.String(),
 		Object:     &p,
@@ -80,7 +78,7 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	// Add our finalizer if it does not exist
 	if !controllerutil.ContainsFinalizer(&p, meta.Finalizer) {
-		log.Info("Adding finalizer", "requestInfo", req.String())
+		log.Info("Adding finalizer")
 		controllerutil.AddFinalizer(&p, meta.Finalizer)
 		return ctrl.Result{}, nil
 	}
@@ -97,7 +95,7 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	if !p.ObjectMeta.DeletionTimestamp.IsZero() {
-		return r.reconcileDelete(ctx, log, p)
+		return r.reconcileDelete(ctx, p)
 	}
 
 	// if cluster name is empty, we install the chart only for the undistro cluster
@@ -113,7 +111,7 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		}
 	}
 
-	p, result, err := r.reconcile(ctx, log, p, cl)
+	p, result, err := r.reconcile(ctx, p, cl)
 	durationMsg := fmt.Sprintf("Reconcilation finished in %s", time.Since(start).String())
 	if result.RequeueAfter > 0 {
 		durationMsg = fmt.Sprintf("%s, next run in %s", durationMsg, result.RequeueAfter.String())
@@ -122,7 +120,8 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	return result, err
 }
 
-func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logger, p appv1alpha1.DefaultPolicies, cl *appv1alpha1.Cluster) (appv1alpha1.DefaultPolicies, ctrl.Result, error) {
+func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, p appv1alpha1.DefaultPolicies, cl *appv1alpha1.Cluster) (appv1alpha1.DefaultPolicies, ctrl.Result, error) {
+	log := logr.FromContext(ctx)
 	values := map[string]interface{}{
 		"fullnameOverride": kyvernoReleaseName,
 		"namespace":        kyvernoReleaseName,
@@ -194,18 +193,19 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, log logr.Logg
 		}
 	}
 
-	p, err = r.applyPolicies(ctx, log, clusterClient, p)
+	p, err = r.applyPolicies(ctx, clusterClient, p)
 	if err != nil {
 		appv1alpha1.DefaultPoliciesNotReady(p, meta.ArtifactFailedReason, err.Error())
 	}
 	return appv1alpha1.DefaultPoliciesReady(p), ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
 }
 
-func (r *DefaultPoliciesReconciler) reconcileDelete(ctx context.Context, log logr.Logger, instance appv1alpha1.DefaultPolicies) (ctrl.Result, error) {
-	return hr.Uninstall(ctx, r.Client, log, kyvernoReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
+func (r *DefaultPoliciesReconciler) reconcileDelete(ctx context.Context, instance appv1alpha1.DefaultPolicies) (ctrl.Result, error) {
+	return hr.Uninstall(ctx, r.Client, logr.FromContext(ctx), kyvernoReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
 }
 
-func (r *DefaultPoliciesReconciler) applyPolicies(ctx context.Context, log logr.Logger, clusterClient client.Client, p appv1alpha1.DefaultPolicies) (appv1alpha1.DefaultPolicies, error) {
+func (r *DefaultPoliciesReconciler) applyPolicies(ctx context.Context, clusterClient client.Client, p appv1alpha1.DefaultPolicies) (appv1alpha1.DefaultPolicies, error) {
+	log := logr.FromContext(ctx)
 	dir, err := fs.PoliciesFS.ReadDir("policies")
 	if err != nil {
 		return p, err
@@ -214,7 +214,7 @@ func (r *DefaultPoliciesReconciler) applyPolicies(ctx context.Context, log logr.
 		if f.IsDir() {
 			continue
 		}
-		log = log.WithValues("policy", f.Name())
+		log.Info("Installing policy", "name", f.Name())
 		byt, err := fs.PoliciesFS.ReadFile(filepath.Join("policies", f.Name()))
 		if err != nil {
 			return p, err

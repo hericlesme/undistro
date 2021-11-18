@@ -6,6 +6,9 @@ changelog:
     - title: Exciting New Features 🎉
       labels:
         - enhancement
+    - title: Code Improvements 🖌️
+        labels:
+          - refactor
     - title: Documentation 📝
       labels:
         - documentation

@@ -79,7 +79,6 @@ func main() {
 
 	if err = (&appcontrollers.ClusterReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Cluster"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Cluster")
@@ -87,7 +86,6 @@ func main() {
 	}
 	if err = (&appcontrollers.HelmReleaseReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("HelmRelease"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "HelmRelease")
@@ -95,7 +93,6 @@ func main() {
 	}
 	if err = (&appcontrollers.DefaultPoliciesReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("DefaultPolicies"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "DefaultPolicies")
@@ -103,7 +100,6 @@ func main() {
 	}
 	if err = (&metadatacontrollers.ProviderReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Metadata"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Provider")
@@ -111,7 +107,6 @@ func main() {
 	}
 	if err = (&appcontrollers.IdentityReconciler{
 		Client:   mgr.GetClient(),
-		Log:      ctrl.Log.WithName("controllers").WithName("Identity"),
 		Scheme:   mgr.GetScheme(),
 		Audience: requestAudience,
 	}).SetupWithManager(mgr); err != nil {
@@ -120,7 +115,6 @@ func main() {
 	}
 	if err = (&appcontrollers.ObserverReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Observer"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Observer")

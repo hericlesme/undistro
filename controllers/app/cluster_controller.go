@@ -25,6 +25,7 @@ import (
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud"
+	"github.com/getupio-undistro/undistro/pkg/controllerlib"
 	"github.com/getupio-undistro/undistro/pkg/fs"
 	"github.com/getupio-undistro/undistro/pkg/hr"
 	"github.com/getupio-undistro/undistro/pkg/kube"
@@ -53,7 +54,6 @@ import (
 // ClusterReconciler reconciles a Cluster object
 type ClusterReconciler struct {
 	client.Client
-	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
@@ -67,16 +67,20 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.Get(ctx, req.NamespacedName, &cl); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	r.Log = r.Log.WithValues("cluster", req.NamespacedName, "infra", cl.Spec.InfrastructureProvider.Name, "flavor", cl.Spec.InfrastructureProvider.Flavor)
+
+	keysAndValues := []interface{}{
+		"cluster", req.NamespacedName,
+		"infra", cl.Spec.InfrastructureProvider.Name,
+		"flavor", cl.Spec.InfrastructureProvider.Flavor,
+	}
+	log := logr.FromContext(ctx).WithValues(keysAndValues...)
 
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&cl, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	defer patchInstance(Instance{
-		Ctx:        ctx,
-		Log:        r.Log,
+	defer controllerlib.PatchInstance(ctx, controllerlib.InstanceOpts{
 		Controller: "ClusterController",
 		Request:    req.String(),
 		Object:     &cl,
@@ -84,38 +88,38 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		Helper:     patchHelper,
 	})
 
-	r.Log.Info("Checking object age")
+	log.Info("Checking object age")
 	if cl.Generation < cl.Status.ObservedGeneration {
-		r.Log.Info("Skipping this old version of reconciled object")
+		log.Info("Skipping this old version of reconciled object")
 		return ctrl.Result{}, nil
 	}
 
 	// Add our finalizer if it does not exist
-	r.Log.Info("Checking if has finalizer")
+	log.Info("Checking if has finalizer")
 	if !controllerutil.ContainsFinalizer(&cl, meta.Finalizer) {
-		r.Log.Info("Adding Finalizer")
+		log.Info("Adding Finalizer")
 		controllerutil.AddFinalizer(&cl, meta.Finalizer)
 		return ctrl.Result{}, nil
 	}
 
-	r.Log.Info("Checking if object is paused")
+	log.Info("Checking if object is paused")
 	if cl.Spec.Paused {
-		r.Log.Info("Reconciliation is paused for this object")
+		log.Info("Reconciliation is paused for this object")
 		cl = appv1alpha1.ClusterPaused(cl)
 		return ctrl.Result{}, nil
 	}
 
 	// Retrieve Cluster API Cluster object
-	r.Log.Info("Checking if has finalizer")
+	log.Info("Checking if has finalizer")
 	capiCluster := capi.Cluster{}
 	err = r.Get(ctx, client.ObjectKeyFromObject(&cl), &capiCluster)
 	if client.IgnoreNotFound(err) != nil {
 		return ctrl.Result{}, err
 	}
 
-	r.Log.Info("Checking if under deletion")
+	log.Info("Checking if under deletion")
 	if !cl.DeletionTimestamp.IsZero() {
-		r.Log.Info("Object is under deletion")
+		log.Info("Object is under deletion")
 		cl = appv1alpha1.ClusterDeleting(cl)
 		return r.reconcileDelete(ctx, cl)
 	}
@@ -126,17 +130,19 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if result.RequeueAfter > 0 {
 		durationMsg = fmt.Sprintf("%s, next run in %s", durationMsg, result.RequeueAfter.String())
 	}
-	r.Log.Info(durationMsg)
+	log.Info(durationMsg)
 	return result, err
 }
 
 func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (appv1alpha1.Cluster, ctrl.Result, error) {
+	log := logr.FromContext(ctx)
+
 	cl.Status.TotalWorkerPools = int32(len(cl.Spec.Workers))
 	cl.Status.TotalWorkerReplicas = 0
 	for _, w := range cl.Spec.Workers {
 		cl.Status.TotalWorkerReplicas += *w.Replicas
 	}
-	r.Log.Info("Cluster capabilities", "totalWorkerPools", cl.Status.TotalWorkerPools, "totalWorkerReplicas", cl.Status.TotalWorkerReplicas)
+	log.Info("Cluster capabilities", "totalWorkerPools", cl.Status.TotalWorkerPools, "totalWorkerReplicas", cl.Status.TotalWorkerReplicas)
 
 	// we need to install calico in managed flavors too for network policy support
 	err := r.reconcileCNI(ctx, &cl)
@@ -145,15 +151,15 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 		return cl, ctrl.Result{}, err
 	}
 
-	err = cloud.ReconcileIntegration(ctx, r.Client, r.Log, &cl, &capiCluster)
+	err = cloud.ReconcileIntegration(ctx, r.Client, log, &cl, &capiCluster)
 	if err != nil {
 		meta.SetResourceCondition(&cl, meta.CloudProviderInstalledCondition, metav1.ConditionFalse, meta.CloudProvideInstalledFailedReason, err.Error())
 		return cl, ctrl.Result{}, err
 	}
-	r.Log.Info("Cloud provider integration reconciled")
+	log.Info("Cloud provider integration reconciled")
 
 	if cl.Spec.Bastion != nil {
-		r.Log.Info("Bastion exist", "enabled", *cl.Spec.Bastion.Enabled)
+		log.Info("Bastion exist", "enabled", *cl.Spec.Bastion.Enabled)
 		if *cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
 			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, capiCluster)
 			if err != nil {
@@ -162,20 +168,20 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 		}
 	}
 
-	r.Log.Info("Reconciling launch template")
+	log.Info("Reconciling launch template")
 	err = cloud.ReconcileLaunchTemplate(ctx, r.Client, &cl, &capiCluster)
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.ReconcileLaunchTemplateFailed, err.Error()), ctrl.Result{}, err
 	}
 
-	r.Log.Info("Reconciling network")
+	log.Info("Reconciling network")
 	err = cloud.ReconcileNetwork(ctx, r.Client, &cl, &capiCluster)
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.ReconcileNetworkFailed, err.Error()), ctrl.Result{}, err
 	}
 
-	r.Log.Info("Checking if has diff between templates", "spec", cl.Spec, "status", cl.Status)
-	if r.hasDiff(&cl) {
+	log.Info("Checking if has diff between templates", "spec", cl.Spec, "status", cl.Status)
+	if r.hasDiff(ctx, &cl) {
 		vars, err := r.templateVariables(ctx, r.Client, &cl)
 		if err != nil {
 			return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
@@ -216,7 +222,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 	cl.Status.ControlPlane = *cl.Spec.ControlPlane
 	cl.Status.Workers = cl.Spec.Workers
 	cl.Status.BastionConfig = cl.Spec.Bastion
-	r.Log.Info("Cluster status updated", "status", cl.Status)
+	log.Info("Cluster status updated", "status", cl.Status)
 	if capiCluster.Status.ControlPlaneReady && capiCluster.Status.InfrastructureReady {
 		cl = appv1alpha1.ClusterReady(cl)
 		err = kube.EnsureComponentsConfig(ctx, r.Client, &cl)
@@ -268,7 +274,7 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 			cl.Status.LastUsedUID = split[len(split)-1]
 		}
 	}
-	if r.hasDiff(cl) && validDiff {
+	if r.hasDiff(ctx, cl) && validDiff {
 		cl.Status.LastUsedUID = string(uuid.NewUUID())
 	}
 	return vars, nil
@@ -309,63 +315,64 @@ func (r *ClusterReconciler) reconcileConciergeEndpoint(ctx context.Context, cl a
 	return cl, nil
 }
 
-func (r *ClusterReconciler) hasDiff(cl *appv1alpha1.Cluster) bool {
+func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *appv1alpha1.Cluster) bool {
+	log := logr.FromContext(ctx)
 	if cl.Spec.KubernetesVersion != cl.Status.KubernetesVersion {
-		r.Log.Info("kubernetes version changed", "old", cl.Status.KubernetesVersion, "new", cl.Spec.KubernetesVersion)
+		log.Info("kubernetes version changed", "old", cl.Status.KubernetesVersion, "new", cl.Spec.KubernetesVersion)
 		return true
 	}
 	if !cl.Spec.InfrastructureProvider.IsManaged() && cl.Spec.ControlPlane != nil {
-		r.Log.Info("control plane changed", "old", cl.Status.ControlPlane, "new", cl.Spec.ControlPlane)
+		log.Info("control plane changed", "old", cl.Status.ControlPlane, "new", cl.Spec.ControlPlane)
 		if *cl.Spec.ControlPlane.Replicas != *cl.Status.ControlPlane.Replicas {
-			r.Log.Info("control plane replicas changed", "old", cl.Status.ControlPlane.Replicas, "new", cl.Spec.ControlPlane.Replicas)
+			log.Info("control plane replicas changed", "old", cl.Status.ControlPlane.Replicas, "new", cl.Spec.ControlPlane.Replicas)
 			return true
 		}
 		if cl.Spec.ControlPlane.MachineType != cl.Status.ControlPlane.MachineType {
-			r.Log.Info("control plane machine type changed", "old", cl.Status.ControlPlane.MachineType, "new", cl.Spec.ControlPlane.MachineType)
+			log.Info("control plane machine type changed", "old", cl.Status.ControlPlane.MachineType, "new", cl.Spec.ControlPlane.MachineType)
 			return true
 		}
 		if !reflect.DeepEqual(cl.Spec.ControlPlane.Labels, cl.Status.ControlPlane.Labels) {
-			r.Log.Info("control plane labels changed", "old", cl.Status.ControlPlane.Labels, "new", cl.Spec.ControlPlane.Labels)
+			log.Info("control plane labels changed", "old", cl.Status.ControlPlane.Labels, "new", cl.Spec.ControlPlane.Labels)
 			return true
 		}
 		if !reflect.DeepEqual(cl.Spec.ControlPlane.Taints, cl.Status.ControlPlane.Taints) {
-			r.Log.Info("control plane taints changed", "old", cl.Status.ControlPlane.Taints, "new", cl.Spec.ControlPlane.Taints)
+			log.Info("control plane taints changed", "old", cl.Status.ControlPlane.Taints, "new", cl.Spec.ControlPlane.Taints)
 			return true
 		}
 		if !reflect.DeepEqual(cl.Spec.ControlPlane.ProviderTags, cl.Status.ControlPlane.ProviderTags) {
-			r.Log.Info("control plane provider tags changed", "old", cl.Status.ControlPlane.ProviderTags, "new", cl.Spec.ControlPlane.ProviderTags)
+			log.Info("control plane provider tags changed", "old", cl.Status.ControlPlane.ProviderTags, "new", cl.Spec.ControlPlane.ProviderTags)
 			return true
 		}
 	}
 
 	if len(cl.Spec.Workers) != len(cl.Status.Workers) {
-		r.Log.Info("workers changed", "old", cl.Status.Workers, "new", cl.Spec.Workers)
+		log.Info("workers changed", "old", cl.Status.Workers, "new", cl.Spec.Workers)
 		return true
 	}
 
 	for i, w := range cl.Spec.Workers {
 		if *w.Replicas != *cl.Status.Workers[i].Replicas {
-			r.Log.Info("worker replicas changed", "old", cl.Status.Workers[i].Replicas, "new", w.Replicas)
+			log.Info("worker replicas changed", "old", cl.Status.Workers[i].Replicas, "new", w.Replicas)
 			return true
 		}
 		if w.MachineType != cl.Status.Workers[i].MachineType {
-			r.Log.Info("worker machine type changed", "old", cl.Status.Workers[i].MachineType, "new", w.MachineType)
+			log.Info("worker machine type changed", "old", cl.Status.Workers[i].MachineType, "new", w.MachineType)
 			return true
 		}
 		if !reflect.DeepEqual(w.Labels, cl.Status.Workers[i].Labels) {
-			r.Log.Info("worker labels changed", "old", cl.Status.Workers[i].Labels, "new", w.Labels)
+			log.Info("worker labels changed", "old", cl.Status.Workers[i].Labels, "new", w.Labels)
 			return true
 		}
 		if !reflect.DeepEqual(w.Taints, cl.Status.Workers[i].Taints) {
-			r.Log.Info("worker taints changed", "old", cl.Status.Workers[i].Taints, "new", w.Taints)
+			log.Info("worker taints changed", "old", cl.Status.Workers[i].Taints, "new", w.Taints)
 			return true
 		}
 		if !reflect.DeepEqual(w.ProviderTags, cl.Status.Workers[i].ProviderTags) {
-			r.Log.Info("worker provider tags changed", "old", cl.Status.Workers[i].ProviderTags, "new", w.ProviderTags)
+			log.Info("worker provider tags changed", "old", cl.Status.Workers[i].ProviderTags, "new", w.ProviderTags)
 			return true
 		}
 		if !reflect.DeepEqual(w.Autoscale, cl.Status.Workers[i].Autoscale) {
-			r.Log.Info("worker autoscale changed", "old", cl.Status.Workers[i].Autoscale, "new", w.Autoscale)
+			log.Info("worker autoscale changed", "old", cl.Status.Workers[i].Autoscale, "new", w.Autoscale)
 			return true
 		}
 	}
@@ -373,12 +380,14 @@ func (r *ClusterReconciler) hasDiff(cl *appv1alpha1.Cluster) bool {
 }
 
 func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cluster) error {
+	log := logr.FromContext(ctx)
+
 	const (
 		cniCalicoName = "calico"
 		calicoVersion = "3.19.1"
 	)
-	r.Log.Info("Reconciling CNI")
-	calicoValues := cloud.CalicoValues(cl)
+	log.Info("Reconciling CNI")
+
 	key := client.ObjectKey{
 		Name:      hr.GetObjectName(cniCalicoName, cl.Name),
 		Namespace: cl.GetNamespace(),
@@ -390,13 +399,17 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 			return err
 		}
 	}
+
 	if meta.InReadyCondition(release.Status.Conditions) {
 		meta.SetResourceCondition(cl, meta.CNIInstalledCondition, metav1.ConditionTrue, meta.CNIInstalledSuccessReason, "calico installed")
 	}
+
+	calicoValues := cloud.CalicoValues(cl)
 	release, err = hr.Prepare(cniCalicoName, "kube-system", cl.GetNamespace(), calicoVersion, cl.Name, calicoValues)
 	if err != nil {
 		return err
 	}
+
 	if release.Labels == nil {
 		release.Labels = make(map[string]string)
 	}
@@ -405,7 +418,8 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 		release.Annotations = make(map[string]string)
 	}
 	release.Annotations[meta.SetupAnnotation] = cniCalicoName
-	err = hr.Install(ctx, r.Client, r.Log, release, cl)
+
+	err = hr.Install(ctx, r.Client, log, release, cl)
 	if err != nil {
 		return err
 	}

@@ -28,13 +28,13 @@ import (
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	metadatav1alpha1 "github.com/getupio-undistro/undistro/apis/metadata/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud"
+	"github.com/getupio-undistro/undistro/pkg/controllerlib"
 	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
-	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,7 +47,6 @@ var baseURL = "https://undistro.io/resources/metadata"
 type ProviderReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
-	Log    logr.Logger
 }
 
 func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -55,22 +54,19 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err := r.Get(ctx, req.NamespacedName, &p); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	log := r.Log.WithValues("provider", req.NamespacedName)
+	log := logr.FromContext(ctx).WithValues("provider", req.NamespacedName)
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&p, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	defer func() {
-		var patchOpts []patch.Option
-		if err == nil {
-			patchOpts = append(patchOpts, patch.WithStatusObservedGeneration{})
-		}
-		patchErr := patchHelper.Patch(ctx, &p, patchOpts...)
-		if patchErr != nil {
-			err = kerrors.NewAggregate([]error{patchErr, err})
-		}
-	}()
+	defer controllerlib.PatchInstance(ctx, controllerlib.InstanceOpts{
+		Controller: "ProviderController",
+		Request:    req.String(),
+		Object:     &p,
+		Error:      err,
+		Helper:     patchHelper,
+	})
 	// Add our finalizer if it does not exist
 	if !controllerutil.ContainsFinalizer(&p, meta.Finalizer) {
 		controllerutil.AddFinalizer(&p, meta.Finalizer)

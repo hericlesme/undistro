@@ -24,6 +24,7 @@ import (
 	"time"
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
+	"github.com/getupio-undistro/undistro/pkg/controllerlib"
 	"github.com/getupio-undistro/undistro/pkg/hr"
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/meta"
@@ -44,7 +45,7 @@ import (
 )
 
 const (
-	identityRequeueAfter  = time.Minute * 5
+	identityRequeueAfter  = time.Second * 30
 	identityManager       = "pinniped"
 	conciergeReleaseName  = "pinniped-concierge"
 	supervisorReleaseName = "pinniped-supervisor"
@@ -62,15 +63,15 @@ type IdentityReconciler struct {
 	client.Client
 	Scheme    *runtime.Scheme
 	Namespace string
-	Log       logr.Logger
 	Audience  string
 }
 
 // +kubebuilder:rbac:groups=*,resources=*,verbs=*
 
 func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// Fetch the Identity instance.
 	start := time.Now()
+
+	// Fetch the Identity instance.
 	instance := &appv1alpha1.Identity{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -80,30 +81,30 @@ func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
+	log := logr.FromContext(ctx).WithValues("identity", req.String())
+
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(instance, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	defer patchInstance(Instance{
-		Ctx:        ctx,
-		Log:        r.Log,
-		Controller: "DefaultPoliciesController",
+	defer controllerlib.PatchInstance(ctx, controllerlib.InstanceOpts{
+		Controller: "IdentityController",
 		Request:    req.String(),
 		Object:     instance,
 		Error:      err,
 		Helper:     patchHelper,
 	})
 
-	r.Log.Info("Checking object age")
+	log.Info("Checking object age")
 	if instance.Generation < instance.Status.ObservedGeneration {
-		r.Log.Info("Skipping this old version of reconciled object")
+		log.Info("Skipping this old version of reconciled object")
 		return ctrl.Result{}, nil
 	}
 
-	r.Log.Info("Checking paused")
+	log.Info("Checking paused")
 	if instance.Spec.Paused {
-		r.Log.Info("Reconciliation is paused for this object")
+		log.Info("Reconciliation is paused for this object")
 		// nolint
 		instance = appv1alpha1.IdentityPaused(*instance)
 		return ctrl.Result{}, nil
@@ -118,19 +119,20 @@ func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
 		return r.reconcileDelete(ctx, *instance)
 	}
-	r.Log.Info("Checking if the Pinniped components are installed")
+	log.Info("Checking if the Pinniped components are installed")
 	result, err := r.reconcile(ctx, *instance)
 
 	durationMsg := fmt.Sprintf("Reconcilation finished in %s", time.Since(start).String())
 	if result.RequeueAfter > 0 {
 		durationMsg = fmt.Sprintf("%s, next run in %s", durationMsg, result.RequeueAfter.String())
 	}
-	r.Log.Info(durationMsg)
+	log.Info(durationMsg)
 	return result, err
 }
 
 // reconcile ensures that, if identity is enabled, pinniped is installed in clusters
 func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1.Identity) (ctrl.Result, error) {
+	log := logr.FromContext(ctx)
 	cl := &appv1alpha1.Cluster{}
 	clusterClient := r.Client
 	key := client.ObjectKey{
@@ -139,7 +141,7 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 	}
 	err := r.Get(ctx, key, cl)
 	if client.IgnoreNotFound(err) != nil {
-		r.Log.Error(err, err.Error())
+		log.Error(err, err.Error())
 		return ctrl.Result{}, err
 	}
 	if util.IsMgmtCluster(instance.Spec.ClusterName) {
@@ -153,7 +155,7 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 	}
 	err = r.reconcileComponentInstallation(ctx, cl, instance, concierge, undistro.Namespace, "0.10.0", values)
 	if err != nil {
-		r.Log.Error(err, err.Error())
+		log.Error(err, err.Error())
 		return ctrl.Result{}, err
 	}
 	fedo := make(map[string]interface{})
@@ -161,12 +163,12 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 		ctx, clusterClient, "identity-config", undistro.Namespace, "federationdomain.yaml", fedo)
 	fedo = o.(map[string]interface{})
 	if err != nil {
-		r.Log.Error(err, err.Error())
+		log.Error(err, err.Error())
 		return ctrl.Result{}, err
 	}
 	issuer := fedo["issuer"].(string)
 	if util.IsMgmtCluster(instance.Spec.ClusterName) {
-		r.Log.Info("Installing Pinniped components in cluster ", "cluster-name", instance.Spec.ClusterName)
+		log.Info("Installing Pinniped components in cluster ", "cluster-name", instance.Spec.ClusterName)
 		// regex to get ip or dns names
 		callbackURL := fmt.Sprintf("https://%s/callback", hostFromURL(issuer))
 		values["config"] = map[string]interface{}{
@@ -174,39 +176,40 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 		}
 		err = r.reconcileComponentInstallation(ctx, cl, instance, supervisor, undistro.Namespace, "0.10.0-undistro", values)
 		if err != nil {
-			r.Log.Error(err, err.Error())
+			log.Error(err, err.Error())
 			return ctrl.Result{}, err
 		}
 		err = r.reconcileFederationDomain(ctx, fedo)
 		if err != nil {
-			r.Log.Error(err, err.Error())
+			log.Error(err, err.Error())
 			return ctrl.Result{}, err
 		}
 		err = r.reconcileOIDCProvider(ctx)
 		if err != nil {
-			r.Log.Error(err, err.Error())
+			log.Error(err, err.Error())
 			return ctrl.Result{}, err
 		}
 	} else {
 		clusterClient, err = kube.NewClusterClient(ctx, r.Client, instance.Spec.ClusterName, cl.GetNamespace())
 		if err != nil {
-			r.Log.Error(err, err.Error())
+			log.Error(err, err.Error())
 			return ctrl.Result{}, err
 		}
 	}
 	err = r.reconcileJWTAuthenticator(ctx, clusterClient, issuer)
 	if err != nil {
-		r.Log.Error(err, err.Error())
+		log.Error(err, err.Error())
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{RequeueAfter: identityRequeueAfter}, err
 }
 
 func (r *IdentityReconciler) reconcileDelete(ctx context.Context, instance appv1alpha1.Identity) (res ctrl.Result, err error) {
+	log := logr.FromContext(ctx)
 	releases := []string{conciergeReleaseName, supervisorReleaseName}
 	for _, release := range releases {
-		r.Log.Info("Deleting charts", "release", release, "namespace", instance.GetNamespace())
-		res, err = hr.Uninstall(ctx, r.Client, r.Log, release, instance.Spec.ClusterName, instance.GetNamespace())
+		log.Info("Deleting charts", "release", release, "namespace", instance.GetNamespace())
+		res, err = hr.Uninstall(ctx, r.Client, log, release, instance.Spec.ClusterName, instance.GetNamespace())
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -223,7 +226,8 @@ func hostFromURL(input string) string {
 }
 
 func (r *IdentityReconciler) reconcileFederationDomain(ctx context.Context, federationDomainCfg map[string]interface{}) error {
-	r.Log.Info("Reconciling Federation Domain")
+	log := logr.FromContext(ctx)
+	log.Info("Reconciling Federation Domain")
 	spec := supervisorconfigv1aplha1.FederationDomainSpec{}
 	spec.Issuer = federationDomainCfg["issuer"].(string)
 	localClus, err := util.IsLocalCluster(ctx, r.Client)
@@ -254,6 +258,7 @@ func (r *IdentityReconciler) reconcileFederationDomain(ctx context.Context, fede
 }
 
 func (r *IdentityReconciler) getIdentityConfigMap(ctx context.Context) (map[string]interface{}, error) {
+	logr.FromContext(ctx).Info("Retrieving Identity Config")
 	// get oidc related configmap
 	tmp := make(map[string]interface{})
 	o, err := util.GetFromConfigMap(
@@ -285,12 +290,15 @@ var providersOIDCProviderCfg = map[string]supervisoridpv1aplha1.OIDCIdentityProv
 }
 
 func (r *IdentityReconciler) reconcileOIDCProvider(ctx context.Context) error {
-	r.Log.Info("Reconciling OIDC provider")
+	log := logr.FromContext(ctx)
+	log.Info("Reconciling OIDC provider")
 	cfgMap, err := r.getIdentityConfigMap(ctx)
 	if err != nil {
-		r.Log.Info(err.Error())
+		log.Info(err.Error())
 		return err
 	}
+
+	log.Info("Retrieving info about the OIDC Identity Provider configured")
 	name := cfgMap["issuer"].(map[string]interface{})["name"].(string)
 	fmtName := fmt.Sprintf("undistro-%s-idp", name)
 	spec := supervisoridpv1aplha1.OIDCIdentityProviderSpec{}
@@ -300,6 +308,8 @@ func (r *IdentityReconciler) reconcileOIDCProvider(ctx context.Context) error {
 	spec.Issuer = providersOIDCProviderCfg[name].Issuer
 	spec.AuthorizationConfig = providersOIDCProviderCfg[name].AuthorizationConfig
 	spec.Claims = providersOIDCProviderCfg[name].Claims
+
+	log.Info("Mounting the OIDC Identity Provider", "provider", name, "providerName", fmtName)
 	oidcProvider := &supervisoridpv1aplha1.OIDCIdentityProvider{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "OIDCIdentityProvider",
@@ -311,6 +321,7 @@ func (r *IdentityReconciler) reconcileOIDCProvider(ctx context.Context) error {
 		},
 		Spec: spec,
 	}
+
 	_, err = util.CreateOrUpdate(ctx, r.Client, oidcProvider)
 	if err != nil {
 		return err
@@ -365,10 +376,11 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 	targetNs, version string,
 	values map[string]interface{},
 ) (err error) {
+	log := logr.FromContext(ctx)
 	releaseName := fmt.Sprintf("%s-%s", "pinniped", pc)
 	release := appv1alpha1.HelmRelease{}
 	msg := fmt.Sprintf("Checking if %s is installed", pc)
-	r.Log.Info(msg)
+	log.Info(msg)
 	key := client.ObjectKey{
 		Name:      hr.GetObjectName(releaseName, i.Spec.ClusterName),
 		Namespace: i.GetNamespace(),
@@ -388,8 +400,8 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 	}
 	release.Labels[meta.LabelUndistroMove] = ""
 	msg = fmt.Sprintf("Installing %s component: %s", identityManager, pc)
-	r.Log.Info(msg)
-	if err := hr.Install(ctx, r.Client, r.Log, release, cl); err != nil {
+	log.Info(msg)
+	if err := hr.Install(ctx, r.Client, log, release, cl); err != nil {
 		return err
 	}
 	return

@@ -45,14 +45,12 @@ func TestMain(m *testing.M) {
 	if err := (&ClusterReconciler{
 		Client: testEnv,
 		Scheme: testEnv.GetScheme(),
-		Log:    testEnv.GetLogger(),
 	}).SetupWithManager(testEnv); err != nil {
 		panic(fmt.Sprintf("Failed to start ClusterReconciler : %v", err))
 	}
 	if err := (&HelmReleaseReconciler{
 		Client: testEnv,
 		Scheme: testEnv.GetScheme(),
-		Log:    testEnv.GetLogger(),
 		config: testEnv.GetConfig(),
 	}).SetupWithManager(testEnv); err != nil {
 		panic(fmt.Sprintf("Failed to start HelmReleaseReconciler : %v", err))
