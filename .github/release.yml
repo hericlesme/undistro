@@ -7,8 +7,8 @@ changelog:
       labels:
         - enhancement
     - title: Code Improvements 🖌️
-        labels:
-          - refactor
+      labels:
+        - refactor
     - title: Documentation 📝
       labels:
         - documentation
