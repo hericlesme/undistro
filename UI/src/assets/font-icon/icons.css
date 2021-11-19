@@ -1,10 +1,6 @@
 @font-face {
     font-family: "icons";
-    src: url("./icons.eot?1cbccf76e37c4d928f78a17fab6fa492?#iefix") format("embedded-opentype"),
-url("./icons.woff2?1cbccf76e37c4d928f78a17fab6fa492") format("woff2"),
-url("./icons.woff?1cbccf76e37c4d928f78a17fab6fa492") format("woff"),
-url("./icons.ttf?1cbccf76e37c4d928f78a17fab6fa492") format("truetype"),
-url("./icons.svg?1cbccf76e37c4d928f78a17fab6fa492#icons") format("svg");
+    src: ;
 }
 
 i[class^="icon-"]:before, i[class*=" icon-"]:before {
@@ -51,45 +47,57 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-close:before {
     content: "\f10b";
 }
-.icon-cluster:before {
+.icon-cluster-actions-critical:before {
     content: "\f10c";
 }
-.icon-clustersIcon:before {
+.icon-cluster-actions-default:before {
     content: "\f10d";
 }
-.icon-dots:before {
+.icon-cluster-actions-resume:before {
     content: "\f10e";
 }
-.icon-git:before {
+.icon-cluster:before {
     content: "\f10f";
 }
-.icon-helm:before {
+.icon-clustersIcon:before {
     content: "\f110";
 }
-.icon-logs:before {
+.icon-dots:before {
     content: "\f111";
 }
-.icon-network:before {
+.icon-git:before {
     content: "\f112";
 }
-.icon-node:before {
+.icon-helm:before {
     content: "\f113";
 }
-.icon-play:before {
+.icon-logs:before {
     content: "\f114";
 }
-.icon-plus:before {
+.icon-network:before {
     content: "\f115";
 }
-.icon-settings:before {
+.icon-node:before {
     content: "\f116";
 }
-.icon-stop:before {
+.icon-nodepool-actions-critical:before {
     content: "\f117";
 }
-.icon-union:before {
+.icon-play:before {
     content: "\f118";
 }
-.icon-workload:before {
+.icon-plus:before {
     content: "\f119";
+}
+.icon-settings:before {
+    content: "\f11a";
+}
+.icon-stop:before {
+    content: "\f11b";
+}
+.icon-union:before {
+    content: "\f11c";
+}
+.icon-workload:before {
+    content: "\f11d";
 }
