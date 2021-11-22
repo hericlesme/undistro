@@ -41,10 +41,8 @@ jobs:
           echo "GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
           echo "$RUNNER_WORKSPACE/$(basename $GITHUB_REPOSITORY)/bin" >> $GITHUB_PATH
 
-      - name: Install Kind and create cluster
-        run: |
-          GO111MODULE="on" go install sigs.k8s.io/kind@v0.11.1
-          ./hack/cluster.sh -k
+      - name: Create Kind cluster
+        run: ./hack/cluster.sh -k
 
       - name: Configure AWS credentials for E2E 1.20
         uses: aws-actions/configure-aws-credentials@v1
