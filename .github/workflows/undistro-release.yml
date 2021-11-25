@@ -60,6 +60,7 @@ jobs:
         run: |
           helm plugin install https://github.com/getupio-undistro/helm-push.git
           helm repo add undistro https://registry.undistro.io/chartrepo/library
+          helm chart-push calico undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
           helm chart-push cert-manager undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
           helm chart-push cluster-api undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
           helm chart-push undistro undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
