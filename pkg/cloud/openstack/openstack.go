@@ -128,7 +128,7 @@ func ReconcileCloudProvider(ctx context.Context, c client.Client, log logr.Logge
 	}
 	const (
 		cloudHelm = "cloud-provider-openstack"
-		version   = "1.22.0"
+		version   = "1.22.1"
 	)
 
 	m := map[string]interface{}{
