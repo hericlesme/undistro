@@ -21,7 +21,6 @@ module.exports = {
 		historyApiFallback: {
 			disableDotRule: true
 		},
-		inline: true,
 		host: '0.0.0.0',
 		port: 3001
 	},
@@ -88,7 +87,7 @@ module.exports = {
 						loader: 'image-webpack-loader',
 						options: {
 							bypassOnDebug: true, // webpack@1.x
-        			disable: true, // webpack@2.x and newer
+							disable: true // webpack@2.x and newer
 						}
 					}
 				]
