@@ -36,7 +36,6 @@ import (
 	"helm.sh/helm/v3/pkg/release"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	apiyaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -226,6 +225,15 @@ func ContainsStringInSlice(ss []string, str string) bool {
 	return false
 }
 
+func ContainsIntInSlice(numbers []int, number int) bool {
+	for _, item := range numbers {
+		if item == number {
+			return true
+		}
+	}
+	return false
+}
+
 func ObjectKeyFromString(str string) client.ObjectKey {
 	c := client.ObjectKey{}
 	split := strings.Split(str, "/")
@@ -257,8 +265,8 @@ func RemoveDuplicateTaints(taints []corev1.Taint) []corev1.Taint {
 //// Asserts whether the current cluster is local, and the kind of local cluster. Each type is mapped to the enum <LocalClusterType>.
 func IsLocalCluster(ctx context.Context, c client.Client) (LocalClusterType, error) {
 	nodes := corev1.NodeList{
-		TypeMeta: v1.TypeMeta{},
-		ListMeta: v1.ListMeta{},
+		TypeMeta: metav1.TypeMeta{},
+		ListMeta: metav1.ListMeta{},
 		Items:    []corev1.Node{},
 	}
 	err := c.List(ctx, &nodes)

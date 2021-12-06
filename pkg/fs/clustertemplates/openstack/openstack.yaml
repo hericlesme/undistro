@@ -4,6 +4,9 @@ kind: Cluster
 metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{.Cluster.Name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{.Cluster.Namespace}}"
 spec:
   paused: {{.Cluster.Spec.Paused}}
   {{if .Cluster.Spec.Network}}
@@ -46,6 +49,9 @@ kind: OpenStackCluster
 metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{.Cluster.Name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{.Cluster.Namespace}}"
 spec:
   externalNetworkId: {{.ENV.EXTERNAL_NETWORK_ID}}
   cloudName: {{.ENV.CLOUD_NAME}}
@@ -73,13 +79,16 @@ apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
 metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{.Cluster.Name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{.Cluster.Namespace}}"
 spec:
   replicas: {{ .Cluster.Spec.ControlPlane.Replicas}}
   machineTemplate:
     infrastructureRef:
       kind: OpenStackMachineTemplate
       apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-      name: "{{.Cluster.Name}}-cp-{{.Cluster.Status.LastUsedUID}}"
+      name: "{{.Cluster.Name}}-cp-{{.CPID}}"
       namespace: "{{.Cluster.Namespace}}"
   kubeadmConfigSpec:
     useExperimentalRetryJoin: true
@@ -128,8 +137,11 @@ spec:
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: OpenStackMachineTemplate
 metadata:
-  name: "{{.Cluster.Name}}-cp-{{.Cluster.Status.LastUsedUID}}"
+  name: "{{.Cluster.Name}}-cp-{{.CPID}}"
   namespace: "{{.Cluster.Namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{.Cluster.Name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{.Cluster.Namespace}}"
 spec:
   template:
     spec:
@@ -149,6 +161,9 @@ kind: MachineHealthCheck
 metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{.Cluster.Name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{.Cluster.Namespace}}"
 spec:
   clusterName: "{{.Cluster.Name}}"
   nodeStartupTimeout: 5m
@@ -171,13 +186,22 @@ spec:
 {{$uid := .Cluster.Status.LastUsedUID}}
 {{$subnets := .Cluster.Spec.Network.Subnets}}
 {{$env := .ENV}}
+{{$workersChanged := .WorkersChanged}}
+{{$olduid := .OldID}}
 {{range $index, $element := .Cluster.Spec.Workers}}
+{{$changed := containInt $workersChanged $index}}
+{{if not $changed}}
+{{$uid = $olduid}}
+{{end}}
 ---
 apiVersion: cluster.x-k8s.io/v1alpha4
 kind: MachineDeployment
 metadata:
   name: "{{$name}}-mp-{{$index}}"
   namespace: "{{$namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{$name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{$namespace}}"
 spec:
   clusterName: "{{$name}}"
   replicas: {{$element.Replicas}}
@@ -203,6 +227,9 @@ kind: OpenStackMachineTemplate
 metadata:
   name: "{{$name}}-mp-{{$uid}}-{{$index}}"
   namespace: "{{$namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{$name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{$namespace}}"
 spec:
   template:
     spec:
@@ -222,6 +249,9 @@ kind: KubeadmConfigTemplate
 metadata:
   name: "{{$name}}-mp-{{$uid}}-{{$index}}"
   namespace: "{{$namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{$name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{$namespace}}"
 spec:
   template:
     spec:

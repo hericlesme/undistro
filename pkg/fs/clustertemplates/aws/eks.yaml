@@ -4,6 +4,9 @@ kind: Cluster
 metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{.Cluster.Name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{.Cluster.Namespace}}"
 spec:
   {{if ne .ENV.ROLE_NAME ""}}
   roleName: {{.ENV.ROLE_NAME}}
@@ -50,6 +53,9 @@ kind: AWSManagedControlPlane
 metadata:
   name: "{{.Cluster.Name}}"
   namespace: "{{.Cluster.Namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{.Cluster.Name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{.Cluster.Namespace}}"
 spec:
   eksClusterName: "{{.Cluster.Name}}"
   identityRef:
@@ -129,13 +135,22 @@ spec:
 {{$sshKey := .Cluster.Spec.InfrastructureProvider.SSHKey}}
 {{$uid := .Cluster.Status.LastUsedUID}}
 {{$env := .ENV}}
+{{$workersChanged := .WorkersChanged}}
+{{$olduid := .OldID}}
 {{range $index, $element := .Cluster.Spec.Workers}}
+{{$changed := containInt $workersChanged $index}}
+{{if not $changed}}
+{{$uid = $olduid}}
+{{end}}
 ---
 apiVersion: cluster.x-k8s.io/v1alpha4
 kind: MachinePool
 metadata:
   name: "{{$name}}-mp-{{$index}}"
   namespace: "{{$namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{$name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{$namespace}}"
 spec:
   clusterName: {{$name}}
   replicas: {{$element.Replicas}}
@@ -156,6 +171,9 @@ kind: AWSManagedMachinePool
 metadata:
   name: "{{$name}}-mp-{{$index}}"
   namespace: "{{$namespace}}"
+  labels:
+    cluster.x-k8s.io/cluster-name: "{{$name}}"
+    cluster.x-k8s.io/cluster-namespace: "{{$namespace}}"
 spec:
   eksNodegroupName: "{{$name}}-mp-{{$index}}"
   {{if ne $env.ROLE_NAME ""}}

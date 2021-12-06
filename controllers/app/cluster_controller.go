@@ -275,7 +275,16 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 		}
 	}
 	if r.hasDiff(ctx, cl) && validDiff {
-		cl.Status.LastUsedUID = string(uuid.NewUUID())
+		newUUID := string(uuid.NewUUID())
+		cpChanged, workersChanged := r.machineTypeChanged(cl)
+		if cpChanged {
+			vars["CPID"] = newUUID
+		} else {
+			vars["CPID"] = cl.Status.LastUsedUID
+		}
+		vars["WorkersChanged"] = workersChanged
+		vars["OldID"] = cl.Status.LastUsedUID
+		cl.Status.LastUsedUID = newUUID
 	}
 	return vars, nil
 }
@@ -313,6 +322,24 @@ func (r *ClusterReconciler) reconcileConciergeEndpoint(ctx context.Context, cl a
 	}
 	cl.Status.ConciergeInfo = info
 	return cl, nil
+}
+
+func (r *ClusterReconciler) machineTypeChanged(cl *appv1alpha1.Cluster) (bool, []int) {
+	cpChanged := false
+	workersChanged := make([]int, 0)
+	if !cl.Spec.InfrastructureProvider.IsManaged() && cl.Spec.ControlPlane != nil {
+		cpChanged = cl.Spec.ControlPlane.MachineType != cl.Status.ControlPlane.MachineType
+	}
+	for i, w := range cl.Spec.Workers {
+		if len(cl.Status.Workers)-1 >= i {
+			if w.MachineType != cl.Status.Workers[i].MachineType {
+				workersChanged = append(workersChanged, i)
+			}
+		} else {
+			workersChanged = append(workersChanged, i)
+		}
+	}
+	return cpChanged, workersChanged
 }
 
 func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *appv1alpha1.Cluster) bool {

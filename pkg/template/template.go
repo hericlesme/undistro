@@ -54,6 +54,8 @@ func New(options ...Options) (*Render, error) {
 		{
 			"slugtaint":      slugfyTaintEffect,
 			"corednsVersion": cloud.CoreDNSVersion,
+			"containInt":     util.ContainsIntInSlice,
+			"containStr":     util.ContainsStringInSlice,
 		},
 	}
 	var o Options
