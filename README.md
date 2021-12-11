@@ -1,13 +1,59 @@
-# UnDistro Kubernetes platform
+<h1 align="center">
+  <img src="assets/undistro.svg" alt="UnDistro"/>
+  UnDistro Kubernetes Platform
+</h1>
+<p align="center">
+    <a target="_blank" href="https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.19.yml">
+        <img alt="Tests E2E 1.19 on AWS" src="https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.19.yml/badge.svg"/>
+    </a>
+    <a target="_blank" href="https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.20.yml">
+        <img alt="Tests E2E 1.20 on AWS" src="https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.20.yml/badge.svg"/>
+    </a>
+    <a target="_blank" href="https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.21.yml">
+        <img alt="Tests E2E 1.21 on AWS" src="https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.21.yml/badge.svg"/>
+    </a>
+    <a target="_blank" href="https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.22.ym">
+        <img alt="Tests E2E 1.22 on AWS" src="https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.22.yml/badge.svg"/>
+    </a>
+    <br/>
+    <a target="_blank" href="https://github.com/getupio-undistro/undistro/actions/workflows/build.yml">
+        <img alt="Tests" src="https://github.com/getupio-undistro/undistro/actions/workflows/build.yml/badge.svg"/>
+    </a>
+    <a href="https://github.com/getupio-undistro/undistro/blob/main/LICENSE" alt="License">
+        <img src="https://img.shields.io/github/license/getupio-undistro/undistro" />
+    </a>
+    <a href="https://github.com/getupio-undistro/undistro/pulse" alt="Activity">
+        <img src="https://img.shields.io/github/commit-activity/m/getupio-undistro/undistro" />
+    </a>
+    <a href="https://github.com/getupio-undistro/undistro/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/github/contributors/getupio-undistro/undistro" />
+    </a>
+</p>
 
-[![Tests](https://github.com/getupio-undistro/undistro/actions/workflows/build.yml/badge.svg)](https://github.com/getupio-undistro/undistro/actions/workflows/build.yml) [![Tests E2E 1.19 on AWS](https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.19.yml/badge.svg)](https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.19.yml) [![Tests E2E 1.20 on AWS](https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.20.yml/badge.svg)](https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.20.yml) [![Tests E2E 1.21 on AWS](https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.21.yml/badge.svg)](https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.21.yml) [![Tests E2E 1.22 on AWS](https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.22.yml/badge.svg)](https://github.com/getupio-undistro/undistro/actions/workflows/e2e-aws-1.22.yml)
+## What is UnDistro?
 
 UnDistro is a vanilla, non-opinionated, and open-source Kubernetes distribution that helps spin up, manage, and visualize one or more production-ready clusters in a standardized and centralized way.
 
 Choosing to use UnDistro is not a matter of choosing UnDistro over EKS/AKS/GKE. Think of UnDistro as an additional “layer” to help you with day 2 K8s operations, no matter the infrastructure, hosted, or self-hosted Kubernetes.
 
-## Get Started
-To get started, check out the Undistro documentation at https://undistro.io/docs.
+## Getting Started
+
+### Prerequisites
+
+- Install and setup [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) in your local environment.
+- Install and setup [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) and [Docker](https://www.docker.com/get-started). **(required just for kind installation method)**
+- Install and setup [aws-iam-authenticator](https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html) in your local environment. **(required just for AWS provider)**
+- Install [NSS Tools](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/tools) in your OS using your favorite package manager (rpm/deb/apk)
+  > :warning: **If the installation is from rpm, deb, apk or brew package managers it will also install nss tools for you**: Be very careful here!
+### Installing UnDistro CLI
+
+- Download [UnDistro CLI](https://github.com/getupio-undistro/undistro/releases) or use Homebrew to install.
+
+```bash
+brew install getupio-undistro/tap/undistro
+```
+
+To get started and easily create your first cluster with UnDistro, check out the [docs](https://undistro.io/docs).
 
 ### Development
 The first step in getting involved with Undistro is to download the source code. Since the development is carried out by means of the Git version control system, you can use it to clone the repository. If you don't already have Git installed, it can be found in most package managers and the official downloads page. Furthermore, a Github account will also be required for sending changes back, so be sure to have one.
@@ -15,22 +61,23 @@ The first step in getting involved with Undistro is to download the source code.
 **You can find additional details for setting up the Undistro development environment under the [Development](https://undistro.io/docs#11---development
 ) section in the Docs.**
 ## Project Structure
-Undistro's repository contains not only its source code, but also some related files, as is the case with the charts directory. The entire project structure is laid out as follows.
+Undistro's repository contains not only its source code, but also some related files, as is the case with the charts directory.  
+The entire project structure is laid out as follows.
 
-- **UI**: Contains the source of Undistro's frontend;
-- **apis**: Stores the Undistro API and its versions;
-- **bin**: Where the compiled binaries are saved;
-- **charts**: Stores multiple Helm charts maintained by the Undistro team;
-- **cmd**: Has the main Go files for the CLIs;
-- **config**: Keeps configuration files generated by Kubebuilder;
-- **controllers**: Keeps generated Kubernetes' controllers and a few test files;
-- **e2e**: Contains files used for End-to-End testing;
-- **examples**: Stores YAML files describing how to use Undistro;
-- **hack**: Miscellaneous configuration files and helper scripts;
-- **pkg**: Stores the core functionality of each Undistro package;
-- **testbin**: Stores binary dependencies downloaded during testing, as well as shell scripts used for building and testing;
-- **tilt_modules**: Contains Tilt configuration files for Undistro and cert-manager as well;
-- **website**: Keeps the source code for Undistro's website and this documentation;
+    .
+    ├── UI                # Contains the source of Undistro's frontend
+    ├── apis              # Stores the Undistro API and its versions
+    ├── charts            # Stores multiple Helm charts maintained by the Undistro team
+    ├── cmd               # Has the main Go files for the CLIs
+    ├── config            # Keeps configuration files generated by Kubebuilder
+    ├── controllers       # Keeps generated Kubernetes' controllers and a few test files
+    ├── e2e               # Contains files used for End-to-End testing
+    ├── examples          # Stores YAML files describing how to use Undistro
+    ├── hack              # Miscellaneous configuration files and helper scripts
+    ├── pkg               # Stores the core functionality of each Undistro package
+    ├── testbin           # Stores binary dependencies downloaded during testing, as well as shell scripts used for building and testing
+    ├── tilt_modules      # Contains Tilt configuration files for Undistro and cert-manager as well
+    └── website           # Keeps the source code for Undistro's website and this documentation
 
 ## Contributing
 
