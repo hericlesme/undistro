@@ -35,6 +35,9 @@ func PatchInstance(ctx context.Context, i InstanceOpts) {
 	patchErr := i.Helper.Patch(ctx, i.Object, patchOpts...)
 	if patchErr != nil {
 		i.Error = kerrors.NewAggregate([]error{patchErr, i.Error})
+		keysAndValues = []interface{}{
+			"requestInfo", i.Request, "controller", i.Controller, "err", i.Error,
+		}
 		log.Info("Error patching object instance", keysAndValues...)
 		return
 	}
