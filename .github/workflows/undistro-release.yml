@@ -54,7 +54,7 @@ jobs:
           docker build -t registry.undistro.io/library/undistro-gui:$GITHUB_REF_NAME .
           docker tag registry.undistro.io/library/undistro-gui:$GITHUB_REF_NAME registry.undistro.io/library/undistro-gui-amd64:$GITHUB_REF_NAME
           docker tag registry.undistro.io/library/undistro-gui:$GITHUB_REF_NAME registry.undistro.io/library/undistro-gui-arm64:$GITHUB_REF_NAME
-          docker push --all-tags registry.undistro.io/library/undistro-gui:$GITHUB_REF_NAME
+          docker push registry.undistro.io/library/undistro-gui:$GITHUB_REF_NAME
 
       - name: helm chart-push
         working-directory: ./charts
