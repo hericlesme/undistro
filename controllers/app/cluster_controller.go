@@ -483,7 +483,10 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 }
 
 func (r *ClusterReconciler) reconcileClusterAutoscaler(ctx context.Context, cl *appv1alpha1.Cluster) error {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
 
 	const (
 		chartName    = "cluster-autoscaler"
@@ -496,7 +499,7 @@ func (r *ClusterReconciler) reconcileClusterAutoscaler(ctx context.Context, cl *
 		Namespace: cl.GetNamespace(),
 	}
 	release := appv1alpha1.HelmRelease{}
-	err := r.Get(ctx, key, &release)
+	err = r.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return err
