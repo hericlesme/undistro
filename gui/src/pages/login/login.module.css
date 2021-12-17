@@ -1,0 +1,183 @@
+.loginPageContainer {
+  display: flex;
+  height: 100vh;
+  background-color: var(--background-default);
+}
+
+.contentTab {
+  height: 100%;
+  margin: 0 auto 0 auto;
+  width: 580px;
+  display: flex;
+  flex-direction: column;
+}
+
+.contentTabProviders {
+  background-color: var(--background-dark);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.contentTabLogo {
+  height: 147px;
+  padding: 64px 0 64px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.providersSelection {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 148px;
+}
+
+.selectProviderText {
+  display: flex;
+  justify-content: center;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0.01em;
+  color: var(--text-default);
+  margin-bottom: 40px;
+}
+
+.providersContainer {
+  height: 80px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 32px;
+}
+
+.providersIconContainer {
+  width: 60px;
+  height: 80px;
+  z-index: 20;
+}
+
+.providersIconContainer:hover .providerText {
+  position: relative;
+  top: 60px;
+}
+
+.providerGoogle {
+  position: relative;
+  top: -20px;
+  width: 60px;
+  height: 60px;
+  background-image: url('/img/providerGoogleBwIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: 300ms;
+}
+
+.providersIconContainer:hover .providerGoogle {
+  width: 60px;
+  height: 60px;
+  background-image: url('/img/providerGoogleColorIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.providerAmazon {
+  position: relative;
+  top: -20px;
+  width: 60px;
+  height: 60px;
+  background-image: url('/img/providerAmazonBwIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: 300ms;
+}
+
+.providersIconContainer:hover .providerAmazon {
+  width: 60px;
+  height: 60px;
+  background-image: url('/img/providerAmazonColorIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.providerMicrosoft {
+  position: relative;
+  top: -20px;
+  width: 60px;
+  height: 60px;
+  background-image: url('/img/providerMicrosoftBwIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: 300ms;
+}
+
+.providersIconContainer:hover .providerMicrosoft {
+  width: 60px;
+  height: 60px;
+  background-image: url('/img/providerMicrosoftColorIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.providerGitHub {
+  position: relative;
+  top: -20px;
+  width: 60px;
+  height: 60px;
+  background-image: url('/img/providerGithubBwIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: 300ms;
+}
+
+.providersIconContainer:hover .providerGitHub {
+  width: 60px;
+  height: 60px;
+  background-image: url('/img/providerGithubColorIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.providerGitLab {
+  position: relative;
+  top: -20px;
+  width: 60px;
+  height: 60px;
+  background-image: url('/img/providerGitlabBwIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: 300ms;
+}
+
+.providersIconContainer:hover .providerGitLab {
+  width: 60px;
+  height: 60px;
+  background-image: url('/img/providerGitlabColorIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.providerText {
+  position: relative;
+  top: 40px;
+  width: 60px;
+  height: 20px;
+  font-style: normal;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: var(--text-default);
+  z-index: -1;
+  transition: 300ms;
+}
+
+.contentTabFooter {
+  height: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

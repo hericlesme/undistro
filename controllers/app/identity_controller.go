@@ -80,8 +80,11 @@ func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return ctrl.Result{}, err
 		}
 	}
-
-	log := logr.FromContext(ctx).WithValues("identity", req.String())
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+	log.WithValues("identity", req.String())
 
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(instance, r.Client)
@@ -132,14 +135,18 @@ func (r *IdentityReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 // reconcile ensures that, if identity is enabled, pinniped is installed in clusters
 func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1.Identity) (ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	cl := &appv1alpha1.Cluster{}
 	clusterClient := r.Client
 	key := client.ObjectKey{
 		Name:      instance.Spec.ClusterName,
 		Namespace: instance.GetNamespace(),
 	}
-	err := r.Get(ctx, key, cl)
+	err = r.Get(ctx, key, cl)
 	if client.IgnoreNotFound(err) != nil {
 		log.Error(err, err.Error())
 		return ctrl.Result{}, err
@@ -170,11 +177,11 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 	if util.IsMgmtCluster(instance.Spec.ClusterName) {
 		log.Info("Installing Pinniped components in cluster ", "cluster-name", instance.Spec.ClusterName)
 		// regex to get ip or dns names
-		callbackURL := fmt.Sprintf("https://%s/callback", hostFromURL(issuer))
+		callbackURL := fmt.Sprintf("https://%s/uapi/callback", hostFromURL(issuer))
 		values["config"] = map[string]interface{}{
 			"callbackURL": callbackURL,
 		}
-		err = r.reconcileComponentInstallation(ctx, cl, instance, supervisor, undistro.Namespace, "0.10.0-undistro", values)
+		err = r.reconcileComponentInstallation(ctx, cl, instance, supervisor, undistro.Namespace, "0.10.0", values)
 		if err != nil {
 			log.Error(err, err.Error())
 			return ctrl.Result{}, err
@@ -205,7 +212,11 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 }
 
 func (r *IdentityReconciler) reconcileDelete(ctx context.Context, instance appv1alpha1.Identity) (res ctrl.Result, err error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	releases := []string{conciergeReleaseName, supervisorReleaseName}
 	for _, release := range releases {
 		log.Info("Deleting charts", "release", release, "namespace", instance.GetNamespace())
@@ -226,7 +237,11 @@ func hostFromURL(input string) string {
 }
 
 func (r *IdentityReconciler) reconcileFederationDomain(ctx context.Context, federationDomainCfg map[string]interface{}) error {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	log.Info("Reconciling Federation Domain")
 	spec := supervisorconfigv1aplha1.FederationDomainSpec{}
 	spec.Issuer = federationDomainCfg["issuer"].(string)
@@ -258,7 +273,12 @@ func (r *IdentityReconciler) reconcileFederationDomain(ctx context.Context, fede
 }
 
 func (r *IdentityReconciler) getIdentityConfigMap(ctx context.Context) (map[string]interface{}, error) {
-	logr.FromContext(ctx).Info("Retrieving Identity Config")
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
+	log.Info("Retrieving Identity Config")
 	// get oidc related configmap
 	tmp := make(map[string]interface{})
 	o, err := util.GetFromConfigMap(
@@ -282,15 +302,22 @@ var providersOIDCProviderCfg = map[string]supervisoridpv1aplha1.OIDCIdentityProv
 	},
 	string(appv1alpha1.Gitlab): {
 		Issuer: "https://gitlab.com",
+		AuthorizationConfig: supervisoridpv1aplha1.OIDCAuthorizationConfig{
+			AdditionalScopes: []string{"email", "profile"},
+		},
 		Claims: supervisoridpv1aplha1.OIDCClaims{
-			Username: "nickname",
+			Username: "email",
 			Groups:   "groups",
 		},
 	},
 }
 
 func (r *IdentityReconciler) reconcileOIDCProvider(ctx context.Context) error {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	log.Info("Reconciling OIDC provider")
 	cfgMap, err := r.getIdentityConfigMap(ctx)
 	if err != nil {
@@ -376,7 +403,11 @@ func (r *IdentityReconciler) reconcileComponentInstallation(
 	targetNs, version string,
 	values map[string]interface{},
 ) (err error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	releaseName := fmt.Sprintf("%s-%s", "pinniped", pc)
 	release := appv1alpha1.HelmRelease{}
 	msg := fmt.Sprintf("Checking if %s is installed", pc)

@@ -49,9 +49,6 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command:
         - /usr/local/bin/pinniped-supervisor
-        env:
-        - name: UNDISTRO_UI_CALLBACK_URL
-          value: {{ .Values.config.callbackURL }}
         args:
         - /etc/podinfo
         - /etc/config/pinniped.yaml

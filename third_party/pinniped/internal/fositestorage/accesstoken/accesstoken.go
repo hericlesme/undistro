@@ -10,7 +10,7 @@ import (
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
-	"github.com/ory/fosite/handler/openid"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 
@@ -18,6 +18,7 @@ import (
 	"github.com/getupio-undistro/undistro/third_party/pinniped/internal/crud"
 	"github.com/getupio-undistro/undistro/third_party/pinniped/internal/fositestorage"
 	"github.com/getupio-undistro/undistro/third_party/pinniped/internal/oidc/clientregistry"
+	"github.com/getupio-undistro/undistro/third_party/pinniped/internal/psession"
 )
 
 const (
@@ -26,7 +27,9 @@ const (
 	ErrInvalidAccessTokenRequestVersion = constable.Error("access token request data has wrong version")
 	ErrInvalidAccessTokenRequestData    = constable.Error("access token request data must be present")
 
-	accessTokenStorageVersion = "1"
+	// Version 1 was the initial release of storage.
+	// Version 2 is when we switched to storing psession.PinnipedSession inside the fosite request.
+	accessTokenStorageVersion = "2"
 )
 
 type RevocationStorage interface {
@@ -40,13 +43,30 @@ type accessTokenStorage struct {
 	storage crud.Storage
 }
 
-type session struct {
+type Session struct {
 	Request *fosite.Request `json:"request"`
 	Version string          `json:"version"`
 }
 
 func New(secrets corev1client.SecretInterface, clock func() time.Time, sessionStorageLifetime time.Duration) RevocationStorage {
 	return &accessTokenStorage{storage: crud.New(TypeLabelValue, secrets, clock, sessionStorageLifetime)}
+}
+
+// ReadFromSecret reads the contents of a Secret as a Session.
+func ReadFromSecret(secret *v1.Secret) (*Session, error) {
+	session := newValidEmptyAccessTokenSession()
+	err := crud.FromSecret(TypeLabelValue, secret, session)
+	if err != nil {
+		return nil, err
+	}
+	if session.Version != accessTokenStorageVersion {
+		return nil, fmt.Errorf("%w: access token session has version %s instead of %s",
+			ErrInvalidAccessTokenRequestVersion, session.Version, accessTokenStorageVersion)
+	}
+	if session.Request.ID == "" {
+		return nil, fmt.Errorf("malformed access token session: %w", ErrInvalidAccessTokenRequestData)
+	}
+	return session, nil
 }
 
 func (a *accessTokenStorage) RevokeAccessToken(ctx context.Context, requestID string) error {
@@ -62,7 +82,7 @@ func (a *accessTokenStorage) CreateAccessTokenSession(ctx context.Context, signa
 	_, err = a.storage.Create(
 		ctx,
 		signature,
-		&session{Request: request, Version: accessTokenStorageVersion},
+		&Session{Request: request, Version: accessTokenStorageVersion},
 		map[string]string{fositestorage.StorageRequestIDLabelName: requester.GetID()},
 	)
 	return err
@@ -82,7 +102,7 @@ func (a *accessTokenStorage) DeleteAccessTokenSession(ctx context.Context, signa
 	return a.storage.Delete(ctx, signature)
 }
 
-func (a *accessTokenStorage) getSession(ctx context.Context, signature string) (*session, string, error) {
+func (a *accessTokenStorage) getSession(ctx context.Context, signature string) (*Session, string, error) {
 	session := newValidEmptyAccessTokenSession()
 	rv, err := a.storage.Get(ctx, signature, session)
 
@@ -106,11 +126,11 @@ func (a *accessTokenStorage) getSession(ctx context.Context, signature string) (
 	return session, rv, nil
 }
 
-func newValidEmptyAccessTokenSession() *session {
-	return &session{
+func newValidEmptyAccessTokenSession() *Session {
+	return &Session{
 		Request: &fosite.Request{
 			Client:  &clientregistry.Client{},
-			Session: &openid.DefaultSession{},
+			Session: &psession.PinnipedSession{},
 		},
 	}
 }

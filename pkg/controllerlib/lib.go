@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"sigs.k8s.io/cluster-api/util/patch"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -19,7 +20,10 @@ type InstanceOpts struct {
 }
 
 func PatchInstance(ctx context.Context, i InstanceOpts) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
 
 	if err := i.validate(); err != nil {
 		return

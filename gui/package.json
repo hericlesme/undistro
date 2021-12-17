@@ -1,0 +1,46 @@
+{
+  "name": "undistro-gui",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:secure": "node server.ts",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "format": "pretty-quick --staged",
+    "prepare": "cd ../ && husky install ./gui/.husky"
+  },
+  "dependencies": {
+    "@kubernetes/client-node": "^0.16.1",
+    "@reach/dialog": "^0.16.2",
+    "axios": "^0.24.0",
+    "classnames": "^2.3.1",
+    "js-cookie": "^3.0.1",
+    "moment": "^2.29.1",
+    "moment-timezone": "^0.5.34",
+    "next": "12.0.4",
+    "next-auth": "^4.0.5",
+    "next-themes": "^0.0.15",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "react-query": "^3.34.0",
+    "react-resize-detector": "^6.7.6"
+  },
+  "devDependencies": {
+    "@types/node": "16.11.9",
+    "@types/react": "17.0.35",
+    "@typescript-eslint/eslint-plugin": "^5.5.0",
+    "eslint": "7.32.0",
+    "eslint-config-next": "12.0.4",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-react": "^7.27.1",
+    "eslint-plugin-react-hooks": "^4.3.0",
+    "husky": "^7.0.4",
+    "prettier": "^2.5.0",
+    "pretty-quick": "^3.1.2",
+    "typescript": "4.5.2"
+  }
+}

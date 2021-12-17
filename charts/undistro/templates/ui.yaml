@@ -1,0 +1,92 @@
+{{ if .Values.ui }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    undistro.io: undistro
+  name: undistro-gui-service
+  namespace: undistro-system
+spec:
+  ports:
+  - name: undistro-gui-server
+    port: 3000
+    targetPort: 3000
+  selector:
+    control-plane: undistro-gui
+    undistro.io: undistro
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: undistro-gui
+    undistro.io: undistro
+  name: undistro-controller-manager
+  namespace: undistro-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: undistro-gui
+      undistro.io: undistro
+  template:
+    metadata:
+      labels:
+        control-plane: undistro-gui
+        undistro.io: undistro
+    spec:
+      containers:
+      - command:
+          - node_modules/.bin/next
+        args:
+          - start
+        image: "{{ .Values.global.undistroRepository}}/undistro-gui:{{ .Values.global.undistroVersion }}"
+        env:
+          - name: IDENTITY_ENABLED
+            value: {{ .Values.identity.enabled }}
+          {{ if .Values.identity.enabled }}
+          - name: IDENTITY_PROVIDER
+            value: {{ .Values.identity.oidc.provider.issuer.name }}
+          {{end}}
+          {{ if eq .Values.identity.oidc.provider.issuer.name "gitlab"}}
+          - name: GITLAB_ID
+            value: {{ .Values.identity.oidc.credentials.clientID }}
+          - name: GITLAB_SECRET
+            value: {{ .Values.identity.oidc.credentials.clientSecret }}
+          {{ end }}
+          {{ if eq .Values.identity.oidc.provider.issuer.name "google"}}
+          - name: GOOGLE_ID
+            value: {{ .Values.identity.oidc.credentials.clientID }}
+          - name: GOOGLE_SECRET
+            value: {{ .Values.identity.oidc.credentials.clientSecret }}
+          {{ end }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        livenessProbe:
+          httpGet:
+            path: /manifest.json
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        ports:
+        - containerPort: 3000
+          name: undistro-gui-server
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /manifest.json
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+{{- with .Values.resources }}
+        resources:
+{{ toYaml . | indent 10 }}
+{{- end }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+{{ end }}

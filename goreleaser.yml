@@ -48,6 +48,9 @@ dockers:
   - image_templates:
       - "registry.undistro.io/library/undistro:{{ .Tag }}"
       - "registry.undistro.io/library/undistro-amd64:{{ .Tag }}"
+      # for mow this is a hack to gui image appers on changelog
+      - "registry.undistro.io/library/undistro-gui:{{ .Tag }}"
+      - "registry.undistro.io/library/undistro-gui-amd64:{{ .Tag }}"
     use: buildx
     ids: [manager]
     goarch: amd64
@@ -58,6 +61,8 @@ dockers:
 
   - image_templates:
       - "registry.undistro.io/library/undistro-arm64:{{ .Tag }}"
+      # for mow this is a hack to gui image appers on changelog
+      - "registry.undistro.io/library/undistro-gui-arm64:{{ .Tag }}"
     use: buildx
     ids: [manager]
     goarch: arm64

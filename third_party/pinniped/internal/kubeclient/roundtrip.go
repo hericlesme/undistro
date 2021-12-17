@@ -20,6 +20,7 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/transport"
 
+	"github.com/getupio-undistro/undistro/third_party/pinniped/internal/httputil/roundtripper"
 	"github.com/getupio-undistro/undistro/third_party/pinniped/internal/plog"
 )
 
@@ -78,7 +79,7 @@ func newWrapper(
 	middlewares []Middleware,
 ) transport.WrapperFunc {
 	return func(rt http.RoundTripper) http.RoundTripper {
-		return roundTripperFunc(func(req *http.Request) (bool, *http.Response, error) {
+		return roundtripper.WrapFunc(rt, roundTripperFunc(func(req *http.Request) (bool, *http.Response, error) {
 			reqInfo, err := resolver.NewRequestInfo(reqWithoutPrefix(req, hostURL, apiPathPrefix))
 			if err != nil || !reqInfo.IsResourceRequest {
 				resp, err := rt.RoundTrip(req) // we only handle kube resource requests
@@ -120,7 +121,7 @@ func newWrapper(
 				resp, err := rt.RoundTrip(req) // we only handle certain verbs
 				return false, resp, err
 			}
-		})
+		}).RoundTrip)
 	}
 }
 
@@ -146,7 +147,7 @@ func handleOtherVerbs(
 
 	result, err := middlewareReq.mutateRequest(obj)
 	if err != nil {
-		return true, nil, err
+		return true, nil, fmt.Errorf("middleware request for %#v failed to mutate: %w", middlewareReq, err)
 	}
 
 	if !result.mutated {
@@ -231,7 +232,7 @@ func handleCreateOrUpdate(
 
 	result, err := middlewareReq.mutateRequest(obj)
 	if err != nil {
-		return true, nil, err
+		return true, nil, fmt.Errorf("middleware request for %#v failed to mutate: %w", middlewareReq, err)
 	}
 
 	if !result.mutated {

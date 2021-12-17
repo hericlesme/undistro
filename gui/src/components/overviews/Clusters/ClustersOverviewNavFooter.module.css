@@ -1,0 +1,76 @@
+.tableFooterContainer {
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+}
+
+.tableFooter {
+  height: 44px;
+  background-color: var(--background-strong);
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+  align-items: center;
+}
+
+.navFooterResults {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.navFooterResultsText {
+  color: var(--text-default);
+  font-size: 16px;
+  padding: 0 16px 0 0;
+  font-weight: 500;
+}
+
+.navFooterJumpToPage {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.navFooterJumpToPageText {
+  color: var(--text-default);
+  font-size: 12px;
+  padding: 0 4px 0 28px;
+}
+
+.paginationSearchArea {
+  display: flex;
+  height: 44px;
+  margin-right: 16px;
+  background-color: var(--background-medium);
+}
+
+.paginationSearchBox {
+  font-family: 'montserrat', sans-serif;
+  font-size: 16px;
+  text-align: center;
+  width: 44px;
+  max-width: 44px;
+  padding-left: 2px;
+  padding-right: 2px;
+  line-height: 18px;
+  border: none;
+  background-color: var(--background-light);
+  color: var(--text-strong);
+}
+
+.paginationSearchBox::placeholder {
+  /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: var(--text-default);
+  opacity: 1; /*Firefox*/
+}
+
+.paginationSearchBox:-ms-input-placeholder {
+  /* Internet Explorer 10-11 */
+  color: var(--text-default);
+}
+
+.paginationSearchBox::-ms-input-placeholder {
+  /* Microsoft Edge */
+  color: var(--text-default);
+}

@@ -1,0 +1,158 @@
+.clustersOverviewContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.clustersOverviewTableContainer {
+  height: 100%;
+  margin: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+table.clustersOverviewTable {
+  width: 100%;
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+table.clustersOverviewTable tr {
+  background-color: var(--background-weak);
+}
+
+table.clustersOverviewTable tr:nth-child(even) {
+  background-color: var(--background-strong);
+}
+
+table.clustersOverviewTable th {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  background-color: var(--background-strong);
+  margin: 0;
+  padding: 0;
+  text-transform: capitalize;
+  height: 36px;
+  border-right: 2px solid var(--background-default);
+  border-bottom: 2px solid var(--background-default);
+  text-align: left;
+  white-space: nowrap;
+}
+
+table.clustersOverviewTable th:last-child {
+  border-right: none;
+}
+
+table.clustersOverviewTable td {
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: -0.01em;
+  color: var(--text-default);
+  margin: 0;
+  padding: 0;
+  height: 36px;
+  border-right: 2px solid var(--background-default);
+  text-align: left;
+  white-space: nowrap;
+}
+
+table.clustersOverviewTable td:last-child {
+  border-right: none;
+}
+
+table.clustersOverviewTable tr:hover {
+  background-color: var(--background-light);
+}
+
+table.clustersOverviewTable tr:hover td {
+  color: var(--text-strong);
+}
+
+.responsiveTh {
+  width: 100%;
+}
+
+.tableHeaderTitle {
+  padding: 0 12px 0 12px;
+  white-space: nowrap;
+  letter-spacing: 0.06em;
+}
+
+.tableIconCol {
+  width: 36px;
+}
+
+.actionsIconAll {
+  min-width: 20px;
+  height: 20px;
+  background-image: url('/img/actionsIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.actionsIconAll:hover {
+  background-image: url('/img/actionsIconHover.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.actionsIconAllDisabled {
+  min-width: 20px;
+  height: 20px;
+  background-image: url('/img/actionsIconDisabled.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.tableCheckboxAllIconContainer {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.tableCheckboxControlAll {
+  width: 18px;
+  height: 18px;
+}
+
+input[type='checkbox'].tableCheckboxAll {
+  /* not using autoprefixer case */
+  -webkit-appearance: none;
+  appearance: none;
+  /* For iOS < 15 to remove gradient background */
+  background-color: #fff;
+  /* Not removed via appearance */
+  margin: 0;
+  font: inherit;
+  color: currentColor;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-content: center;
+  background-color: var(--background-default);
+}
+
+input[type='checkbox'].tableCheckboxAll::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  background-image: url('/img/checkboxCheckAll.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+input[type='checkbox'].tableCheckboxAll:checked::before {
+  transform: scale(1);
+}

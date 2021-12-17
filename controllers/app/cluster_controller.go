@@ -73,7 +73,11 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		"infra", cl.Spec.InfrastructureProvider.Name,
 		"flavor", cl.Spec.InfrastructureProvider.Flavor,
 	}
-	log := logr.FromContext(ctx).WithValues(keysAndValues...)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+	log.WithValues(keysAndValues...)
 
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&cl, r.Client)
@@ -135,7 +139,10 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 }
 
 func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (appv1alpha1.Cluster, ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
 
 	cl.Status.TotalWorkerPools = int32(len(cl.Spec.Workers))
 	cl.Status.TotalWorkerReplicas = 0
@@ -145,7 +152,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 	log.Info("Cluster capabilities", "totalWorkerPools", cl.Status.TotalWorkerPools, "totalWorkerReplicas", cl.Status.TotalWorkerReplicas)
 
 	// we need to install calico in managed flavors too for network policy support
-	err := r.reconcileCNI(ctx, &cl)
+	err = r.reconcileCNI(ctx, &cl)
 	if err != nil {
 		meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionFalse, meta.CNIInstalledFailedReason, err.Error())
 		return cl, ctrl.Result{}, err
@@ -323,7 +330,11 @@ func (r *ClusterReconciler) getBastionIP(ctx context.Context, capiCluster capi.C
 }
 
 func (r *ClusterReconciler) reconcileConciergeEndpoint(ctx context.Context, cl appv1alpha1.Cluster) (appv1alpha1.Cluster, error) {
-	cfg, err := kube.NewClusterConfig(ctx, r.Client, cl.Name, cl.GetNamespace())
+	clObj := client.ObjectKey{
+		Name:      cl.Name,
+		Namespace: cl.GetNamespace(),
+	}
+	cfg, err := kube.GetInternalKubeconfig(ctx, r.Client, clObj)
 	if err != nil {
 		return cl, err
 	}
@@ -354,7 +365,11 @@ func (r *ClusterReconciler) machineTypeChanged(cl *appv1alpha1.Cluster) (bool, [
 }
 
 func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *appv1alpha1.Cluster) bool {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	if cl.Spec.KubernetesVersion != cl.Status.KubernetesVersion {
 		log.Info("kubernetes version changed", "old", cl.Status.KubernetesVersion, "new", cl.Spec.KubernetesVersion)
 		return true
@@ -418,7 +433,10 @@ func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *appv1alpha1.Cluster
 }
 
 func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cluster) error {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
 
 	const (
 		cniCalicoName = "calico"
@@ -431,7 +449,7 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 		Namespace: cl.GetNamespace(),
 	}
 	release := appv1alpha1.HelmRelease{}
-	err := r.Get(ctx, key, &release)
+	err = r.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return err

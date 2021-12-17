@@ -32,10 +32,10 @@ jobs:
           go-version: ^1.17
         id: go
 
-      - name: Set up Node 15
+      - name: Set up Node 16
         uses: actions/setup-node@v2
         with:
-          node-version: "15"
+          node-version: "16"
         id: node
 
       - name: Set up chart-testing
@@ -53,7 +53,7 @@ jobs:
         run: go mod download
 
       - name: Build UI
-        working-directory: ./UI
+        working-directory: ./gui
         run: |
           yarn
           yarn build

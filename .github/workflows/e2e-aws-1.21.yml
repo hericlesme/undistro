@@ -24,7 +24,7 @@ jobs:
         run: go mod download
 
       - name: Build UI
-        working-directory: ./UI
+        working-directory: ./gui
         run: |
           yarn
           yarn build

@@ -1,0 +1,108 @@
+/* TOPBAR CONTAINER */
+
+.topBarContainer {
+  display: flex;
+  height: 48px;
+  position: fixed;
+  top: 0px;
+  background-color: var(--background-strong);
+  z-index: 1;
+}
+
+.teste {
+  height: 84px;
+}
+
+/* LOGO */
+
+.topBarLogoArea {
+  min-width: 240px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.topLogo {
+  height: 16px;
+}
+
+
+/* TOP BAR MENU */
+
+.topBarMenuArea {
+  display: flex;
+  gap: 40px;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.topBarDividerArea {
+  min-width: 2px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.topBarDivider {
+  width: 2px;
+  height: 32px;
+  background-color: var(--background-weak);
+}
+
+
+/* LOGOUT */
+
+.logoutArea {
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+}
+
+.logoutMenu {
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logoutText {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0.06em;
+  text-transform: capitalize;
+  color: #d7d7d7;
+  text-decoration-color: #d7d7d7;
+  text-decoration: none;
+}
+
+.logoutText:hover {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* TOP MENU BUTTONS WIDTH BY ID */
+
+#menuCreateButton {
+  min-width: 74px !important;
+}
+
+#menuModifyButton {
+  min-width: 76px;
+}
+
+#menuManageButton {
+  min-width: 82px;
+}
+
+#menuAboutButton {
+  min-width: 68px;
+}
+
+#menuPreferencesButton {
+  min-width: 132px !important;
+}

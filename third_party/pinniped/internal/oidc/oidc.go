@@ -210,8 +210,6 @@ func FositeOauth2Helper(
 
 		// The default is to support all prompt values from the spec.
 		// See https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-		// We'll make a best effort to support these by passing the value of this prompt param to the upstream IDP
-		// and rely on its implementation of this param.
 		AllowedPromptValues: nil,
 
 		// Use the fosite default to make it more likely that off the shelf OIDC clients can work with the supervisor.
@@ -232,7 +230,7 @@ func FositeOauth2Helper(
 		compose.OpenIDConnectExplicitFactory,
 		compose.OpenIDConnectRefreshFactory,
 		compose.OAuth2PKCEFactory,
-		TokenExchangeFactory,
+		TokenExchangeFactory, // handle the "urn:ietf:params:oauth:grant-type:token-exchange" grant type
 	)
 	provider.(*fosite.Fosite).FormPostHTMLTemplate = formposthtml.Template()
 	return provider
@@ -251,11 +249,17 @@ func FositeErrorForLog(err error) []interface{} {
 	rfc6749Error := fosite.ErrorToRFC6749Error(err)
 	keysAndValues := make([]interface{}, 0)
 	keysAndValues = append(keysAndValues, "name")
-	keysAndValues = append(keysAndValues, rfc6749Error.ErrorField)
+	keysAndValues = append(keysAndValues, rfc6749Error.Error()) // Error() returns the ErrorField
 	keysAndValues = append(keysAndValues, "status")
-	keysAndValues = append(keysAndValues, rfc6749Error.Status())
+	keysAndValues = append(keysAndValues, rfc6749Error.Status()) // Status() encodes the CodeField as a string
 	keysAndValues = append(keysAndValues, "description")
-	keysAndValues = append(keysAndValues, rfc6749Error.DescriptionField)
+	keysAndValues = append(keysAndValues, rfc6749Error.GetDescription()) // GetDescription() returns the DescriptionField and the HintField
+	keysAndValues = append(keysAndValues, "debug")
+	keysAndValues = append(keysAndValues, rfc6749Error.Debug()) // Debug() returns the DebugField
+	if cause := rfc6749Error.Cause(); cause != nil {            // Cause() returns the underlying error, or nil
+		keysAndValues = append(keysAndValues, "cause")
+		keysAndValues = append(keysAndValues, cause.Error())
+	}
 	return keysAndValues
 }
 
@@ -267,9 +271,14 @@ type UpstreamLDAPIdentityProvidersLister interface {
 	GetLDAPIdentityProviders() []provider.UpstreamLDAPIdentityProviderI
 }
 
+type UpstreamActiveDirectoryIdentityProviderLister interface {
+	GetActiveDirectoryIdentityProviders() []provider.UpstreamLDAPIdentityProviderI
+}
+
 type UpstreamIdentityProvidersLister interface {
 	UpstreamOIDCIdentityProvidersLister
 	UpstreamLDAPIdentityProvidersLister
+	UpstreamActiveDirectoryIdentityProviderLister
 }
 
 func GrantScopeIfRequested(authorizeRequester fosite.AuthorizeRequester, scopeName string) {

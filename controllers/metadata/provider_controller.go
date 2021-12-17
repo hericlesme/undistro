@@ -54,7 +54,12 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err := r.Get(ctx, req.NamespacedName, &p); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	log := logr.FromContext(ctx).WithValues("provider", req.NamespacedName)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+	log.WithValues("Provider", req.NamespacedName)
+
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&p, r.Client)
 	if err != nil {

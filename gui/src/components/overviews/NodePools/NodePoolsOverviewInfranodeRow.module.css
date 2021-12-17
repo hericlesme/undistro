@@ -1,0 +1,112 @@
+.tableCellTitle {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 12px 0 12px;
+  white-space: nowrap;
+}
+
+.tableCellTitleWarning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 12px 0 12px;
+  white-space: nowrap;
+  color: var(--text-warning);
+}
+
+.tableCellTitleSuccess {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 12px 0 12px;
+  white-space: nowrap;
+  color: var(--text-success);
+}
+
+.tableCellTitleCritical {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 12px 0 12px;
+  white-space: nowrap;
+  color: var(--text-critical);
+}
+
+.tableActionsIconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tableCheckboxIconContainer {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionsIcon {
+  min-width: 20px;
+  height: 20px;
+  background-image: url('/img/actionsIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.actionsIcon:hover {
+  background-image: url('/img/actionsIconHover.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.actionsIconDisabled {
+  min-width: 20px;
+  height: 20px;
+  background-image: url('/img/actionsIconDisabled.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.tableCheckboxControl {
+  width: 18px;
+  height: 18px;
+}
+
+input[type='checkbox'].tableCheckbox {
+  /* Add if not using autoprefixer */
+  -webkit-appearance: none;
+  appearance: none;
+  /* For iOS < 15 to remove gradient background */
+  background-color: #fff;
+  /* Not removed via appearance */
+  margin: 0;
+  font: inherit;
+  color: currentColor;
+  width: 18px;
+  height: 18px;
+  /*transform: translateY(-0.075em);*/
+  display: grid;
+  place-content: center;
+  background-color: var(--background-default);
+}
+
+input[type='checkbox'].tableCheckbox::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  background-image: url('/img/checkboxCheck.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  /*background-color: tomato;*/
+  /*box-shadow: inset 1em 1em var(--form-control-color);*/
+}
+
+input[type='checkbox'].tableCheckbox:checked::before {
+  transform: scale(1);
+}

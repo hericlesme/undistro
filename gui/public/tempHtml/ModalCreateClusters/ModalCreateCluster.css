@@ -1,0 +1,1029 @@
+@charset "utf-8";
+/* CSS Document */
+
+/*  FONTS  */
+
+@font-face {
+    font-family: 'montserratblack';
+    src: url('../../assets/webfonts/montserrat-black-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-black-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratbold';
+    src: url('../../assets/webfonts/montserrat-bold-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-bold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratextrabold';
+    src: url('../../assets/webfonts/montserrat-extrabold-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-extrabold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratextralight';
+    src: url('../../assets/webfonts/montserrat-extralight-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-extralight-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'montserratitalic';
+    src: url('../../assets/webfonts/montserrat-italic-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-italic-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratlight';
+    src: url('../../assets/webfonts/montserrat-light-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-light-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratlight_italic';
+    src: url('../../assets/webfonts/montserrat-lightitalic-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-lightitalic-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratmedium';
+    src: url('../../assets/webfonts/montserrat-medium-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-medium-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'montserratmedium_italic';
+    src: url('../../assets/webfonts/montserrat-mediumitalic-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-mediumitalic-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'montserratregular';
+    src: url('../../assets/webfonts/montserrat-regular-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratsemibold';
+    src: url('../../assets/webfonts/montserrat-semibold-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-semibold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratthin';
+    src: url('../../assets/webfonts/montserrat-thin-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-thin-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono:ital@0;1&display=swap');
+
+
+/* UTILS */
+
+:root {
+/* workspace */
+--background-default: #191a1d;
+--background-dark: #111214;
+--background-strong: #282c31;
+--background-weak: #373c43;
+--background-light: #656d7a;
+--background-light-hover: #7F8996;
+--background-medium: #495059;
+--background-warning: #f9d58b;
+--background-strong-selected: #3b434e;
+--background-strong-hover: #3b434e;
+--background-dialog: #22262B;
+--background-offwhite: #d7d7d7;
+--background-white: #ffffff;
+--background-black: #000000;
+
+/* primary */
+--background-primary-default: #657f97;
+--background-primary-hover: #799ec0;
+
+/* success */
+--success-background-default: #39e9aa;
+--success-background-hover: #4dcd9f;
+
+/* critical */
+--critical-background-default: #ff5a60;
+--critical-background-hover: #AF4044;
+
+/* icon */
+--icon-strong: #ffffff;
+--icon-default: #d7d7d7;
+--icon-hover: #ffffff;
+--icon-disabled: #6c6c6c;
+--icon-selected: #ffffff;
+
+/* text */
+--text-strong: #ffffff;
+--text-default: #d7d7d7;
+--text-hover: #ffffff;
+--text-focus: #ffffff;
+--text-disabled: #6c6c6c;
+--text-selected: #ffffff;
+--text-critical: #ff5a60;
+--text-warning: #f9d58b;
+--text-success: #39e9aa;
+--text-dark: #191a1d;
+
+/* border */
+--border-default: #d7d7d7;
+--border-success: #39e9aa;
+--border-warning: #f9d58b;
+--border-critical: #ff5a60;
+--border-light: #656D7A;
+--border-light-hover: #7f8996;
+--border-medium: #495059;
+
+/* replace after */
+--select-border: #777;
+--select-focus: blue;
+--select-arrow: var(--select-border);
+
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+*:focus {
+    outline: none;
+    border: none;
+}
+
+.clearMargins {
+    margin: 0;
+    padding: 0;
+}
+
+.responsive {
+    width: 100%;
+    height: 100%;
+}
+
+.responsiveWidth {
+    width: 100%;
+}
+
+.responsiveHeight {
+    height: 100%;
+}
+
+.textCentered {
+    text-align: center;
+    justify-content: center;
+}
+
+.textLeft {
+    text-align: left;
+    justify-content: left;
+}
+
+/* justify */
+
+.justifyRight {
+    justify-content: right;
+}
+
+.justifyLeft {
+    justify-content: left;
+}
+
+.justifyCenter {
+    justify-content: center;
+}
+
+/* containers */
+
+.createClusterWizContainer {
+    display: flex;
+    flex-direction: column;
+    width: 720px;
+    height: 600px;
+    margin: auto;
+    box-shadow: 12px 12px 20px #000000;
+    background-color: var(--background-dialog);
+}
+
+.modalDialogTitleContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 24px;
+}
+
+.modalDialogCreateTypeContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 64px;
+    height: 24px;
+}
+
+.modalContentContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.modalTitleContainer {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalDialogButtonsContainer {
+    width: 100%;
+    min-height: 82px;
+    display: flex;
+    flex-direction: row;
+    padding: 24px;
+    align-items: self-end;
+}
+
+.modalWorkersContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0 24px 0;
+    border: 1px solid var(--border-medium);
+    position: relative;
+}
+
+.uploadFileButtonContainer {
+    height: 28px;
+    width: 32px;
+    display: flex;
+    align-items: center;
+}
+
+.leftButtonContainer {
+    display:flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.rightButtonContainer {
+    display:flex;
+    flex-direction: row-reverse;
+    width: 100%;
+}
+
+.modalInputArea {
+    display: flex;
+    align-items: center;
+    width: 436px;
+    height: 100%;
+    margin: 0 auto 0 auto;
+}
+
+.modalAddonsArea {
+    display: flex;
+    align-items: center;
+    width: 480px;
+    height: 100%;
+    margin: 0 auto 0 auto;
+}
+
+.modalProgressArea {
+    display: flex;
+    flex-direction: column;
+    margin-top: 32px;
+    width: 100%;
+    height: 100%;
+}
+
+.modalControlPlaneBlock {
+    display: flex;
+    align-items: center;
+    width: 678px;
+    height: 100%;
+    margin: 0 auto 0 auto;
+}
+
+.modalWorkersBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 510px;
+    height: 100%;
+    margin: 0 auto 0 auto;
+}
+
+.addOnDescriptionTitlesContainer {
+    display: flex;
+    flex-direction: column;
+    margin-left: 40px;
+    height: 100%;
+    padding-left: 8px;
+    border-left: 1px solid var(--border-default);
+}
+
+.switchContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-width: 140px;
+}
+
+.workersTitleContainer {
+    display: flex;
+    justify-content: center;
+    min-width: 90px;
+    height: 20px;
+    position: absolute;
+    top: -12px;
+    background-color: var(--background-dialog);
+}
+
+.modalTableContainer {
+    width: 100%;
+    height: 102px;
+    margin-top: 12px;
+    border: 1px solid var(--border-medium);
+    padding: 1px;
+}
+
+.modalDeleteTableItemContainer {
+    height: 20px;
+    width: 20px;
+}
+
+.progressBarContainer {
+    height: 6px;
+    width: 100%;
+    background-color: var(--background-weak);
+}
+
+.progressDialogContainer {
+    height: 376px;
+    width: 100%;
+    padding: 24px;
+    background-color: var(--background-default);
+}
+
+.errorMessageContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+}
+
+.successMessageContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    padding-top: 72px;
+}
+
+.progressResultTextContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 32px 0 32px 0;
+}
+
+.progressResultMessageContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 32px 0 0 0;
+}
+
+/* titles */
+
+.modalDialogTitleBar {
+    width: 100%;
+    height: 24px;
+    display: flex;
+    flex-direction: row;
+    background-color:var(--background-light);
+}
+
+.dialogTitlesSpan {
+    padding-top: 2px;
+}
+
+.dialogTitleRegular {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 16px;
+    line-height: 20px;
+    color: var(--text-default);
+}
+
+.dialogTitleItalic {
+    font-family: Montserrat;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--text-default);
+}
+
+.dialogTitleBold {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 20px;
+    letter-spacing: 0.02em;
+    color: var(--text-default);
+}
+
+.modalCreateClusterTitle {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 20px;
+    letter-spacing: 0.04em;
+    align-self: flex-end;
+    color: var(--text-default);
+}
+
+.addOnDescriptionTitles {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 300;
+    font-size: 12px;
+    line-height: 14px;
+    letter-spacing: -0.02em;
+    color: var(--text-default);
+}
+
+.assistiveTextDefault {
+    display: none;
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 10px;
+    line-height: 12px;
+    letter-spacing: 0.01em;
+    color: var(--text-default);
+}
+
+.progressResultText {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 22px;
+    letter-spacing: 0.04em;
+    color: var(--text-strong);
+}
+
+.progressErrorMessage {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: 0.02em;
+    padding-bottom: 8px;
+    color: var(--text-default);
+}
+
+.progressErrorCode {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 20px;
+    letter-spacing: 0.02em;
+    color: var(--text-strong);
+}
+
+/* buttons */
+
+.closeWindowBtnContainer {
+    display: flex;
+}
+
+.closeWindowBtn {
+    background-color:var(--background-light);
+    border: none;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    display: inline-block;
+    width: 32px;
+    height: 24px;
+    background-image: url("img/closeDialogIcon.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+}
+
+.closeWindowBtn:hover {
+    background-color:var(--background-light-hover);
+    background-image: url("img/closeDialogIconHover.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+button.uploadFileIcon {
+    height: 28px;
+    width: 32px;
+    background-color: transparent;
+    border: none;
+    background-image: url("./img/uploadYamlDefault.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+}
+
+button.uploadFileIcon:hover {
+    background-image: url("./img/uploadYamlHover.svg");
+}
+
+button.uploadFileIcon:disabled {
+    background-image: url("./img/uploadYamlDisabled.svg");
+}
+
+button.borderButtonDefault {
+    height: 34px;
+    border: 1px solid var(--border-default);
+    padding: 8px 24px 8px 24px;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+button.borderButtonDefault:hover {
+    background-color: var(--background-offwhite);
+}
+
+button.borderButtonDefault a {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    line-height: 18px;
+    text-transform: capitalize;
+    color: var(--text-default);
+}
+
+button.borderButtonDefault:hover a {
+    color: var(--text-dark);
+}
+
+button.borderButtonSuccess {
+    height: 34px;
+    border: 1px solid var(--border-success);
+    padding: 8px 24px 8px 24px;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+button.borderButtonSuccess:hover {
+    background-color: var(--success-background-default);
+}
+
+button.borderButtonSuccess a {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    line-height: 18px;
+    text-transform: capitalize;
+    color: var(--text-success);
+}
+
+button.borderButtonSuccess:hover a {
+    color: var(--text-dark);
+}
+
+
+button.borderButtonCritical {
+    height: 34px;
+    border: 1px solid var(--border-critical);
+    padding: 8px 24px 8px 24px;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+button.borderButtonCritical:hover {
+    background-color: var(--critical-background-default);
+}
+
+button.borderButtonCritical a {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    line-height: 18px;
+    text-transform: capitalize;
+    color: var(--text-critical);
+}
+
+button.borderButtonCritical:hover a {
+    color: var(--text-strong);
+}
+
+button.solidMdButtonDefault {
+    height: 22px;
+    border: none;
+    padding: 4px 12px 4px 12px;
+    background-color: var(--background-offwhite);
+    cursor: pointer;
+}
+
+button.solidMdButtonDefault:hover {
+    background-color: var(--background-white);
+}
+
+button.solidMdButtonDefault a {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 14px;
+    text-transform: capitalize;
+    color: var(--text-dark);
+}
+
+button.deleteTableItem {
+    height: 20px;
+    width: 20px;
+    background-color: transparent;
+    border: none;
+    background-image: url("./img/modalDeleteTableItemDefault.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+}
+
+button.deleteTableItem:hover {
+    background-image: url("./img/modalDeleteTableItemHover.svg");
+}
+
+/* form elements*/
+
+.modalForm {
+    width: 100%;
+}
+
+.inputBlock {
+    height: 68px;
+    width: 100%;
+    margin: 0 0 2px 0;
+}
+
+.addOnInputBlock {
+    height: 68px;
+    width: 100%;
+    margin: 0 0 16px 0;
+}
+
+.inputBlockSmall {
+    height: 68px;
+    min-width: 90px;
+    max-width: 90px;
+    margin: 0 0 2px 0;
+}
+
+.addOnBlock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 28px;
+    width: 100%;
+    margin: 0 0 16px 0;
+}
+
+.infraNodeBlock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 28px;
+    width: 100%;
+    margin: 0 0 2px 0;
+}
+
+.addButtonBlock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 22px;
+    width: 100%;
+    margin: 0 0 2px 0;
+}
+
+.inputBlockTextArea {
+    height: 118px;
+    width: 100%;
+    margin: 0 0 2px 0;
+}
+
+.inputRow {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 8px;
+}
+
+.controlPlaneInputRow {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 24px auto;
+    width: 510px;
+    gap: 8px;
+}
+
+.workersInputRow {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 0 auto;
+    width: 510px;
+    gap: 8px;
+}
+
+.input100 {
+    width: 100%;
+}
+
+.createClusterLabel {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.03em;
+    margin-right: 8px;
+    color: var(--text-default);
+}
+
+.createClusterTextInput {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    margin-top: 2px;
+    padding-left: 8px;
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: 0.03em;
+    border-style: solid;
+    border-width: 0 0 1px 0;
+    border-color: var(--border-light);
+    background-color: var(--background-weak);
+    color: var(--text-strong);
+}
+
+.textAreaInput {
+    height: 80px !important;
+    align-items: flex-start !important;
+}
+
+.inputUploadFileBlock {
+    height: 30px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.createClusterTextInput::placeholder {
+    color: var(--text-disabled);
+}
+
+.createClusterTextSelect {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    margin-top: 2px;
+    padding-left: 8px;
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: 0.03em;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;                               /* Remove default arrow */
+    background-image: url(./img/arrowDown.svg);     /* Add custom arrow */
+    background-repeat: no-repeat;
+    background-position: center right;
+    background-color: var(--background-weak);
+    border-style: solid;
+    border-width: 0 0 1px 0;
+    border-color: var(--border-light);
+    cursor: pointer;
+}
+
+select.createClusterTextSelect option {
+    color: var(--text-default);
+}
+
+select.createClusterTextSelect option:invalid {
+    color: var(--text-disabled); 
+}
+
+select.createClusterTextSelect option:disabled {
+    color: var(--text-disabled);
+}
+
+/* switch */
+
+.switch {                   /* slider container */
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+} 
+
+.switch input {             /* hide default checkbox */
+    opacity: 0;
+    width: 0;
+    height: 0;
+}  
+
+.slider {                   /* slider */
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color:var(--background-medium) ;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+  
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color:var(--background-strong) ;
+    -webkit-transition: .1s;
+    transition: .1s;
+}
+  
+input:checked + .slider {
+    background-color:var(--success-background-default) ;
+}
+  
+input:checked + .slider:before {
+    -webkit-transform: translateX(14px);
+    -ms-transform: translateX(14px);
+    transform: translateX(14px);
+} 
+
+.slider.round {             /* rounded slider */
+    border-radius: 9px;
+}
+  
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* tables */
+
+table.modalWorkersTable {
+    width: 100%;
+}
+
+table.modalWorkersTable tr {
+    height: 22px;
+    background-color: transparent;
+}
+
+table.modalWorkersTable tr:hover {
+    background-color: var(--background-weak);
+    cursor: pointer;
+}
+
+table.modalWorkersTable td {
+    max-height: 22px;
+    padding: 0 0 0 6px;
+}
+
+table.modalWorkersTable td a {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.03em;
+    color: var(--text-default);
+}
+
+.modalTableRow {
+    display: flex;
+    flex-direction: row;
+    height: 22px;
+    width: 100%;
+}
+
+.modalTableItem {
+    width: 100%;
+}
+
+/* progress bar */
+
+.progressBar {
+    height: 6px;
+    width: 35%;
+    background-color: var(--success-background-default);
+}
+
+.progressBarSuccess {
+    height: 6px;
+    width: 100%;
+    background-color: var(--success-background-default);
+}
+
+.progressBarError {
+    height: 6px;
+    width: 100%;
+    background-color: var(--critical-background-default);
+}
+
+/* progress dialog */
+
+ol.progressDialog {
+    width: 100%;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+ol.progressDialog li {
+    height: 24px;
+}
+
+ol.progressDialog li a {
+    font-family: "Ubuntu Mono", monospace;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 16px;
+    color: var(--text-default);
+}
+
+.createClusterErrorIcon {
+    width: 106px;
+    height: 103px;
+    background-image: url(./img/createClusterErrorIcon.svg);
+    background-repeat: no-repeat;
+    background-position: center right;
+
+}
+
+.createClusterSuccessIcon {
+    width: 106px;
+    height: 103px;
+    background-image: url(./img/createClusterSuccessIcon.svg);
+    background-repeat: no-repeat;
+    background-position: center right;
+
+}
+
+

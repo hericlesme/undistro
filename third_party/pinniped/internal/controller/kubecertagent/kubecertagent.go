@@ -8,6 +8,7 @@ package kubecertagent
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -45,9 +46,25 @@ const (
 	ControllerManagerNamespace = "kube-system"
 
 	// agentPodLabelKey is used to identify which pods are created by the kube-cert-agent
-	// controllers.
+	// controllers.  These values should be updated when an incompatible change is made to
+	// the kube-cert-agent pods.  Doing so will cause about a minute of downtime of the token
+	// credential request API on upgrade because the new concierge pods will not be able to
+	// fill their agentController.dynamicCertProvider cache until the new deployment has rolled
+	// out.  This is exacerbated by our leader election which assumes that filling caches only
+	// requires read requests.  On the incompatible kube-cert-agent upgrade case, we have to
+	// issue a write request to fill a cache (which just points out how hacky this code is).
+	//
+	// On an upgrade to a new pinniped version, if the agent label has not changed, the new
+	// pinniped code is basically saying that it is safe to use the old deployment forever
+	// (because the update to the new deployment could fail indefinitely).  Therefore, if the
+	// new pinniped code wants to guarantee that any change to the kube cert agent deployment
+	// has rolled out before attempting to fetch the signer, it must update agentPodLabelValue.
 	agentPodLabelKey   = "kube-cert-agent.pinniped.dev"
-	agentPodLabelValue = "v2"
+	agentPodLabelValue = "v3"
+
+	// conciergeDefaultLabelKeyName is the name of the key of the label applied to all Concierge resources.
+	// This name is determined in the YAML manifests, but this controller needs to treat it as a special case below.
+	conciergeDefaultLabelKeyName = "app"
 
 	ClusterInfoNamespace    = "kube-public"
 	clusterInfoName         = "cluster-info"
@@ -83,10 +100,26 @@ type AgentConfig struct {
 	DiscoveryURLOverride *string
 }
 
-func (a *AgentConfig) agentLabels() map[string]string {
+// Only select using the unique label which will not match the pods of any other Deployment.
+// Older versions of Pinniped had multiple labels here.
+func (a *AgentConfig) agentPodSelectorLabels() map[string]string {
+	return map[string]string{agentPodLabelKey: agentPodLabelValue}
+}
+
+// Label the agent pod using the configured labels plus the unique label which we will use in the selector.
+func (a *AgentConfig) agentPodLabels() map[string]string {
 	allLabels := map[string]string{agentPodLabelKey: agentPodLabelValue}
 	for k, v := range a.Labels {
-		allLabels[k] = v
+		// Never label the agent pod with any label whose key is "app" because that could unfortunately match
+		// the selector of the main Concierge Deployment. This is sadly inconsistent because all other resources
+		// get labelled with the "app" label, but unfortunately the selector of the main Concierge Deployment is
+		// an immutable field, so we cannot update it to make it use a more specific label without breaking upgrades.
+		// Therefore, we take extra care here to avoid allowing the kube cert agent pods to match the selector of
+		// the main Concierge Deployment. Note that older versions of Pinniped included this "app" label, so during
+		// an upgrade we must take care to perform an update to remove it.
+		if k != conciergeDefaultLabelKeyName {
+			allLabels[k] = v
+		}
 	}
 	return allLabels
 }
@@ -163,7 +196,6 @@ func newAgentController(
 	clock clock.Clock,
 	execCache *cache.Expiring,
 	log logr.Logger,
-	options ...controllerlib.Option,
 ) controllerlib.Controller {
 	return controllerlib.New(
 		controllerlib.Config{
@@ -183,47 +215,45 @@ func newAgentController(
 				execCache:            execCache,
 			},
 		},
-		append([]controllerlib.Option{
-			controllerlib.WithInformer(
-				kubeSystemPods,
-				pinnipedcontroller.SimpleFilterWithSingletonQueue(func(obj metav1.Object) bool {
-					return controllerManagerLabels.Matches(labels.Set(obj.GetLabels()))
-				}),
-				controllerlib.InformerOption{},
-			),
-			controllerlib.WithInformer(
-				agentDeployments,
-				pinnipedcontroller.SimpleFilterWithSingletonQueue(func(obj metav1.Object) bool {
-					return obj.GetNamespace() == cfg.Namespace && obj.GetName() == cfg.deploymentName()
-				}),
-				controllerlib.InformerOption{},
-			),
-			controllerlib.WithInformer(
-				agentPods,
-				pinnipedcontroller.SimpleFilterWithSingletonQueue(func(obj metav1.Object) bool {
-					return agentLabels.Matches(labels.Set(obj.GetLabels()))
-				}),
-				controllerlib.InformerOption{},
-			),
-			controllerlib.WithInformer(
-				kubePublicConfigMaps,
-				pinnipedcontroller.SimpleFilterWithSingletonQueue(func(obj metav1.Object) bool {
-					return obj.GetNamespace() == ClusterInfoNamespace && obj.GetName() == clusterInfoName
-				}),
-				controllerlib.InformerOption{},
-			),
-			controllerlib.WithInformer(
-				credentialIssuers,
-				pinnipedcontroller.SimpleFilterWithSingletonQueue(func(obj metav1.Object) bool {
-					return obj.GetName() == cfg.CredentialIssuerName
-				}),
-				controllerlib.InformerOption{},
-			),
-			// Be sure to run once even to make sure the CredentialIssuer is updated if there are no controller manager
-			// pods. We should be able to pass an empty key since we don't use the key in the sync (we sync
-			// the world).
-			controllerlib.WithInitialEvent(controllerlib.Key{}),
-		}, options...)...,
+		controllerlib.WithInformer(
+			kubeSystemPods,
+			pinnipedcontroller.SimpleFilterWithSingletonQueue(func(obj metav1.Object) bool {
+				return controllerManagerLabels.Matches(labels.Set(obj.GetLabels()))
+			}),
+			controllerlib.InformerOption{},
+		),
+		controllerlib.WithInformer(
+			agentDeployments,
+			pinnipedcontroller.SimpleFilterWithSingletonQueue(func(obj metav1.Object) bool {
+				return obj.GetNamespace() == cfg.Namespace && obj.GetName() == cfg.deploymentName()
+			}),
+			controllerlib.InformerOption{},
+		),
+		controllerlib.WithInformer(
+			agentPods,
+			pinnipedcontroller.SimpleFilterWithSingletonQueue(func(obj metav1.Object) bool {
+				return agentLabels.Matches(labels.Set(obj.GetLabels()))
+			}),
+			controllerlib.InformerOption{},
+		),
+		controllerlib.WithInformer(
+			kubePublicConfigMaps,
+			pinnipedcontroller.SimpleFilterWithSingletonQueue(func(obj metav1.Object) bool {
+				return obj.GetNamespace() == ClusterInfoNamespace && obj.GetName() == clusterInfoName
+			}),
+			controllerlib.InformerOption{},
+		),
+		controllerlib.WithInformer(
+			credentialIssuers,
+			pinnipedcontroller.SimpleFilterWithSingletonQueue(func(obj metav1.Object) bool {
+				return obj.GetName() == cfg.CredentialIssuerName
+			}),
+			controllerlib.InformerOption{},
+		),
+		// Be sure to run once even to make sure the CredentialIssuer is updated if there are no controller manager
+		// pods. We should be able to pass an empty key since we don't use the key in the sync (we sync
+		// the world).
+		controllerlib.WithInitialEvent(controllerlib.Key{}),
 	)
 }
 
@@ -235,7 +265,7 @@ func (c *agentController) Sync(ctx controllerlib.Context) error {
 		return fmt.Errorf("could not get CredentialIssuer to update: %w", err)
 	}
 
-	// Find the latest healthy kube-controller-manager Pod in kube-system..
+	// Find the latest healthy kube-controller-manager Pod in kube-system.
 	controllerManagerPods, err := c.kubeSystemPods.Lister().Pods(ControllerManagerNamespace).List(controllerManagerLabels)
 	if err != nil {
 		err := fmt.Errorf("could not list controller manager pods: %w", err)
@@ -250,16 +280,19 @@ func (c *agentController) Sync(ctx controllerlib.Context) error {
 		return c.failStrategyAndErr(ctx.Context, credIssuer, err, configv1alpha1.CouldNotFetchKeyStrategyReason)
 	}
 
-	if err := c.createOrUpdateDeployment(ctx, newestControllerManager); err != nil {
-		err := fmt.Errorf("could not ensure agent deployment: %w", err)
-		return c.failStrategyAndErr(ctx.Context, credIssuer, err, configv1alpha1.CouldNotFetchKeyStrategyReason)
+	depErr := c.createOrUpdateDeployment(ctx, newestControllerManager)
+	if depErr != nil {
+		// it is fine if this call fails because a different concierge pod may have already created a compatible deployment
+		// thus if the later code is able to find pods with the agent labels that we expect, we will attempt to use them
+		// this means that we must always change the agent labels when we change the agent pods in an incompatible way
+		depErr = fmt.Errorf("could not ensure agent deployment: %w", depErr)
 	}
 
 	// Find the latest healthy agent Pod in our namespace.
 	agentPods, err := c.agentPods.Lister().Pods(c.cfg.Namespace).List(agentLabels)
 	if err != nil {
 		err := fmt.Errorf("could not list agent pods: %w", err)
-		return c.failStrategyAndErr(ctx.Context, credIssuer, err, configv1alpha1.CouldNotFetchKeyStrategyReason)
+		return c.failStrategyAndErr(ctx.Context, credIssuer, firstErr(depErr, err), configv1alpha1.CouldNotFetchKeyStrategyReason)
 	}
 	newestAgentPod := newestRunningPod(agentPods)
 
@@ -267,25 +300,31 @@ func (c *agentController) Sync(ctx controllerlib.Context) error {
 	// the CredentialIssuer.
 	if newestAgentPod == nil {
 		err := fmt.Errorf("could not find a healthy agent pod (%s)", pluralize(agentPods))
-		return c.failStrategyAndErr(ctx.Context, credIssuer, err, configv1alpha1.CouldNotFetchKeyStrategyReason)
+		return c.failStrategyAndErr(ctx.Context, credIssuer, firstErr(depErr, err), configv1alpha1.CouldNotFetchKeyStrategyReason)
 	}
 
 	// Load the Kubernetes API info from the kube-public/cluster-info ConfigMap.
 	configMap, err := c.kubePublicConfigMaps.Lister().ConfigMaps(ClusterInfoNamespace).Get(clusterInfoName)
 	if err != nil {
 		err := fmt.Errorf("failed to get %s/%s configmap: %w", ClusterInfoNamespace, clusterInfoName, err)
-		return c.failStrategyAndErr(ctx.Context, credIssuer, err, configv1alpha1.CouldNotGetClusterInfoStrategyReason)
+		return c.failStrategyAndErr(ctx.Context, credIssuer, firstErr(depErr, err), configv1alpha1.CouldNotGetClusterInfoStrategyReason)
 	}
 
 	apiInfo, err := c.extractAPIInfo(configMap)
 	if err != nil {
 		err := fmt.Errorf("could not extract Kubernetes API endpoint info from %s/%s configmap: %w", ClusterInfoNamespace, clusterInfoName, err)
-		return c.failStrategyAndErr(ctx.Context, credIssuer, err, configv1alpha1.CouldNotGetClusterInfoStrategyReason)
+		return c.failStrategyAndErr(ctx.Context, credIssuer, firstErr(depErr, err), configv1alpha1.CouldNotGetClusterInfoStrategyReason)
 	}
 
 	// Load the certificate and key from the agent pod into our in-memory signer.
 	if err := c.loadSigningKey(newestAgentPod); err != nil {
-		return c.failStrategyAndErr(ctx.Context, credIssuer, err, configv1alpha1.CouldNotFetchKeyStrategyReason)
+		return c.failStrategyAndErr(ctx.Context, credIssuer, firstErr(depErr, err), configv1alpha1.CouldNotFetchKeyStrategyReason)
+	}
+
+	if depErr != nil {
+		// if we get here, it means that we have successfully loaded a signing key but failed to reconcile the deployment.
+		// mark the status as failed and re-kick the sync loop until we are happy with the state of the deployment.
+		return c.failStrategyAndErr(ctx.Context, credIssuer, depErr, configv1alpha1.CouldNotFetchKeyStrategyReason)
 	}
 
 	// Set the CredentialIssuer strategy to successful.
@@ -309,24 +348,33 @@ func (c *agentController) loadSigningKey(agentPod *corev1.Pod) error {
 	}
 
 	// Exec into the agent pod and cat out the certificate and the key.
-	combinedPEM, err := c.executor.Exec(
-		agentPod.Namespace, agentPod.Name,
-		"sh", "-c", "cat ${CERT_PATH}; echo; echo; cat ${KEY_PATH}",
-	)
+	outputJSON, err := c.executor.Exec(agentPod.Namespace, agentPod.Name, "pinniped-concierge-kube-cert-agent", "print")
 	if err != nil {
 		return fmt.Errorf("could not exec into agent pod %s/%s: %w", agentPod.Namespace, agentPod.Name, err)
 	}
 
-	// Split up the output by looking for the block of newlines.
-	var certPEM, keyPEM string
-	if parts := strings.Split(combinedPEM, "\n\n\n"); len(parts) == 2 {
-		certPEM, keyPEM = parts[0], parts[1]
+	// Parse and decode the JSON output from the "pinniped-concierge-kube-cert-agent print" command.
+	var output struct {
+		Cert string `json:"tls.crt"`
+		Key  string `json:"tls.key"`
+	}
+	if err := json.Unmarshal([]byte(outputJSON), &output); err != nil {
+		return fmt.Errorf("failed to decode signing cert/key JSON from agent pod %s/%s: %w", agentPod.Namespace, agentPod.Name, err)
+	}
+	certPEM, err := base64.StdEncoding.DecodeString(output.Cert)
+	if err != nil {
+		return fmt.Errorf("failed to decode signing cert base64 from agent pod %s/%s: %w", agentPod.Namespace, agentPod.Name, err)
+	}
+	keyPEM, err := base64.StdEncoding.DecodeString(output.Key)
+	if err != nil {
+		return fmt.Errorf("failed to decode signing key base64 from agent pod %s/%s: %w", agentPod.Namespace, agentPod.Name, err)
 	}
 
 	// Load the certificate and key into the dynamic signer.
-	if err := c.dynamicCertProvider.SetCertKeyContent([]byte(certPEM), []byte(keyPEM)); err != nil {
+	if err := c.dynamicCertProvider.SetCertKeyContent(certPEM, keyPEM); err != nil {
 		return fmt.Errorf("failed to set signing cert/key content from agent pod %s/%s: %w", agentPod.Namespace, agentPod.Name, err)
 	}
+	c.log.Info("successfully loaded signing key from agent pod into cache")
 
 	// Remember that we've successfully loaded the key from this pod so we can skip the exec+load if nothing has changed.
 	c.execCache.Set(agentPod.UID, struct{}{}, 15*time.Minute)
@@ -356,16 +404,42 @@ func (c *agentController) createOrUpdateDeployment(ctx controllerlib.Context, ne
 		return err
 	}
 
-	// Otherwise update the spec of the Deployment to match our desired state.
+	// Update the spec of the Deployment to match our desired state.
 	updatedDeployment := existingDeployment.DeepCopy()
 	updatedDeployment.Spec = expectedDeployment.Spec
 	updatedDeployment.ObjectMeta = mergeLabelsAndAnnotations(updatedDeployment.ObjectMeta, expectedDeployment.ObjectMeta)
+	desireSelectorUpdate := !apiequality.Semantic.DeepEqual(updatedDeployment.Spec.Selector, existingDeployment.Spec.Selector)
+	desireTemplateLabelsUpdate := !apiequality.Semantic.DeepEqual(updatedDeployment.Spec.Template.Labels, existingDeployment.Spec.Template.Labels)
 
 	// If the existing Deployment already matches our desired spec, we're done.
 	if apiequality.Semantic.DeepDerivative(updatedDeployment, existingDeployment) {
-		return nil
+		// DeepDerivative allows the map fields of updatedDeployment to be a subset of existingDeployment,
+		// but we want to check that certain of those map fields are exactly equal before deciding to skip the update.
+		if !desireSelectorUpdate && !desireTemplateLabelsUpdate {
+			return nil // already equal enough, so skip update
+		}
 	}
 
+	// Selector is an immutable field, so if we want to update it then we must delete and recreate the Deployment,
+	// and then we're done. Older versions of Pinniped had multiple labels in the Selector, so to support upgrades from
+	// those versions we take extra care to handle this case.
+	if desireSelectorUpdate {
+		log.Info("deleting deployment to update immutable Selector field")
+		err = c.client.Kubernetes.AppsV1().Deployments(existingDeployment.Namespace).Delete(ctx.Context, existingDeployment.Name, metav1.DeleteOptions{
+			Preconditions: &metav1.Preconditions{
+				UID:             &existingDeployment.UID,
+				ResourceVersion: &existingDeployment.ResourceVersion,
+			},
+		})
+		if err != nil {
+			return err
+		}
+		log.Info("creating new deployment to update immutable Selector field")
+		_, err = c.client.Kubernetes.AppsV1().Deployments(expectedDeployment.Namespace).Create(ctx.Context, expectedDeployment, metav1.CreateOptions{})
+		return err
+	}
+
+	// Otherwise, update the Deployment.
 	log.Info("updating existing deployment")
 	_, err = c.client.Kubernetes.AppsV1().Deployments(updatedDeployment.Namespace).Update(ctx.Context, updatedDeployment, metav1.UpdateOptions{})
 	return err
@@ -448,10 +522,10 @@ func (c *agentController) newAgentDeployment(controllerManagerPod *corev1.Pod) *
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: pointer.Int32Ptr(1),
-			Selector: metav1.SetAsLabelSelector(c.cfg.agentLabels()),
+			Selector: metav1.SetAsLabelSelector(c.cfg.agentPodSelectorLabels()),
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: c.cfg.agentLabels(),
+					Labels: c.cfg.agentPodLabels(),
 				},
 				Spec: corev1.PodSpec{
 					TerminationGracePeriodSeconds: pointer.Int64Ptr(0),
@@ -461,7 +535,7 @@ func (c *agentController) newAgentDeployment(controllerManagerPod *corev1.Pod) *
 							Name:            "sleeper",
 							Image:           c.cfg.ContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
-							Command:         []string{"/bin/sleep", "infinity"},
+							Command:         []string{"pinniped-concierge-kube-cert-agent", "sleep"},
 							VolumeMounts:    volumeMounts,
 							Env: []corev1.EnvVar{
 								{Name: "CERT_PATH", Value: getContainerArgByName(controllerManagerPod, "cluster-signing-cert-file", "/etc/kubernetes/ca/ca.pem")},
@@ -492,6 +566,7 @@ func (c *agentController) newAgentDeployment(controllerManagerPod *corev1.Pod) *
 						RunAsUser:  pointer.Int64Ptr(0),
 						RunAsGroup: pointer.Int64Ptr(0),
 					},
+					HostNetwork: controllerManagerPod.Spec.HostNetwork,
 				},
 			},
 
@@ -537,4 +612,14 @@ func pluralize(pods []*corev1.Pod) string {
 		return "1 candidate"
 	}
 	return fmt.Sprintf("%d candidates", len(pods))
+}
+
+func firstErr(errs ...error) error {
+	for _, err := range errs {
+		err := err
+		if err != nil {
+			return err
+		}
+	}
+	return fmt.Errorf("all errors were nil but should not have been")
 }

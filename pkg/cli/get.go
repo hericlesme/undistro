@@ -16,9 +16,12 @@ limitations under the License.
 package cli
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/getupio-undistro/undistro/pkg/kube"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
-	pinnipedcmd "github.com/getupio-undistro/undistro/third_party/pinniped/pinniped/cmd"
+	pinnipedcmd "github.com/getupio-undistro/undistro/third_party/pinniped/cmd"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -77,10 +80,18 @@ func (o *KubeconfigOptions) RunGetKubeconfig(f cmdutil.Factory, cmd *cobra.Comma
 		Namespace: o.Namespace,
 		Name:      o.ClusterName,
 	})
-	if err != nil && client.IgnoreNotFound(err) != nil {
-		return errors.Errorf("unable to get kubeconfig: %v", err)
+	if err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			return errors.Errorf("unable to get kubeconfig: %v", err)
+		}
+		if o.ClusterName != "management" && o.Namespace != "undistro-system" {
+			return err
+		}
 	}
 	if o.Admin {
+		if err != nil {
+			return err
+		}
 		if len(byt) > 0 {
 			_, err = o.IOStreams.Out.Write(byt)
 			if err != nil {
@@ -114,6 +125,15 @@ func NewCmdKubeconfig(f cmdutil.Factory, streams genericclioptions.IOStreams) *c
 	cmd, flags := pinnipedcmd.SetupPinnipedCommand(cmd)
 	fn := func(cmd *cobra.Command, args []string) {
 		cmdutil.CheckErr(o.Complete(f, cmd, args))
+		if flags.OutputPath != "" {
+			out, err := os.Create(flags.OutputPath)
+			if err != nil {
+				cmdutil.CheckErr(fmt.Errorf("could not open output file: %w", err))
+			}
+			defer func() { _ = out.Close() }()
+			cmd.SetOut(out)
+		}
+		flags.CredentialCachePathSet = cmd.Flags().Changed("credential-cache")
 		cmdutil.CheckErr(o.RunGetKubeconfig(f, cmd, flags))
 	}
 	cmd.Run = fn

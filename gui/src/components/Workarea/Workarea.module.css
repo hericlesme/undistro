@@ -1,0 +1,15 @@
+.mainWorkspaceArea {
+    display: flex;
+    min-height: calc(100vh - 84px);
+    min-width: 100% !important;
+}
+
+.leftMenuArea {
+    min-width:240px;
+    min-height: 100%;
+}
+
+.mainDisplayArea {
+    width: 100%;
+    min-height: 100%;
+}

@@ -83,7 +83,12 @@ func (r *ObserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		"paused", instance.Spec.Paused,
 	}
 
-	log := logr.FromContext(ctx).WithValues(keysAndValues...)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+	log.WithValues(keysAndValues...)
+
 	log.Info("Reconciling Observer state")
 
 	// Initialize the patch helper.
@@ -149,7 +154,11 @@ func (r *ObserverReconciler) reconcile(ctx context.Context, observer appv1alpha1
 }
 
 func (r *ObserverReconciler) reconcileLog(ctx context.Context, observer appv1alpha1.Observer) (ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	log.Info("Reconciling log stack")
 	res, err := r.reconcileElasticStack(ctx, observer)
 	if err != nil {
@@ -160,7 +169,11 @@ func (r *ObserverReconciler) reconcileLog(ctx context.Context, observer appv1alp
 }
 
 func (r *ObserverReconciler) reconcileFluentStack(ctx context.Context, observer appv1alpha1.Observer) (ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	log.Info("Reconciling fluent stack")
 
 	values := map[string]interface{}{}
@@ -203,7 +216,11 @@ func (r *ObserverReconciler) reconcileFluentStack(ctx context.Context, observer 
 }
 
 func (r *ObserverReconciler) reconcileElasticStack(ctx context.Context, observer appv1alpha1.Observer) (ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	log.Info("Reconciling elastic stack")
 	values := map[string]interface{}{}
 	cl := &appv1alpha1.Cluster{}
@@ -241,7 +258,11 @@ func (r *ObserverReconciler) reconcileElasticStack(ctx context.Context, observer
 }
 
 func (r *ObserverReconciler) createElasticsearchCluster(ctx context.Context, obs *appv1alpha1.Observer, cl *appv1alpha1.Cluster) (ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	replicaCount := 0
 	if cl.HasInfraNodes() {
 		for _, w := range cl.Spec.Workers {
@@ -338,7 +359,11 @@ spec:
 }
 
 func (r *ObserverReconciler) reconcileMetrics(ctx context.Context, observer appv1alpha1.Observer) (ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	log.Info("Reconciling metrics stack")
 	values := map[string]interface{}{
 		"namespaceOverride": monitoringNs,
@@ -460,7 +485,11 @@ func (r *ObserverReconciler) reconcileMetrics(ctx context.Context, observer appv
 
 func (r *ObserverReconciler) installRelease(
 	ctx context.Context, name, version string, values map[string]interface{}, observer *appv1alpha1.Observer, cl *appv1alpha1.Cluster) (err error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	log.Info("Installing release", "releaseName", name)
 	key := client.ObjectKey{
 		Name:      hr.GetObjectName(name, observer.Spec.ClusterName),
@@ -537,7 +566,11 @@ spec:
 }
 
 func (r *ObserverReconciler) reconcileDelete(ctx context.Context, instance *appv1alpha1.Observer) (res ctrl.Result, err error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	log.Info("Reconciling delete")
 	releases := []string{kubeStackReleaseName, eckOperatorReleaseName, fluentBitVersion, fluentdReleaseName}
 	for _, release := range releases {

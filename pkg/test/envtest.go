@@ -125,7 +125,10 @@ func (t *Environment) WaitForWebhooks() {
 			klog.V(2).Infof("Webhook port is not ready, will retry in %v: %s", timeout, err)
 			continue
 		}
-		conn.Close()
+		err = conn.Close()
+		if err != nil {
+			return
+		}
 		klog.V(2).Info("Webhook port is now open. Continuing with tests...")
 		return
 	}
@@ -137,8 +140,8 @@ func (t *Environment) Stop() error {
 }
 
 func initializeWebhookInEnvironment() {
-	validatingWebhooks := []admissionv1.ValidatingWebhookConfiguration{}
-	mutatingWebhooks := []admissionv1.MutatingWebhookConfiguration{}
+	var validatingWebhooks []*admissionv1.ValidatingWebhookConfiguration
+	var mutatingWebhooks []*admissionv1.MutatingWebhookConfiguration
 
 	// Get the root of the current file to use in CRD paths.
 	_, filename, _, _ := goruntime.Caller(0) //nolint
@@ -174,7 +177,7 @@ const (
 
 // Mutate the name of each webhook, because kubebuilder generates the same name for all controllers.
 // In normal usage, kustomize will prefix the controller name, which we have to do manually here.
-func appendWebhookConfiguration(mutatingWebhooks []admissionv1.MutatingWebhookConfiguration, validatingWebhooks []admissionv1.ValidatingWebhookConfiguration, configyamlFile []byte, tag string) ([]admissionv1.MutatingWebhookConfiguration, []admissionv1.ValidatingWebhookConfiguration, error) {
+func appendWebhookConfiguration(mutatingWebhooks []*admissionv1.MutatingWebhookConfiguration, validatingWebhooks []*admissionv1.ValidatingWebhookConfiguration, configyamlFile []byte, tag string) ([]*admissionv1.MutatingWebhookConfiguration, []*admissionv1.ValidatingWebhookConfiguration, error) {
 
 	objs, err := util.ToUnstructured(configyamlFile)
 	if err != nil {
@@ -192,7 +195,7 @@ func appendWebhookConfiguration(mutatingWebhooks []admissionv1.MutatingWebhookCo
 					klog.Fatalf("failed to decode obj")
 				}
 				cfg.Name = strings.Join([]string{mutatingwebhook, "-", tag}, "")
-				mutatingWebhooks = append(mutatingWebhooks, cfg)
+				mutatingWebhooks = append(mutatingWebhooks, &cfg)
 			}
 		}
 		if o.GetKind() == validatingWebhookKind {
@@ -204,7 +207,7 @@ func appendWebhookConfiguration(mutatingWebhooks []admissionv1.MutatingWebhookCo
 					klog.Fatalf("failed to decode obj")
 				}
 				cfg.Name = strings.Join([]string{mutatingwebhook, "-", tag}, "")
-				validatingWebhooks = append(validatingWebhooks, cfg)
+				validatingWebhooks = append(validatingWebhooks, &cfg)
 			}
 		}
 	}

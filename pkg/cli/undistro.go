@@ -23,7 +23,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/getupio-undistro/undistro/pkg/version"
-	pinnipedcmd "github.com/getupio-undistro/undistro/third_party/pinniped/pinniped/cmd"
+	pinnipedcmd "github.com/getupio-undistro/undistro/third_party/pinniped/cmd"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apiresources"

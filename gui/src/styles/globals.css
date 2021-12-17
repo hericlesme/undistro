@@ -1,0 +1,100 @@
+@import 'colors-dark.css';
+@import 'fonts.css';
+
+/* UTILS */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: calc(100vh - 84px);
+  font-family: 'montserrat', sans-serif;
+  top: 84px;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-default);
+}
+
+*:focus {
+  outline: none;
+  border: none;
+}
+
+.clearMargins {
+  margin: 0;
+  padding: 0;
+}
+
+.responsive {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.responsiveFlex {
+  display: flex;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  background-color: lemonchiffon;
+}
+
+.responsiveWidth {
+  width: 100%;
+}
+
+.responsiveHeight {
+  height: 100%;
+}
+
+.responsiveScreenHeight {
+  min-height: 100vh;
+}
+
+.upperCase {
+  text-transform: uppercase;
+}
+
+.belowTopBarArea {
+  margin-top: 84px;
+}
+
+.backgroundDefault {
+  background-color: var(--background-default);
+}
+
+.textCentered {
+  text-align: center;
+  justify-content: center;
+}
+
+.textLeft {
+  text-align: left;
+  justify-content: left;
+}
+
+#searchClear::-webkit-search-cancel-button {
+  position: relative;
+  right: 14px;
+  -webkit-appearance: none;
+  height: 8px;
+  width: 8px;
+  background-image: url('/img/searchClearIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+#searchClear::-webkit-search-cancel-button:hover {
+  height: 10px;
+  width: 10px;
+  background-image: url('/img/searchClearIconFocus.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.dialogWindowShadow {
+  box-shadow: 12px 12px 20px rgba(0, 0, 0, 0.15);
+}

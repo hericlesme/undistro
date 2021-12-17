@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="criticaldialogs.css">
+    <meta name="description" content="Template">
+    <meta name="keywords" content="html template">
+</head>
+<body>
+    <div class="responsive" style="background-color: var(--background-default);">
+        <div style="display: flex; height: 100%; background-color: var(--background-default); align-items: center;">
+
+            <div class="criticalDialogStripe">
+                <div class="criticalDialogMessageContainer">
+
+                    <div class="criticalDialogObjectName">
+                        inf_nodepool-01
+                    </div>
+
+                    <div class="criticalDialogIcon"></div>
+
+                    <div class="criticalDialogActionDescription">
+                        delete workers nodepool
+                    </div>
+
+                    <div class="criticalDialogActionAlertMessage">
+                        At least one infranode nodepool is required. Deleting this nodepool will cause a cluster failure.
+                    </div>
+
+                    
+
+                    <div class="criticalDialogActionConfirmationContainer">
+
+                        <div class="criticalDialogConfirmationText">
+                            Type “delete” to confirm:
+                        </div>
+                        
+                        <input id="searchClear" class="confirmationInputBox" type="text" placeholder="delete"></input>
+                        
+
+                    </div>
+
+                    <div class="criticalDialogBtnContainer">
+
+                        <button class="confirmDialogBtn" disabled>
+                            <div class="confirmBtnText">
+                                delete
+                            </div>
+                        </button>
+                        <button class="cancelDialogBtn">
+                            <div class="cancelBtnText">
+                                cancel
+                            </div>
+                        </button>
+
+                    </div>
+
+                    
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

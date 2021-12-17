@@ -88,7 +88,11 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		"chartName", hr.Spec.Chart.Name,
 		"chartVersion", hr.Spec.Chart.Version,
 	}
-	log := logr.FromContext(ctx).WithValues(keysAndValues...)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+	log.WithValues(keysAndValues...)
 
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&hr, r.Client)
@@ -168,7 +172,11 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 }
 
 func (r *HelmReleaseReconciler) reconcile(ctx context.Context, hr appv1alpha1.HelmRelease) (appv1alpha1.HelmRelease, ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	var clientOpts []getter.Option
 	if hr.Spec.Chart.SecretRef != nil {
 		resourceNamespacedName := types.NamespacedName{
@@ -358,7 +366,11 @@ func (r *HelmReleaseReconciler) applyObjs(ctx context.Context, c client.Client, 
 
 func (r *HelmReleaseReconciler) reconcileRelease(ctx context.Context, restClientGetter genericclioptions.RESTClientGetter, workloadClient client.Client,
 	hr appv1alpha1.HelmRelease, chart *chart.Chart, values chartutil.Values) (appv1alpha1.HelmRelease, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	log.Info("Reconciling release", "release name", chart.Name())
 	// Initialize Helm action runner
 	runner, err := helm.NewRunner(restClientGetter, hr.Spec.TargetNamespace, log)
@@ -489,7 +501,11 @@ func (r *HelmReleaseReconciler) checkDependencies(ctx context.Context, hr appv1a
 }
 
 func (r *HelmReleaseReconciler) handleHelmActionResult(ctx context.Context, hr *appv1alpha1.HelmRelease, revision string, err error, action string, condition string, succeededReason string, failedReason string) error {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	log.Info("Release revision", "revision", revision)
 	if err != nil {
 		msg := fmt.Sprintf("Helm %s failed: %s", action, err.Error())
@@ -506,7 +522,10 @@ func (r *HelmReleaseReconciler) handleHelmActionResult(ctx context.Context, hr *
 // and merges them as defined. Referenced resources are only retrieved once
 // to ensure a single version is taken into account during the merge.
 func (r *HelmReleaseReconciler) composeValues(ctx context.Context, hr appv1alpha1.HelmRelease) (chartutil.Values, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
 
 	result := chartutil.Values{}
 	configMaps := make(map[string]*corev1.ConfigMap)
@@ -627,7 +646,11 @@ func (r *HelmReleaseReconciler) getRESTClientGetter(ctx context.Context, hr appv
 }
 
 func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, hr appv1alpha1.HelmRelease) (ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	restClient, err := r.getRESTClientGetter(ctx, hr)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {

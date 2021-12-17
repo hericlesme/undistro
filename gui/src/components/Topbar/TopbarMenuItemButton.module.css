@@ -1,0 +1,43 @@
+.menuTopItemButton {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+}
+
+.menuTopItemButton:hover .menuTopItemTab {
+  height: 6px;
+  background-color: var(--background-primary-default);
+}
+
+.menuTopItemButton:hover .menuTopItemText {
+  color: var(--text-hover);
+  font-weight: 600;
+  letter-spacing: 0.11em;
+}
+
+/* Hover Rectangle Tab */
+.menuTopItemTab {
+  height: 6px;
+  background-color: transparent;
+}
+
+.menuTopItemTextArea {
+  height: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.menuTopItemText {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  color: #d7d7d7;
+  text-decoration-color: #d7d7d7;
+}
+
+

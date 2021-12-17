@@ -22,7 +22,7 @@ import (
 
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
-	pinnipedcmd "github.com/getupio-undistro/undistro/third_party/pinniped/pinniped/cmd"
+	pinnipedcmd "github.com/getupio-undistro/undistro/third_party/pinniped/cmd"
 	"github.com/pkg/errors"
 	configv1alpha1 "go.pinniped.dev/generated/latest/apis/concierge/config/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -46,8 +46,12 @@ func IgnoreConciergeNotInstalled(err error) error {
 	return nil
 }
 
-func ConciergeInfoFromConfig(ctx context.Context, cfg *rest.Config) (*appv1alpha1.ConciergeInfo, error) {
-	pinnipedClient, err := pinnipedcmd.GetRealConciergeClientsetFromConfig(cfg, "pinniped.dev")
+func ConciergeInfoFromConfig(ctx context.Context, cfg []byte) (*appv1alpha1.ConciergeInfo, error) {
+	clientConfig, err := clientcmd.NewClientConfigFromBytes(cfg)
+	if err != nil {
+		return nil, ErrConciergeNotInstalled
+	}
+	pinnipedClient, err := pinnipedcmd.GetRealConciergeClientset(clientConfig, "pinniped.dev")
 	if err != nil {
 		return nil, ErrConciergeNotInstalled
 	}

@@ -1,0 +1,411 @@
+@charset "utf-8";
+/* CSS Document */
+
+* {
+    box-sizing: border-box;
+  }
+
+/*  FONTS  */
+
+@font-face {
+    font-family: 'montserratblack';
+    src: url('../../assets/webfonts/montserrat-black-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-black-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratbold';
+    src: url('../../assets/webfonts/montserrat-bold-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-bold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratextrabold';
+    src: url('../../assets/webfonts/montserrat-extrabold-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-extrabold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratextralight';
+    src: url('../../assets/webfonts/montserrat-extralight-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-extralight-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'montserratitalic';
+    src: url('../../assets/webfonts/montserrat-italic-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-italic-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratlight';
+    src: url('../../assets/webfonts/montserrat-light-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-light-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratlight_italic';
+    src: url('../../assets/webfonts/montserrat-lightitalic-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-lightitalic-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratmedium';
+    src: url('../../assets/webfonts/montserrat-medium-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-medium-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'montserratmedium_italic';
+    src: url('../../assets/webfonts/montserrat-mediumitalic-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-mediumitalic-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'montserratregular';
+    src: url('../../assets/webfonts/montserrat-regular-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratsemibold';
+    src: url('../../assets/webfonts/montserrat-semibold-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-semibold-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'montserratthin';
+    src: url('../../assets/webfonts/montserrat-thin-webfont.woff2') format('woff2'),
+         url('../../assets/webfonts/montserrat-thin-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+/* UTILS */
+
+:root {
+  /* workspace */
+  --background-default: #191a1d;
+  --background-dark: #111214;
+  --background-strong: #282c31;
+  --background-weak: #373c43;
+  --background-light: #656d7a;
+  --background-medium: #495059;
+  --background-warning: #F9D58B;
+  --background-dialog: #22262B;
+  --background-switch: #82868B;
+  --background-success: #39e9aa;
+  --background-success-hover: #4dcd9f;
+  --background-black: #000000;
+  --workspace-background-strong-selected: #5c6370;
+  --workspace-background-strong-hover: #5c6370;
+
+  /* primary */
+  --background-primary-default: #657f97;
+  --background-primary-hover: #799ec0;
+
+  /* success */
+  --success-background-default: #39e9aa;
+  --success-background-hover: #4dcd9f;
+
+  /* icon */
+  --icon-strong: #ffffff;
+  --icon-default: #d7d7d7;
+  --icon-hover: #ffffff;
+  --icon-disabled: #6c6c6c;
+  --icon-selected: #ffffff;
+
+  /* text */
+  --text-strong: #ffffff;
+  --text-default: #d7d7d7;
+  --text-hover: #ffffff;
+  --text-focus: #ffffff;
+  --text-disabled: #6c6c6c;
+  --text-selected: #ffffff;
+  --text-critical: #ff5a60;
+  --text-warning: #F9D58B;
+  --text-success: #39e9aa;
+  --text-dark: #191a1d;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+*:focus {
+    outline: none;
+    border: none;
+}
+
+.clearMargins {
+    margin: 0;
+    padding: 0;
+}
+
+.responsive {
+    width: 100%;
+    height: 100%;
+}
+
+.responsiveWidth {
+    width: 100%;
+}
+
+.responsiveHeight {
+    height: 100%;
+}
+
+.textCentered {
+    text-align: center;
+    justify-content: center;
+}
+
+.textLeft {
+    text-align: left;
+    justify-content: left;
+}
+
+
+
+
+
+
+.criticalDialogStripe {
+    width: 100%;
+    height: 340px;
+    display: flex;
+    justify-content: center;
+    background-color: var(--background-black);
+    margin-bottom: 80px;
+}
+
+.criticalDialogMessageContainer {
+    height: 100%;
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 24px 0 24px;
+    align-items: center;
+}
+
+.criticalDialogObjectName {
+    font-family: Montserrat;
+    font-style: normal;
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 30px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-strong);
+}
+
+.criticalDialogIcon {
+    width: 56px;
+    height: 78px;
+    background-image: url("../img/criticalDialogIcon.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.warningDialogIcon {
+    width: 56px;
+    height: 78px;
+    background-image: url("../img/warningDialogIcon.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.successDialogIcon {
+    width: 56px;
+    height: 78px;
+    background-image: url("../img/successDialogIcon.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.criticalDialogActionDescription {
+    font-family: Montserrat;
+    font-style: normal;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 30px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-strong);
+}
+
+.criticalDialogActionAlertMessage {
+    font-family: Montserrat;
+    font-style: normal;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: 0.02em;
+    color: var(--text-critical);
+}
+
+.warningDialogActionAlertMessage {
+    font-family: Montserrat;
+    font-style: normal;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: 0.02em;
+    color: var(--text-warning);
+}
+
+.successDialogActionAlertMessage {
+    font-family: Montserrat;
+    font-style: normal;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: 0.02em;
+    color: var(--text-success);
+}
+
+.criticalDialogActionConfirmationContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding-top: 32px;
+    padding-bottom: 16px;
+}
+
+.criticalDialogConfirmationText {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    padding-right: 16px;
+    color: var(--text-default);    
+}
+
+input.confirmationInputBox {
+    height: 34px;
+    width: 92px;
+	font-family: 'montserrat', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 22px;
+    padding-left: 16px;
+    border: none;
+	background-color: var(--background-strong);
+	color: var(--text-strong);
+}
+
+input.confirmationInputBox::-webkit-input-placeholder {
+    color: var(--text-disabled);
+}
+input.confirmationInputBox:-ms-input-placeholder {
+    color: var(--text-disabled);
+}
+input.confirmationInputBox::placeholder {
+    color: var(--text-disabled);
+}
+
+.criticalDialogBtnContainer {
+    display: flex;
+    flex-direction: row;
+    margin-top: auto;
+    padding-bottom: 24px;
+    gap: 140px;
+}
+
+.warningDialogBtnContainer {
+    display: flex;
+    flex-direction: row;
+    margin-top: auto;
+    padding-bottom: 24px;
+    gap: 140px;
+}
+
+.confirmBtnText {
+    width: 100px;
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 30px;
+    text-align: center;
+    text-decoration: none;
+    text-transform: capitalize;
+    color: var(--text-default);
+}
+
+.cancelBtnText {
+    width: 100px;
+    height: 38px;
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 30px;
+    text-align: center;
+    text-decoration: none;
+    text-transform: capitalize;
+    color: var(--text-default);
+}
+
+button.confirmDialogBtn {
+    background-color: transparent;
+    border: none;
+    display: inline-block;
+}
+
+button.confirmDialogBtn:hover .confirmBtnText {
+    font-size: 24px;
+    color: var(--text-strong);
+}
+
+button.confirmDialogBtn:disabled {
+    color: var(--text-disabled);
+}
+
+button.cancelDialogBtn {
+    width: 90px;
+    height: 38px;
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 30px;
+    background-color: transparent;
+    border: none;
+    color: var(--text-default);
+    text-align: center;
+    text-decoration: none;
+    text-transform: capitalize;
+    display: inline-block;
+}
+
+button.cancelDialogBtn:hover .cancelBtnText {
+    font-size: 24px;
+    color: var(--text-strong);
+}
+
+button.cancelDialogBtn:disabled {
+    color: var(--text-disabled);
+}
+

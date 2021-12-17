@@ -61,7 +61,11 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	log := logr.FromContext(ctx).WithValues("defaultpolicies", req.String())
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+	log.WithValues("DefaultPolicies", req.NamespacedName)
 
 	// Initialize the patch helper.
 	patchHelper, err := patch.NewHelper(&p, r.Client)
@@ -121,7 +125,11 @@ func (r *DefaultPoliciesReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 }
 
 func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, p appv1alpha1.DefaultPolicies, cl *appv1alpha1.Cluster) (appv1alpha1.DefaultPolicies, ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	values := map[string]interface{}{
 		"fullnameOverride": kyvernoReleaseName,
 		"namespace":        kyvernoReleaseName,
@@ -158,7 +166,7 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, p appv1alpha1
 		Name:      hr.GetObjectName(kyvernoReleaseName, p.Spec.ClusterName),
 		Namespace: p.GetNamespace(),
 	}
-	err := r.Get(ctx, key, &release)
+	err = r.Get(ctx, key, &release)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			release, err = hr.Prepare(kyvernoReleaseName, kyvernoReleaseName, p.GetNamespace(), kyvernoReleaseVersion, p.Spec.ClusterName, values)
@@ -201,11 +209,18 @@ func (r *DefaultPoliciesReconciler) reconcile(ctx context.Context, p appv1alpha1
 }
 
 func (r *DefaultPoliciesReconciler) reconcileDelete(ctx context.Context, instance appv1alpha1.DefaultPolicies) (ctrl.Result, error) {
-	return hr.Uninstall(ctx, r.Client, logr.FromContext(ctx), kyvernoReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+	return hr.Uninstall(ctx, r.Client, log, kyvernoReleaseName, instance.Spec.ClusterName, instance.GetNamespace())
 }
 
 func (r *DefaultPoliciesReconciler) applyPolicies(ctx context.Context, clusterClient client.Client, p appv1alpha1.DefaultPolicies) (appv1alpha1.DefaultPolicies, error) {
-	log := logr.FromContext(ctx)
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
 	dir, err := fs.PoliciesFS.ReadDir("policies")
 	if err != nil {
 		return p, err

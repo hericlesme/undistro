@@ -24,7 +24,6 @@ func NewLegacyPodCleanerController(
 	client *kubeclient.Client,
 	agentPods corev1informers.PodInformer,
 	log logr.Logger,
-	options ...controllerlib.Option,
 ) controllerlib.Controller {
 	// legacyAgentLabels are the Kubernetes labels we previously added to agent pods (the new value is "v2").
 	// We also expect these pods to have the "extra" labels configured on the Concierge.
@@ -40,24 +39,39 @@ func NewLegacyPodCleanerController(
 		controllerlib.Config{
 			Name: "legacy-pod-cleaner-controller",
 			Syncer: controllerlib.SyncFunc(func(ctx controllerlib.Context) error {
-				if err := client.Kubernetes.CoreV1().Pods(ctx.Key.Namespace).Delete(ctx.Context, ctx.Key.Name, metav1.DeleteOptions{}); err != nil {
+				podClient := client.Kubernetes.CoreV1().Pods(ctx.Key.Namespace)
+
+				// avoid blind writes to the API
+				agentPod, err := podClient.Get(ctx.Context, ctx.Key.Name, metav1.GetOptions{})
+				if err != nil {
+					if k8serrors.IsNotFound(err) {
+						return nil
+					}
+					return fmt.Errorf("could not get legacy agent pod: %w", err)
+				}
+
+				if err := podClient.Delete(ctx.Context, ctx.Key.Name, metav1.DeleteOptions{
+					Preconditions: &metav1.Preconditions{
+						UID:             &agentPod.UID,
+						ResourceVersion: &agentPod.ResourceVersion,
+					},
+				}); err != nil {
 					if k8serrors.IsNotFound(err) {
 						return nil
 					}
 					return fmt.Errorf("could not delete legacy agent pod: %w", err)
 				}
+
 				log.Info("deleted legacy kube-cert-agent pod", "pod", klog.KRef(ctx.Key.Namespace, ctx.Key.Name))
 				return nil
 			}),
 		},
-		append([]controllerlib.Option{
-			controllerlib.WithInformer(
-				agentPods,
-				pinnipedcontroller.SimpleFilter(func(obj metav1.Object) bool {
-					return obj.GetNamespace() == cfg.Namespace && legacyAgentSelector.Matches(labels.Set(obj.GetLabels()))
-				}, nil),
-				controllerlib.InformerOption{},
-			),
-		}, options...)...,
+		controllerlib.WithInformer(
+			agentPods,
+			pinnipedcontroller.SimpleFilter(func(obj metav1.Object) bool {
+				return obj.GetNamespace() == cfg.Namespace && legacyAgentSelector.Matches(labels.Set(obj.GetLabels()))
+			}, nil),
+			controllerlib.InformerOption{},
+		),
 	)
 }
