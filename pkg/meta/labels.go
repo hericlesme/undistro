@@ -28,4 +28,6 @@ const (
 	LabelK8sCP               = "node-role.kubernetes.io/control-plane"
 	SetupAnnotation          = "network.undistro.io/setup"
 	KyvernoAnnotation        = "security.undistro.io/kyverno"
+	EnableClusterAutoscaler  = "undistro.io/cluster-autoscaler"
+	HelmReleaseLocation      = "undistro.io/hr-local"
 )

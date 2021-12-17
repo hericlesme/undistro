@@ -609,9 +609,15 @@ func (r *HelmReleaseReconciler) composeValues(ctx context.Context, hr appv1alpha
 }
 
 func (r *HelmReleaseReconciler) getRESTClientGetter(ctx context.Context, hr appv1alpha1.HelmRelease) (genericclioptions.RESTClientGetter, error) {
-	if hr.Spec.ClusterName == "" {
+	if hr.Annotations == nil {
+		hr.Annotations = make(map[string]string)
+	}
+
+	_, localChart := hr.Annotations[meta.HelmReleaseLocation]
+	if util.IsMgmtCluster(hr.Spec.ClusterName) || localChart {
 		return kube.NewInClusterRESTClientGetter(r.config, hr.Spec.TargetNamespace), nil
 	}
+
 	key := util.ObjectKeyFromString(hr.Spec.ClusterName)
 	kubeConfig, err := kubeconfig.FromSecret(ctx, r.Client, key)
 	if err != nil {

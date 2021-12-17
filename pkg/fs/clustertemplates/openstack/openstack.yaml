@@ -202,6 +202,14 @@ metadata:
   labels:
     cluster.x-k8s.io/cluster-name: "{{$name}}"
     cluster.x-k8s.io/cluster-namespace: "{{$namespace}}"
+  annotations:
+    {{if $element.Autoscale.Enabled}}
+    cluster.x-k8s.io/cluster-api-autoscaler-node-group-min-size: "{{$element.Autoscale.MinSize}}"
+    cluster.x-k8s.io/cluster-api-autoscaler-node-group-max-size: "{{$element.Autoscale.MaxSize}}"
+    {{else}}
+    cluster.x-k8s.io/cluster-api-autoscaler-node-group-min-size: "{{$element.Replicas}}"
+    cluster.x-k8s.io/cluster-api-autoscaler-node-group-max-size: "{{$element.Replicas}}"
+    {{end}}
 spec:
   clusterName: "{{$name}}"
   replicas: {{$element.Replicas}}

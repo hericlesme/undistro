@@ -77,3 +77,4 @@ jobs:
           helm chart-push fluentd undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
           helm chart-push fluent-bit undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
           helm chart-push tigera-operator undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force
+          helm chart-push cluster-autoscaler undistro --username $HELM_LOGIN --password  $HELM_PASSWORD --force

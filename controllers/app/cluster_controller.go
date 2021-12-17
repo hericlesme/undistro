@@ -151,6 +151,17 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 		return cl, ctrl.Result{}, err
 	}
 
+	if cl.Annotations != nil {
+		_, autoscalerEnabled := cl.Annotations[meta.EnableClusterAutoscaler]
+		if autoscalerEnabled {
+			err := r.reconcileClusterAutoscaler(ctx, &cl)
+			if err != nil {
+				meta.SetResourceCondition(&cl, meta.ClusterAutoscalerInstalledCondition, metav1.ConditionFalse, meta.ClusterAutoscalerInstalledFailedReason, err.Error())
+				return cl, ctrl.Result{}, err
+			}
+		}
+	}
+
 	err = cloud.ReconcileIntegration(ctx, r.Client, log, &cl, &capiCluster)
 	if err != nil {
 		meta.SetResourceCondition(&cl, meta.CloudProviderInstalledCondition, metav1.ConditionFalse, meta.CloudProvideInstalledFailedReason, err.Error())
@@ -445,6 +456,55 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 		release.Annotations = make(map[string]string)
 	}
 	release.Annotations[meta.SetupAnnotation] = cniCalicoName
+
+	err = hr.Install(ctx, r.Client, log, release, cl)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *ClusterReconciler) reconcileClusterAutoscaler(ctx context.Context, cl *appv1alpha1.Cluster) error {
+	log := logr.FromContext(ctx)
+
+	const (
+		chartName    = "cluster-autoscaler"
+		chartVersion = "9.10.9"
+	)
+	log.Info("Reconciling Cluster Autoscaler")
+
+	key := client.ObjectKey{
+		Name:      hr.GetObjectName(chartName, cl.Name),
+		Namespace: cl.GetNamespace(),
+	}
+	release := appv1alpha1.HelmRelease{}
+	err := r.Get(ctx, key, &release)
+	if err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			return err
+		}
+	}
+
+	if meta.InReadyCondition(release.Status.Conditions) {
+		meta.SetResourceCondition(cl, meta.ClusterAutoscalerInstalledCondition, metav1.ConditionTrue, meta.ClusterAutoscalerInstalledSuccessReason, "cluster-autoscaler installed")
+	}
+
+	values := map[string]interface{}{
+		"clusterName": cl.Name,
+	}
+	release, err = hr.Prepare(chartName, cl.GetNamespace(), cl.GetNamespace(), chartVersion, cl.Name, values)
+	if err != nil {
+		return err
+	}
+
+	if release.Labels == nil {
+		release.Labels = make(map[string]string)
+	}
+	release.Labels[meta.LabelUndistroMove] = ""
+	if release.Annotations == nil {
+		release.Annotations = make(map[string]string)
+	}
+	release.Annotations[meta.HelmReleaseLocation] = ""
 
 	err = hr.Install(ctx, r.Client, log, release, cl)
 	if err != nil {

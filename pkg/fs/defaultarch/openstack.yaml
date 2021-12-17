@@ -4,6 +4,8 @@ kind: Cluster
 metadata:
   name: {{.Name}}
   namespace: {{.Namespace}}
+  annotations:
+    undistro.io/cluster-autoscaler: ""
 spec:
   kubernetesVersion: {{.K8sVersion}}
   controlPlane:
