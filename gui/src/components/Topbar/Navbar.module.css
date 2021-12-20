@@ -1,166 +1,161 @@
 .navbarContainer {
-    margin-top: 48px;
-    display: flex;
-    height: 36px;
-    position: fixed;
-    background-color: var(--background-medium);
-    align-items: center;
-	z-index: 1;
+  margin-top: 48px;
+  display: flex;
+  height: 36px;
+  background-color: var(--background-medium);
+  align-items: center;
 }
-
 
 /* HOME BUTTON */
 
 .navbarHomeButtonArea {
-    min-width: 240px;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-decoration: none;
-    background-color: var(--background-weak);
+  min-width: 240px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  background-color: var(--background-weak);
 }
 
 .navbarHomeButtonArea:hover {
-    background-color: var(--background-primary-default);
+  background-color: var(--background-primary-default);
 }
 
 .navbarHomeIconArea {
-    background-image: url("/img/homeIcon.svg");
-    background-repeat: no-repeat;
-    background-position: center;
-    width: 28px;
-    height: 28px;
+  background-image: url('/img/homeIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 28px;
+  height: 28px;
 }
 
 .navbarHomeButtonArea:hover .navbarHomeIconArea {
-    background-image: url("/img/homeIconHover.svg");
-    background-repeat: no-repeat;
-    background-position: center;
-    width: 28px;
-    height: 28px;
+  background-image: url('/img/homeIconHover.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 28px;
+  height: 28px;
 }
-
 
 /* BREADCRUMB */
 
 .navbarBreadCrumbArea {
-    height: 36px;
-    display: flex;
-    align-items: center;
+  height: 36px;
+  display: flex;
+  align-items: center;
 }
 
 .breadCrumbSelObject {
-	font-size: 14px !important;
-	font-weight: 600;
-	line-height: 22px;
-	color: var(--text-selected) !important;
+  font-size: 14px !important;
+  font-weight: 600;
+  line-height: 22px;
+  color: var(--text-selected) !important;
 }
 
 .navBcrumbDefaultLevel {
-	font-size: 12px;
-	font-weight: 500;
-	letter-spacing: 0.02rem;
-	text-align: center;
-	line-height: 36px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02rem;
+  text-align: center;
+  line-height: 36px;
 }
 
 ol.breadCrumb {
-	padding-top: 0;
-	padding-bottom: 0;
-	padding-left: 12px;
-	list-style: none;
-	margin: 0;
-	overflow: hidden;
-	white-space: nowrap;
-    text-decoration: none;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 12px;
+  list-style: none;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-decoration: none;
 }
 ol.breadCrumb li {
-	display: inline;
-	font-size: 12px;
-	font-weight: 500;
-	letter-spacing: 0.02rem;
-	line-height: 17.07px;
+  display: inline;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02rem;
+  line-height: 17.07px;
 }
 ol.breadCrumb li::after {
-    content: "/";
-	padding-left: 8px;
-    padding-right: 4px;
-	color: var(--text-default);
+  content: '/';
+  padding-left: 8px;
+  padding-right: 4px;
+  color: var(--text-default);
 }
 ol.breadCrumb li:last-child::after {
-    content: "";
-	padding-left: 8px;
-    padding-right: 4px;
+  content: '';
+  padding-left: 8px;
+  padding-right: 4px;
 }
 ol.breadCrumb li a {
-	color: var(--text-default);
-	text-decoration: none !important;
+  color: var(--text-default);
+  text-decoration: none !important;
 }
 ol.breadCrumb li:last-child a {
-	color: var(--text-strong);
-	text-decoration: none !important;
+  color: var(--text-strong);
+  text-decoration: none !important;
 }
 ol.breadCrumb li a:hover {
-	color: var(--text-strong);
-	text-decoration: none;
+  color: var(--text-strong);
+  text-decoration: none;
 }
-
 
 /* SEARCH BOX */
 
 .navbarSearchArea {
-    display: flex;
-	flex-direction: row;
-	align-items: center;
-	height: 36px;
-    margin-right: 120px;
-	background-color: var(--background-medium);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 36px;
+  margin-right: 120px;
+  background-color: var(--background-medium);
 }
 
 .navbarSearchBox {
-	font-family: 'montserrat', sans-serif;
-	height: 100%;
-    width: 220px;
-	padding-left: 8px;
-	padding-right: 8px;
-    line-height: 18px;
-    border: none;
-	background-color: var(--background-light);
-	color: var(--text-strong);
+  font-family: 'montserrat', sans-serif;
+  height: 100%;
+  width: 220px;
+  padding-left: 8px;
+  padding-right: 8px;
+  line-height: 18px;
+  border: none;
+  background-color: var(--background-light);
+  color: var(--text-strong);
 }
 
-#searchClear::-webkit-search-cancel-button{
-    position: relative;
-    right: 14px;
-    -webkit-appearance: none;
-    height: 8px;
-    width: 8px;
-    background-image: url("/img/searchClearIcon.svg");
-    background-repeat: no-repeat;
-    background-position: center;
+#searchClear::-webkit-search-cancel-button {
+  position: relative;
+  right: 14px;
+  -webkit-appearance: none;
+  height: 8px;
+  width: 8px;
+  background-image: url('/img/searchClearIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
-#searchClear::-webkit-search-cancel-button:hover{
-    height: 10px;
-    width: 10px;
-    background-image: url("/img/searchClearIconFocus.svg");
-    background-repeat: no-repeat;
-    background-position: center;
+#searchClear::-webkit-search-cancel-button:hover {
+  height: 10px;
+  width: 10px;
+  background-image: url('/img/searchClearIconFocus.svg');
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .navbarSearchBoxIcon {
-    height: 100%;
-    width: 40px;
-    background-image: url("/img/searchIconLeft.svg");
-    background-repeat: no-repeat;
-    background-position: center;
+  height: 100%;
+  width: 40px;
+  background-image: url('/img/searchIconLeft.svg');
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .navbarSearchBoxIcon:hover {
-    background-image: url("/img/searchIconLeftFocus.svg");
+  background-image: url('/img/searchIconLeftFocus.svg');
 }
 
 .navbarSearchBoxIcon:disabled {
-    background-image: url("/img/searchIconLeftDisabled.svg");
+  background-image: url('/img/searchIconLeftDisabled.svg');
 }

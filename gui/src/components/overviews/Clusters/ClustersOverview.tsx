@@ -12,6 +12,7 @@ import { Cluster } from '@/lib/cluster'
 import { useFetch } from '@/hooks/query'
 
 import styles from '@/components/overviews/Clusters/ClustersOverview.module.css'
+import { ClusterCreation } from './Creation/ClusterCreation'
 
 type ClusterOverviewProps = {
   page: string
@@ -35,8 +36,10 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
   const [pageSize, setPageSize] = useState<number>(0)
   const [initialContainerSize, setInitialContainerSize] = useState<number>(0)
 
-  const [isOpen, setIsOpen] = useState<boolean>(false)
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
   const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 })
+
+  const [isCreationOpen, setIsCreationOpen] = useState<boolean>(true)
 
   const columns = ['provider', 'flavor', 'k8s version', 'cluster group', 'machines', 'age', 'status']
 
@@ -63,7 +66,7 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
     const tableContainerRect = tableContainer.getBoundingClientRect()
     const pointerOffset = 4
 
-    setIsOpen(true)
+    setIsMenuOpen(true)
     setMenuPosition({
       left: targetRect.left - tableContainerRect.left + pointerOffset,
       top: targetRect.bottom - tableContainerRect.top + pointerOffset
@@ -75,7 +78,7 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
     if (event.target.className.includes('actions')) {
       handleClick(event)
     } else {
-      setIsOpen(false)
+      setIsMenuOpen(false)
     }
   }, [])
 
@@ -184,7 +187,8 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
         </thead>
         <tbody>{renderClusters()}</tbody>
       </table>
-      <MenuActions isOpen={isOpen} position={menuPosition} />
+      <ClusterCreation isOpen={isCreationOpen} />
+      <MenuActions isOpen={isMenuOpen} position={menuPosition} />
       <ClustersOverviewFooter
         total={clusters?.length || 0}
         currentPage={pageNumber}

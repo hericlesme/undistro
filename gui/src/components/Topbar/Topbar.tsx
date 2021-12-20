@@ -28,7 +28,7 @@ const Topbar: VFC = () => {
   }
 
   return (
-    <header className={styles.teste}>
+    <header>
       <div className={topbarStyles.container}>
         <div className={styles.topBarLogoArea}>
           <div className={styles.topLogo}>
