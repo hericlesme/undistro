@@ -26,10 +26,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	"github.com/getupio-undistro/record"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	appcontrollers "github.com/getupio-undistro/undistro/controllers/app"
 	metadatacontrollers "github.com/getupio-undistro/undistro/controllers/metadata"
-	"github.com/getupio-undistro/undistro/pkg/record"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/version"

@@ -19,7 +19,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/meta"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	corev1 "k8s.io/api/core/v1"

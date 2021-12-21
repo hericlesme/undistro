@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/meta"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/getupio-undistro/undistro/pkg/version"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
