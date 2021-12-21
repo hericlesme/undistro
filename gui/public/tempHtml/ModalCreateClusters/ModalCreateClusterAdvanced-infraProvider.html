@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" href="ModalCreateCluster.css">
+        <meta name="description" content="Template">
+        <meta name="keywords" content="html template">
+    </head>
+    <body>
+        
+        <div class="responsive" style="background-color:var(--background-default); display: flex; align-items: center;">
+
+            <div class="createClusterWizContainer">
+
+                <div class="modalDialogTitleBar">
+
+                    <div class="modalDialogCreateTypeContainer">
+                        <span>
+                            <a class="dialogTitleItalic">Advanced</a>    
+                        </span>    
+                    </div>
+
+                    <div class="modalDialogTitleContainer">
+                        <span class="dialogTitlesSpan">
+                            <a class="dialogTitleRegular">CREATE</a>
+                            <a class="dialogTitleBold">CLUSTER</a>
+                        </span>
+                    </div>
+
+                    <div class="closeWindowBtnContainer">
+                        <button class="closeWindowBtn"></button>
+                    </div>
+
+                </div>
+
+                <div class="modalTitleContainer">
+                    <a class="modalCreateClusterTitle">infrastructure provider</a>
+                </div>
+
+                <div class="modalContentContainer">
+                    <div class="modalInputArea">
+                        <form class="modalForm" id="wizardInfraProviderForm">
+                            <div class="inputRow">
+                                <div class="inputBlock">
+                                    <label class="createClusterLabel" for="infraProviderID">ID</label><br>
+                                    <select class="createClusterTextSelect input100" id="infraProviderID" name="infraProviderID">
+                                        <option value="" disabled selected hidden>ID</option>
+                                        <option value="option1">option1</option>
+                                        <option value="option2">option2</option>
+                                        <option value="option3">option3</option>
+                                    </select>
+                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                </div>
+                                <div class="inputBlock">
+                                    <label class="createClusterLabel" for="infraProviderCIDR">CIDR block</label><br>
+                                    <select class="createClusterTextSelect input100" id="infraProviderCIDR" name="infraProviderCIDR">
+                                        <option value="" disabled selected hidden>CIDR block</option>
+                                        <option value="option1">option1</option>
+                                        <option value="option2">option2</option>
+                                        <option value="option3">option3</option>
+                                    </select>
+                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                </div>
+                            </div>
+                            <div class="inputRow">
+                                <div class="inputBlock">
+                                    <label class="createClusterLabel" for="infraProviderFlavor">flavor</label><br>
+                                    <select class="createClusterTextSelect input100" id="infraProviderFlavor" name="infraProviderFlavor">
+                                        <option value="" disabled selected hidden>select flavor</option>
+                                        <option value="option1">option1</option>
+                                        <option value="option2">option2</option>
+                                        <option value="option3">option3</option>
+                                    </select>
+                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                </div>
+                                <div class="inputBlock">
+                                    <label class="createClusterLabel" for="infraProviderK8sVersion">kubernetes version</label><br>
+                                    <select class="createClusterTextSelect input100" id="infraProviderK8sVersion" name="infraProviderK8sVersion">
+                                        <option value="" disabled selected hidden>select K8s</option>
+                                        <option value="option1">option1</option>
+                                        <option value="option2">option2</option>
+                                        <option value="option3">option3</option>
+                                    </select>
+                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                </div>
+                            </div>  
+                            <div class="inputBlockTextArea">
+                                <label class="createClusterLabel" for="infraProviderSshKey">sshKey</label><br>
+                                <input class="createClusterTextInput input100 textAreaInput" placeholder="ssh Key" type="text" id="infraProviderSshKey" name="infraProviderSshKey">
+                                <a class="assistiveTextDefault">Assistive text default color</a>
+                            </div>
+
+                            <div class="inputBlock">
+                                <label class="createClusterLabel" for="infraProviderUploadFile">upload config file</label><br>
+                                <span class="inputUploadFileBlock">
+                                    <input class="createClusterTextInput input100" placeholder="clouds.yaml" type="text" id="infraProviderUploadFile" name="infraProviderUploadFile">
+                                    <div class="uploadFileButtonContainer">
+                                        <button class="uploadFileIcon"></button>
+                                    </div>
+                                </span>
+                                <a class="assistiveTextDefault">Assistive text default color</a>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+                <div class="modalDialogButtonsContainer">
+                    <div class="leftButtonContainer">
+                        <button class="borderButtonDefault">
+                            <a>back</a>
+                        </button>
+                    </div>
+                    <div class="rightButtonContainer">
+                        <button class="borderButtonSuccess">
+                            <a>next</a>
+                        </button>
+                    </div>
+                </div>
+
+                
+
+            </div>
+
+        </div>
+            
+    </body>
+</html>
+
