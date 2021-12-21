@@ -11,6 +11,8 @@ global:
 ingress:
   annotations: {}
   enabled: true
+  ipAddresses:
+    - 127.0.0.1
   hosts:
     - localhost
     - undistro.local

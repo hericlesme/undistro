@@ -2,7 +2,7 @@
 image:
   pullPolicy: IfNotPresent
   repository: registry.undistro.io/dockerhub/getpinniped/pinniped-server
-  tag: v0.10.0
+  tag: v0.12.0
 metadata:
   labels:
     app: pinniped-concierge

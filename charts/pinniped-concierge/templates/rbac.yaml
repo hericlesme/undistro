@@ -228,6 +228,7 @@ rules:
   - patch
   - update
   - watch
+  - delete
 - apiGroups:
   - apps
   resources:
@@ -242,6 +243,14 @@ rules:
   - list
   - get
   - watch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - get
+  - update
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1

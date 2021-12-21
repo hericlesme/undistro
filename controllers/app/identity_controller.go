@@ -160,7 +160,7 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 			"namespace": undistro.Namespace,
 		},
 	}
-	err = r.reconcileComponentInstallation(ctx, cl, instance, concierge, undistro.Namespace, "0.10.0", values)
+	err = r.reconcileComponentInstallation(ctx, cl, instance, concierge, undistro.Namespace, "0.12.0", values)
 	if err != nil {
 		log.Error(err, err.Error())
 		return ctrl.Result{}, err
@@ -181,7 +181,7 @@ func (r *IdentityReconciler) reconcile(ctx context.Context, instance appv1alpha1
 		values["config"] = map[string]interface{}{
 			"callbackURL": callbackURL,
 		}
-		err = r.reconcileComponentInstallation(ctx, cl, instance, supervisor, undistro.Namespace, "0.10.0", values)
+		err = r.reconcileComponentInstallation(ctx, cl, instance, supervisor, undistro.Namespace, "0.12.0", values)
 		if err != nil {
 			log.Error(err, err.Error())
 			return ctrl.Result{}, err
