@@ -85,7 +85,7 @@ Did you find a bug, or would you like to suggest a new feature? We're open to fe
 
 **Please remember to check out our [Contributing Guidelines](https://github.com/getupio-undistro/undistro/blob/main/CONTRIBUTING.md).**
 
-> Contributor License Agreement - [CLA assistant](https://cla-assistant.io/getupio-undistro/undistro)
+> Contributor License Agreement - [![CLA assistant](https://cla-assistant.io/readme/badge/getupio-undistro/undistro)](https://cla-assistant.io/getupio-undistro/undistro)
 
 ## License
 [Apache License 2.0](LICENSE)
