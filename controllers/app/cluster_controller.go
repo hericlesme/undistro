@@ -313,6 +313,7 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 		log.Info("New UUID", "newUUID", newUUID)
 		if cpChanged {
 			vars["CPID"] = newUUID
+			cl.Status.LastUsedUID = newUUID
 		} else {
 			vars["CPID"] = cl.Status.LastUsedUID
 		}
@@ -320,7 +321,6 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 
 		vars["WorkersChanged"] = workersChanged
 		vars["OldID"] = cl.Status.LastUsedUID
-		cl.Status.LastUsedUID = newUUID
 		log.Info("Template variables", "vars", vars)
 	}
 	return vars, nil
