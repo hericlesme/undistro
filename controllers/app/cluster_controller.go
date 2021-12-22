@@ -200,10 +200,12 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 
 	log.Info("Checking if has diff between templates", "spec", cl.Spec, "status", cl.Status)
 	if r.hasDiff(ctx, &cl) {
+		log.Info("Has diff")
 		vars, err := r.templateVariables(ctx, r.Client, &cl)
 		if err != nil {
 			return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
 		}
+		log.Info("Template variables", "vars", vars)
 
 		objs, err := template.GetObjs(fs.FS, "clustertemplates", cl.GetTemplate(), vars)
 		if err != nil {
@@ -236,6 +238,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 			}
 		}
 	}
+
 	cl.Status.KubernetesVersion = cl.Spec.KubernetesVersion
 	cl.Status.ControlPlane = *cl.Spec.ControlPlane
 	cl.Status.Workers = cl.Spec.Workers
@@ -259,9 +262,14 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 }
 
 func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (map[string]interface{}, error) {
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	vars := make(map[string]interface{})
 	v := make(map[string]interface{})
-	err := template.SetVariablesFromEnvVar(ctx, template.VariablesInput{
+	err = template.SetVariablesFromEnvVar(ctx, template.VariablesInput{
 		ClientSet:      r.Client,
 		NamespacedName: client.ObjectKeyFromObject(cl),
 		Variables:      v,
@@ -270,6 +278,7 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 	if err != nil {
 		return nil, err
 	}
+
 	vars["Cluster"] = cl
 	vars["ENV"] = v
 	acc, err := cloud.GetAccount(ctx, c, cl)
@@ -277,10 +286,12 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 		return nil, err
 	}
 	vars["Account"] = acc
+
 	validDiff := true
 	labels := cl.GetLabels()
 	_, moved := labels[meta.LabelUndistroMoved]
 	if moved && !cl.Spec.InfrastructureProvider.IsManaged() && cl.Status.LastUsedUID == "" {
+		log.Info("Checking if is a valid diff", "lastUserUUID", cl.Status.LastUsedUID)
 		validDiff = false
 		cp := capicp.KubeadmControlPlane{}
 		err := r.Get(ctx, client.ObjectKeyFromObject(cl), &cp)
@@ -291,18 +302,26 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 			split := strings.Split(cp.Spec.MachineTemplate.InfrastructureRef.Name, "-")
 			cl.Status.LastUsedUID = split[len(split)-1]
 		}
+		log.Info("Value of the last used UUID", "lastUserUUID", cl.Status.LastUsedUID)
 	}
+
 	if r.hasDiff(ctx, cl) && validDiff {
+		cpChanged, workersChanged := r.machineTypeChanged(ctx, cl)
+		log.Info("Node pools that changed", "controlPlaneChanged", cpChanged, "workersChanged", workersChanged)
+
 		newUUID := string(uuid.NewUUID())
-		cpChanged, workersChanged := r.machineTypeChanged(cl)
+		log.Info("New UUID", "newUUID", newUUID)
 		if cpChanged {
 			vars["CPID"] = newUUID
 		} else {
 			vars["CPID"] = cl.Status.LastUsedUID
 		}
+		log.Info("Control Plane UUID", "controlPlaneUUID", vars["CPID"])
+
 		vars["WorkersChanged"] = workersChanged
 		vars["OldID"] = cl.Status.LastUsedUID
 		cl.Status.LastUsedUID = newUUID
+		log.Info("Template variables", "vars", vars)
 	}
 	return vars, nil
 }
@@ -346,12 +365,18 @@ func (r *ClusterReconciler) reconcileConciergeEndpoint(ctx context.Context, cl a
 	return cl, nil
 }
 
-func (r *ClusterReconciler) machineTypeChanged(cl *appv1alpha1.Cluster) (bool, []int) {
+func (r *ClusterReconciler) machineTypeChanged(ctx context.Context, cl *appv1alpha1.Cluster) (bool, []int) {
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	cpChanged := false
 	workersChanged := make([]int, 0)
 	if !cl.Spec.InfrastructureProvider.IsManaged() && cl.Spec.ControlPlane != nil {
 		cpChanged = cl.Spec.ControlPlane.MachineType != cl.Status.ControlPlane.MachineType
 	}
+	log.Info("Old vs new control plane template comparison", "controlPlaneSpec", cl.Spec.ControlPlane, "controlPlaneStatus", cl.Status.ControlPlane)
 	for i, w := range cl.Spec.Workers {
 		if len(cl.Status.Workers)-1 >= i {
 			if w.MachineType != cl.Status.Workers[i].MachineType {
@@ -375,7 +400,7 @@ func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *appv1alpha1.Cluster
 		return true
 	}
 	if !cl.Spec.InfrastructureProvider.IsManaged() && cl.Spec.ControlPlane != nil {
-		log.Info("control plane changed", "old", cl.Status.ControlPlane, "new", cl.Spec.ControlPlane)
+		log.Info("Checking changes in control plane replicas")
 		if *cl.Spec.ControlPlane.Replicas != *cl.Status.ControlPlane.Replicas {
 			log.Info("control plane replicas changed", "old", cl.Status.ControlPlane.Replicas, "new", cl.Spec.ControlPlane.Replicas)
 			return true
