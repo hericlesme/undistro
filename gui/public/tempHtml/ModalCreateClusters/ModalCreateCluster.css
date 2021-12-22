@@ -239,6 +239,7 @@ html, body {
     align-items: center;
     width: 100%;
     height: 24px;
+    padding-right: 48px;
 }
 
 .modalDialogCreateTypeContainer {
@@ -246,8 +247,9 @@ html, body {
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    width: 64px;
+    min-width: 80px;
     height: 24px;
+    padding-left: 8px;
 }
 
 .modalContentContainer {
@@ -278,6 +280,15 @@ html, body {
     flex-direction: column;
     align-items: center;
     padding: 24px 0 24px 0;
+    border: 1px solid var(--border-medium);
+    position: relative;
+}
+
+.modalSubnetContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0 12px 0;
     border: 1px solid var(--border-medium);
     position: relative;
 }
@@ -338,6 +349,15 @@ html, body {
     flex-direction: column;
     align-items: center;
     width: 510px;
+    height: 100%;
+    margin: 0 auto 0 auto;
+}
+
+.modalSubnetBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 638px;
     height: 100%;
     margin: 0 auto 0 auto;
 }
@@ -469,7 +489,7 @@ html, body {
     color: var(--text-default);
 }
 
-.modalCreateClusterTitle {
+.modalCreateClusterTitleBottom {
     font-family: Montserrat;
     font-style: normal;
     font-weight: 500;
@@ -477,6 +497,16 @@ html, body {
     line-height: 20px;
     letter-spacing: 0.04em;
     align-self: flex-end;
+    color: var(--text-default);
+}
+
+.modalCreateClusterTitleCentered {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 20px;
+    letter-spacing: 0.04em;
     color: var(--text-default);
 }
 
@@ -723,6 +753,13 @@ button.deleteTableItem:hover {
     margin: 0 0 2px 0;
 }
 
+.inputBlockMedium {
+    height: 68px;
+    min-width: 172px;
+    max-width: 172px;
+    margin: 0 0 2px 0;
+}
+
 .addOnBlock {
     display: flex;
     flex-direction: row;
@@ -771,11 +808,31 @@ button.deleteTableItem:hover {
     gap: 8px;
 }
 
+.infraNetworkInputRowSmall {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 0 auto;
+    width: 318px;
+    gap: 8px;
+}
+
+.rowMargin {
+    margin-bottom: 24px;
+}
+
 .workersInputRow {
     display: flex;
     flex-direction: row;
     margin: 0 auto 0 auto;
     width: 510px;
+    gap: 8px;
+}
+
+.subnetInputRow {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 0 auto;
+    width: 638px;
     gap: 8px;
 }
 

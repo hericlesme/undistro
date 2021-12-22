@@ -1,0 +1,193 @@
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" href="ModalCreateCluster.css">
+        <meta name="description" content="Template">
+        <meta name="keywords" content="html template">
+    </head>
+    <body>
+        
+        <div class="responsive" style="background-color:var(--background-default); display: flex; align-items: center;">
+
+            <div class="createClusterWizContainer">
+
+                <div class="modalDialogTitleBar">
+
+                    <div class="modalDialogCreateTypeContainer">
+                        <span>
+                            <a class="dialogTitleItalic">Wizard</a>    
+                        </span>    
+                    </div>
+
+                    <div class="modalDialogTitleContainer">
+                        <span class="dialogTitlesSpan">
+                            <a class="dialogTitleRegular">CREATE</a>
+                            <a class="dialogTitleBold">CLUSTER</a>
+                        </span>
+                    </div>
+
+                    <div class="closeWindowBtnContainer">
+                        <button class="closeWindowBtn"></button>
+                    </div>
+
+                </div>
+
+                <div class="modalTitleContainer">
+                    <a class="modalCreateClusterTitleCentered">infra network - VPC</a>
+                </div>
+
+                <div class="modalContentContainer">
+                    <div class="modalControlPlaneBlock">
+                        <form class="modalForm" id="wizardClusterForm">
+                            <div class="infraNetworkInputRowSmall">
+                                <div class="inputBlock">
+                                    <label class="createClusterLabel" for="infraNetworkID">ID</label><br>
+                                    <select class="createClusterTextSelect input100" id="infraNetworkID" name="infraNetworkID">
+                                        <option value="" disabled selected hidden>default</option>
+                                        <option value="option1">option1</option>
+                                        <option value="option2">option2</option>
+                                        <option value="option3">option3</option>
+                                    </select>
+                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                </div>
+                            </div>
+                            <div class="infraNetworkInputRowSmall rowMargin">
+                                <div class="inputBlockSmall">
+                                    <label class="createClusterLabel" for="infraNetworkZone">zone</label><br>
+                                    <input class="createClusterTextInput input100" placeholder="zone" id="infraNetworkZone" name="infraNetworkZone">
+                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                </div>
+                                <div class="inputBlock">
+                                    <label class="createClusterLabel" for="infraNetworkZoneCidrBlock">CIDR block</label><br>
+                                    <input class="createClusterTextInput input100" placeholder="optional" id="infraNetworkZoneCidrBlock" name="infraNetworkZoneCidrBlock">
+                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                </div>
+                            </div>
+
+                            <div class="modalSubnetContainer">
+                                <div class="workersTitleContainer">
+                                    <a class="modalCreateClusterTitleCentered">subnet</a>
+                                </div>
+                                <div class="modalSubnetBlock">
+                                    <div class="infraNodeBlock">
+                                        <div class="switchContainer justifyLeft">
+                                            <a class="createClusterLabel">is public</a>
+                                            <label class="switch" for="infraNetworkZoneIsPublic">
+                                                <input type="checkbox" id="infraNetworkZoneIsPublic" name="infraNetworkZoneIsPublic">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="subnetInputRow">
+                                        <div class="inputBlock">
+                                            <label class="createClusterLabel" for="infraNetworkSubnetID">ID</label><br>
+                                            <select class="createClusterTextSelect input100" id="infraNetworkSubnetID" name="infraNetworkSubnetID">
+                                                <option value="" disabled selected hidden>default</option>
+                                                <option value="option1">option1</option>
+                                                <option value="option2">option2</option>
+                                                <option value="option3">option3</option>
+                                            </select>
+                                            <a class="assistiveTextDefault">Assistive text default color</a>
+                                        </div>
+                                        <div class="inputBlockMedium">
+                                            <label class="createClusterLabel" for="infraNetworkSubnetZone">zone</label><br>
+                                            <input class="createClusterTextInput input100" placeholder="zone" id="infraNetworkSubnetZone" name="infraNetworkSubnetZone">
+                                            <a class="assistiveTextDefault">Assistive text default color</a>
+                                        </div>
+                                        <div class="inputBlockMedium">
+                                            <label class="createClusterLabel" for="infraNetworkSubnetCidrBlock">CIDR block</label><br>
+                                            <input class="createClusterTextInput input100" placeholder="optional" id="infraNetworkSubnetCidrBlock" name="infraNetworkSubnetCidrBlock">
+                                            <a class="assistiveTextDefault">Assistive text default color</a>
+                                        </div>
+                                    </div>
+                                    <div class="addButtonBlock justifyRight">
+                                        <button class="solidMdButtonDefault">
+                                            <a>add</a>
+                                        </button>
+                                    </div>
+
+                                    <div class="modalTableContainer">
+                                        <table class="modalWorkersTable" id="wizardWorkersTable">
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <div class="modalTableRow">
+                                                            <div class="modalTableItem">
+                                                                <a>subnet-0</a>
+                                                            </div>
+                                                            <div class="modalDeleteTableItemContainer">
+                                                                <button class="deleteTableItem"></button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="modalTableRow">
+                                                            <div class="modalTableItem">
+                                                                <a>subnet-1</a>
+                                                            </div>
+                                                            <div class="modalDeleteTableItemContainer">
+                                                                <button class="deleteTableItem"></button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="modalTableRow">
+                                                            <div class="modalTableItem">
+                                                                <a>subnet-2</a>
+                                                            </div>
+                                                            <div class="modalDeleteTableItemContainer">
+                                                                <button class="deleteTableItem"></button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="modalTableRow">
+                                                            <div class="modalTableItem">
+                                                                <a>subnet-3</a>
+                                                            </div>
+                                                            <div class="modalDeleteTableItemContainer">
+                                                                <button class="deleteTableItem"></button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            
+                        </form>
+                    </div>
+                </div>
+
+                <div class="modalDialogButtonsContainer">
+                    <div class="leftButtonContainer">
+                        <button class="borderButtonDefault">
+                            <a>back</a>
+                        </button>
+                    </div>
+                    <div class="rightButtonContainer">
+                        <button class="borderButtonSuccess">
+                            <a>next</a>
+                        </button>
+                    </div>
+                </div>
+
+                
+
+            </div>
+
+        </div>
+            
+    </body>
+</html>
+
