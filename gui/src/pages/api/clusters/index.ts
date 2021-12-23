@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import type { Cluster } from '@/types/cluster'
+
 import { getSession } from 'next-auth/react'
 import { Session } from 'next-auth'
 
@@ -7,7 +9,6 @@ import * as request from 'request'
 
 import { clusterDataHandler } from '@/helpers/dataFetching'
 import { isIdentityEnabled } from '@/helpers/identity'
-import { Cluster } from '@/lib/cluster'
 import { DEFAULT_USER_GROUP } from '@/helpers/constants'
 
 type UnDistroSession = Session & {

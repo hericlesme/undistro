@@ -1,4 +1,5 @@
-import { Cluster, getAge, getStatusFromConditions } from '@/lib/cluster'
+import type { Cluster } from '@/types/cluster'
+import { getAge, getStatusFromConditions } from '@/lib/cluster'
 
 export function clusterDataHandler(clusterList): Cluster[] {
   return clusterList.items.map(cl => {

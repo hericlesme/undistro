@@ -1,94 +1,79 @@
-import classNames from 'classnames'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import {
+  ClusterInfo,
+  InfraProvider,
+  AddOns,
+  Step,
+  ControlPlane
+} from '@/components/overviews/Clusters/Creation/Wizard/Steps'
 import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
+import classNames from 'classnames'
 
-const Wizard = () => {
+const Wizard = ({ step }) => {
+  const { watch, register, setValue } = useForm()
+  const [currentSection, setCurrentSection] = useState('')
+
+  const steps = [
+    {
+      title: 'Cluster',
+      component: ClusterInfo
+    },
+    {
+      title: 'Infrastructure Provider',
+      component: InfraProvider
+    },
+    { title: 'Add-Ons', component: AddOns },
+    {
+      title: 'Control Plane',
+      component: ControlPlane
+    }
+  ]
+
+  useEffect(() => {
+    console.log(steps[step.value - 1])
+    setCurrentSection(steps[step.value - 1].title)
+  }, [step.value])
+
+  useEffect(() => {
+    const subscription = watch((value, { name, type }) => console.log(value, name, type))
+    return () => subscription.unsubscribe()
+  }, [watch])
+
+  const inputAreaStyles = classNames(styles.modalInputArea, {
+    [styles.modalControlPlaneBlock]: currentSection === 'Control Plane'
+  })
+
+  const formActions = {
+    register,
+    setValue
+  }
+
   return (
     <div className={styles.createClusterWizContainer}>
       <div className={styles.modalTitleContainer}>
-        <a className={styles.modalCreateClusterTitle}>cluster</a>
+        <a className={styles.modalCreateClusterTitle}>{currentSection}</a>
       </div>
 
       <div className={styles.modalContentContainer}>
-        <div className={styles.modalInputArea}>
+        <div className={inputAreaStyles}>
           <form className={styles.modalForm} id="wizardClusterForm">
-            <div className={styles.inputBlock}>
-              <label className={styles.createClusterLabel} htmlFor="clusterName">
-                Cluster name
-              </label>
-              <input
-                className={classNames(styles.createClusterTextInput, 'input100')}
-                placeholder="choose a cool name for this cluster"
-                type="text"
-                id="clusterName"
-                name="clusterName"
-              />
-              <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-            </div>
-
-            <div className={styles.inputBlock}>
-              <label className={styles.createClusterLabel} htmlFor="clusterNamespace">
-                Namespace
-              </label>
-              <input
-                className={classNames(styles.createClusterTextInput, 'input100')}
-                placeholder="namespace"
-                type="text"
-                id="clusterNamespace"
-                name="clusterNamespace"
-              />
-              <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-            </div>
-
-            <div className={styles.inputRow}>
-              <div className={styles.inputBlock}>
-                <label className={styles.createClusterLabel} htmlFor="clusterProvider">
-                  Provider
-                </label>
-                <select
-                  className={classNames(styles.createClusterTextSelect, 'input100')}
-                  id="clusterProvider"
-                  name="clusterProvider"
-                >
-                  <option value="" disabled selected hidden>
-                    Select provider
-                  </option>
-                  <option value="option1">option1</option>
-                  <option value="option2">option2</option>
-                  <option value="option3">option3</option>
-                </select>
-                <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-              </div>
-              <div className={styles.inputBlock}>
-                <label className={styles.createClusterLabel} htmlFor="clusterDefaultRegion">
-                  Default region
-                </label>
-                <select
-                  className={classNames(styles.createClusterTextSelect, 'input100')}
-                  id="clusterDefaultRegion"
-                  name="clusterDefaultRegion"
-                >
-                  <option value="" disabled selected hidden>
-                    Select region
-                  </option>
-                  <option value="option1">option1</option>
-                  <option value="option2">option2</option>
-                  <option value="option3">option3</option>
-                </select>
-                <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-              </div>
-            </div>
+            {steps.map(({ component: Component }, index) => (
+              <Step step={index + 1} currentStep={step.value}>
+                <Component {...formActions} />
+              </Step>
+            ))}
           </form>
         </div>
       </div>
-
       <div className={styles.modalDialogButtonsContainer}>
         <div className={styles.leftButtonContainer}>
-          <button className={styles.borderButtonDefault}>
+          <button onClick={step.previous} className={styles.borderButtonDefault}>
             <a>back</a>
           </button>
         </div>
         <div className={styles.rightButtonContainer}>
-          <button className={styles.borderButtonSuccess}>
+          <button onClick={step.next} className={styles.borderButtonSuccess}>
             <a>next</a>
           </button>
         </div>
