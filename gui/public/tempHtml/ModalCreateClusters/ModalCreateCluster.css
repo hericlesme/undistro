@@ -312,6 +312,14 @@ html, body {
     width: 100%;
 }
 
+.addAlowedBlocksButtonContainer {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    min-height: 30px;
+    margin-left: -30px;
+}
+
 .modalInputArea {
     display: flex;
     align-items: center;
@@ -362,6 +370,14 @@ html, body {
     margin: 0 auto 0 auto;
 }
 
+.modalBastionBlock {
+    display: flex;
+    align-items: center;
+    width: 672px;
+    height: 100%;
+    margin: 0 auto 0 auto;
+}
+
 .addOnDescriptionTitlesContainer {
     display: flex;
     flex-direction: column;
@@ -390,6 +406,14 @@ html, body {
 
 .modalTableContainer {
     width: 100%;
+    height: 102px;
+    margin-top: 12px;
+    border: 1px solid var(--border-medium);
+    padding: 1px;
+}
+
+.modalTableAllowedBlocksContainer {
+    width: 436px;
     height: 102px;
     margin-top: 12px;
     border: 1px solid var(--border-medium);
@@ -728,6 +752,25 @@ button.deleteTableItem:hover {
     background-image: url("./img/modalDeleteTableItemHover.svg");
 }
 
+button.addAllowedBlocks {
+    height: 30px;
+    width: 30px;
+    background-color: transparent;
+    border: none;
+    background-image: url("./img/bastionAddAllowedBlocksDefault.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+}
+
+button.addAllowedBlocks:hover {
+    background-image: url("./img/bastionAddAllowedBlocksHover.svg");
+}
+
+button.addAllowedBlocks:disabled {
+    background-image: url("./img/bastionAddAllowedBlocksDisabled.svg");
+}
+
 /* form elements*/
 
 .modalForm {
@@ -778,6 +821,26 @@ button.deleteTableItem:hover {
     margin: 0 0 2px 0;
 }
 
+.bastionBlock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: right;
+    height: 28px;
+    width: 280px;
+    margin: 0 0 2px 0;
+}
+
+.bastionUserDefaultBlock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: right;
+    height: 28px;
+    width: 386px;
+    margin: 0 0 2px 0;
+}
+
 .addButtonBlock {
     display: flex;
     flex-direction: row;
@@ -816,6 +879,26 @@ button.deleteTableItem:hover {
     gap: 8px;
 }
 
+.bastionInputRow {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 0 auto;
+    width: 436px;
+    gap: 8px;
+}
+
+.bastionSwitchMarginTop {
+    margin-top: 32px !important;
+}
+
+.bastionSwitchInputRow {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 4px auto;
+    width: 672px;
+    gap: 8px;
+}
+
 .rowMargin {
     margin-bottom: 24px;
 }
@@ -849,6 +932,17 @@ button.deleteTableItem:hover {
     letter-spacing: 0.03em;
     margin-right: 8px;
     color: var(--text-default);
+}
+
+.bastionDefaultBlocksTitle {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.03em;
+    margin-right: 8px;
+    color: var(--text-disabled);
 }
 
 .createClusterTextInput {
