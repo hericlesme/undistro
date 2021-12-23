@@ -259,7 +259,7 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue }: FormActions) => 
             <table className={styles.modalWorkersTable} id="wizardWorkersTable">
               <tbody>
                 {workers.map((worker, index) => (
-                  <Worker index={index} worker={worker} removeWorker={removeWorker} />
+                  <Worker key={`worker-${index}`} index={index} worker={worker} removeWorker={removeWorker} />
                 ))}
               </tbody>
             </table>
