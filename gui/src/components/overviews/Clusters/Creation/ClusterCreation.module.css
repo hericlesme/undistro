@@ -1,6 +1,6 @@
 .createClusterOptionscontainer {
-  width: 600px;
-  height: 420px;
+  width: 720px;
+  height: 600px;
   margin: auto;
   box-shadow: 12px 12px 20px #000000;
 }
@@ -69,7 +69,7 @@
 }
 
 .createClusterOptionsContainer {
-  height: 396px;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -177,7 +177,9 @@
 }
 
 .dialogContent {
-  background: none;
+  background: transparent;
+  padding: 0;
+  margin: 10vh auto;
 }
 
 .dialogOverlay {
@@ -266,7 +268,7 @@
 .modalInputArea {
   display: flex;
   align-items: center;
-  width: 436px;
+  min-width: 436px;
   height: 100%;
   margin: 0 auto 0 auto;
 }
@@ -654,7 +656,6 @@ button.deleteTableItem:hover {
 
 .inputBlock {
   height: 68px;
-  display: flex;
   flex-direction: column;
   flex-grow: 1;
   margin: 0 0 2px 0;
@@ -764,6 +765,8 @@ button.deleteTableItem:hover {
 .textAreaInput {
   height: 80px !important;
   align-items: flex-start !important;
+  width: 100%;
+  resize: none;
 }
 
 .inputUploadFileBlock {
@@ -772,6 +775,10 @@ button.deleteTableItem:hover {
   flex-direction: row;
   align-items: center;
   gap: 8px;
+}
+
+.inputUploadFileBlock > input {
+  width: 100%;
 }
 
 .createClusterTextInput::placeholder {
@@ -973,3 +980,19 @@ ol.progressDialog li a {
   background-repeat: no-repeat;
   background-position: center right;
 }
+
+/* justify */
+
+.justifyRight {
+  justify-content: right;
+}
+
+.justifyLeft {
+  justify-content: left;
+}
+
+.justifyCenter {
+  justify-content: center;
+}
+
+/* Add-Ons */

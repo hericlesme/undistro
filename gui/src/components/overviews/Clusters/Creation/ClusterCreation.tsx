@@ -2,7 +2,7 @@ import type { VFC } from 'react'
 import { useState } from 'react'
 import { DialogOverlay, DialogContent } from '@reach/dialog'
 import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
-// import { Wizard } from './Wizard/Wizard'
+import { Wizard } from './Wizard/Wizard'
 
 type ClusterCreationProps = {
   isOpen: boolean
@@ -17,6 +17,7 @@ type CreationOption = {
   type: CreationOptionType
   subtitle: string
   description: string
+  onClick?: (e: any) => void
 }
 
 const CreationOption: VFC<CreationOption> = ({ subtitle, description, type, ...props }: CreationOption) => {
@@ -45,12 +46,18 @@ const CreationOption: VFC<CreationOption> = ({ subtitle, description, type, ...p
 
 const ClusterCreation: VFC<ClusterCreationProps> = ({ isOpen }: ClusterCreationProps) => {
   const [step, setStep] = useState(1)
+  const [creationMode, setCreationMode] = useState('')
+
   const nextStep = () => {
     setStep(step + 1)
   }
 
   const prevStep = () => {
-    setStep(step - 1)
+    if (step - 1 === 0) {
+      setCreationMode('')
+    } else {
+      setStep(step - 1)
+    }
   }
 
   const creationOptions: CreationOption[] = [
@@ -65,6 +72,27 @@ const ClusterCreation: VFC<ClusterCreationProps> = ({ isOpen }: ClusterCreationP
       description: 'Control every aspect of the cluster.'
     }
   ]
+
+  const handleOptionClick = (type: CreationOptionType) => e => {
+    setCreationMode(type)
+  }
+
+  const renderClusterCreationOptions = () => {
+    switch (creationMode) {
+      case CreationOptionType.wizard:
+        return <Wizard step={{ value: step, next: nextStep, previous: prevStep }} />
+      case CreationOptionType.advanced:
+        return <div>Advanced</div>
+      default:
+        return (
+          <div className={styles.createClusterOptionsContainer}>
+            {creationOptions.map((option: CreationOption) => (
+              <CreationOption onClick={handleOptionClick(option.type)} {...option} key={option.type} />
+            ))}
+          </div>
+        )
+    }
+  }
 
   return (
     <DialogOverlay isOpen={isOpen} className={styles.dialogOverlay}>
@@ -82,11 +110,13 @@ const ClusterCreation: VFC<ClusterCreationProps> = ({ isOpen }: ClusterCreationP
               <button className={styles.closeWindowBtn}></button>
             </div>
           </div>
-          <div className={styles.createClusterOptionsContainer}>
+          {/* <div className={styles.createClusterOptionsContainer}>
             {creationOptions.map((option: CreationOption) => (
-              <CreationOption {...option} key={option.type} />
+              <CreationOption onClick={handleOptionClick(option.type)} {...option} key={option.type} />
             ))}
-          </div>
+          </div> */}
+          {renderClusterCreationOptions()}
+          {/* <Wizard step={{ value: step, next: nextStep, previous: prevStep }} /> */}
         </div>
       </DialogContent>
     </DialogOverlay>

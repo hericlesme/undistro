@@ -1,3 +1,5 @@
+import type { Cluster } from '@/types/cluster'
+
 import { createRef, useEffect, useState, useCallback, VFC } from 'react'
 import { useRouter } from 'next/router'
 import { useResizeDetector } from 'react-resize-detector'
@@ -5,14 +7,12 @@ import { useResizeDetector } from 'react-resize-detector'
 import { MenuActions } from '@/components/MenuActions/MenuActions'
 import { ContentNotFound } from '@/components/ContentNotFound'
 import { ClustersOverviewRow, ClustersOverviewEmptyRow, ClustersOverviewFooter } from '@/components/overviews/Clusters'
-
+import { ClusterCreation } from '@/components/overviews/Clusters/Creation/ClusterCreation'
 import { useClusters } from '@/contexts/ClusterContext'
 import { paginate } from '@/helpers/pagination'
-import { Cluster } from '@/lib/cluster'
 import { useFetch } from '@/hooks/query'
 
 import styles from '@/components/overviews/Clusters/ClustersOverview.module.css'
-import { ClusterCreation } from './Creation/ClusterCreation'
 
 type ClusterOverviewProps = {
   page: string
