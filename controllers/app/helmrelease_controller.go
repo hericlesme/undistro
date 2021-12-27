@@ -658,10 +658,12 @@ func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, hr appv1alp
 		}
 		return ctrl.Result{}, nil
 	}
+
 	runner, err := helm.NewRunner(restClient, hr.Spec.TargetNamespace, log)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+
 	rel, err := runner.ObserveLastRelease(hr)
 	if err != nil {
 		controllerutil.RemoveFinalizer(&hr, meta.Finalizer)
@@ -671,6 +673,7 @@ func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, hr appv1alp
 		}
 		return ctrl.Result{}, nil
 	}
+
 	if rel == nil {
 		controllerutil.RemoveFinalizer(&hr, meta.Finalizer)
 		_, err = util.CreateOrUpdate(ctx, r.Client, &hr)
@@ -679,6 +682,7 @@ func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, hr appv1alp
 		}
 		return ctrl.Result{}, nil
 	}
+
 	err = runner.Uninstall(hr)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -692,6 +696,7 @@ func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, hr appv1alp
 			return ctrl.Result{Requeue: true}, nil
 		}
 	}
+
 	// Remove our finalizer from the list and update it.
 	controllerutil.RemoveFinalizer(&hr, meta.Finalizer)
 	_, err = util.CreateOrUpdate(ctx, r.Client, &hr)

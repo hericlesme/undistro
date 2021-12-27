@@ -68,6 +68,7 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// Setup log with default values
 	keysAndValues := []interface{}{
 		"cluster", req.NamespacedName,
 		"infra", cl.Spec.InfrastructureProvider.Name,
@@ -570,6 +571,7 @@ func (r *ClusterReconciler) reconcileDelete(ctx context.Context, cl appv1alpha1.
 		}
 		return ctrl.Result{}, nil
 	}
+
 	err = r.Delete(ctx, &capiCluster)
 	if err != nil {
 		return ctrl.Result{}, err
