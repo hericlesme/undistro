@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/getupio-undistro/meta"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/graph"
 	"github.com/getupio-undistro/undistro/pkg/kube"
-	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/retry"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/pkg/errors"

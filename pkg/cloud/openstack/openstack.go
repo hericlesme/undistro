@@ -22,10 +22,10 @@ import (
 	"fmt"
 	"text/template"
 
+	"github.com/getupio-undistro/meta"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/cloud/cloudutil"
 	"github.com/getupio-undistro/undistro/pkg/hr"
-	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"

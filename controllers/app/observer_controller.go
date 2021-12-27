@@ -22,11 +22,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getupio-undistro/controllerlib"
+	"github.com/getupio-undistro/meta"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
-	"github.com/getupio-undistro/undistro/pkg/controllerlib"
 	"github.com/getupio-undistro/undistro/pkg/hr"
 	"github.com/getupio-undistro/undistro/pkg/kube"
-	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/undistro"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/go-logr/logr"

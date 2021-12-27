@@ -21,9 +21,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/getupio-undistro/meta"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
 	"github.com/getupio-undistro/undistro/pkg/kube"
-	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

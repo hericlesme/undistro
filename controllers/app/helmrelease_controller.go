@@ -25,11 +25,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getupio-undistro/controllerlib"
+	"github.com/getupio-undistro/meta"
 	appv1alpha1 "github.com/getupio-undistro/undistro/apis/app/v1alpha1"
-	"github.com/getupio-undistro/undistro/pkg/controllerlib"
 	"github.com/getupio-undistro/undistro/pkg/helm"
 	"github.com/getupio-undistro/undistro/pkg/kube"
-	"github.com/getupio-undistro/undistro/pkg/meta"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/getupio-undistro/undistro/pkg/version"

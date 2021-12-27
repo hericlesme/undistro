@@ -17,7 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

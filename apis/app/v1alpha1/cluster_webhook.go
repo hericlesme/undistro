@@ -23,7 +23,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/getupio-undistro/undistro/pkg/meta"
+	"github.com/getupio-undistro/meta"
 	"github.com/getupio-undistro/undistro/pkg/util"
 	"github.com/getupio-undistro/undistro/pkg/version"
 	corev1 "k8s.io/api/core/v1"
