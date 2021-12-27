@@ -69,7 +69,7 @@
 }
 
 .createClusterOptionsContainer {
-  height: 100%;
+  height: calc(100% - 24px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -177,6 +177,8 @@
 }
 
 .dialogContent {
+  width: 720px;
+  height: 600px;
   background: transparent;
   padding: 0;
   margin: 10vh auto;
@@ -188,11 +190,10 @@
 }
 
 .createClusterWizContainer {
-  height: 100%;
+  height: calc(100% - 24px);
   display: flex;
   flex-direction: column;
   margin: auto;
-  box-shadow: 12px 12px 20px #000000;
   background-color: var(--background-dialog);
 }
 
@@ -338,6 +339,7 @@
   margin-top: 12px;
   border: 1px solid var(--border-medium);
   padding: 1px;
+  overflow-y: scroll;
 }
 
 .modalDeleteTableItemContainer {

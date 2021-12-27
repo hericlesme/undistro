@@ -110,13 +110,7 @@ const ClusterCreation: VFC<ClusterCreationProps> = ({ isOpen }: ClusterCreationP
               <button className={styles.closeWindowBtn}></button>
             </div>
           </div>
-          {/* <div className={styles.createClusterOptionsContainer}>
-            {creationOptions.map((option: CreationOption) => (
-              <CreationOption onClick={handleOptionClick(option.type)} {...option} key={option.type} />
-            ))}
-          </div> */}
           {renderClusterCreationOptions()}
-          {/* <Wizard step={{ value: step, next: nextStep, previous: prevStep }} /> */}
         </div>
       </DialogContent>
     </DialogOverlay>

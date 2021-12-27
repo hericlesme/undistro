@@ -72,11 +72,13 @@ const Wizard = ({ step }) => {
             <a>back</a>
           </button>
         </div>
-        <div className={styles.rightButtonContainer}>
-          <button onClick={step.next} className={styles.borderButtonSuccess}>
-            <a>next</a>
-          </button>
-        </div>
+        {step.value !== steps.length && (
+          <div className={styles.rightButtonContainer}>
+            <button onClick={step.next} className={styles.borderButtonSuccess}>
+              <a>next</a>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
