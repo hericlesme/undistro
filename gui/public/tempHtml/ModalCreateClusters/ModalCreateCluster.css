@@ -284,6 +284,15 @@ html, body {
     position: relative;
 }
 
+.modalAdvancedWorkersContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0 8px 0;
+    border: 1px solid var(--border-medium);
+    position: relative;
+}
+
 .modalSubnetContainer {
     display: flex;
     flex-direction: column;
@@ -320,6 +329,20 @@ html, body {
     margin-left: -30px;
 }
 
+.advancedWorkersInfraNodeContainer {
+    display: flex;
+    flex-direction: row;
+    width: 238px;
+}
+
+.advancedWorkersAutoScaleContainer {
+    display: flex;
+    flex-direction: row;
+    width: 418px;
+    border: 1px solid var(--border-medium);
+    gap: 16px;
+}
+
 .modalInputArea {
     display: flex;
     align-items: center;
@@ -352,6 +375,14 @@ html, body {
     margin: 0 auto 0 auto;
 }
 
+.modalAdvanceWorkersBlock {
+    display: flex;
+    align-items: center;
+    width: 678px;
+    height: 100%;
+    margin: 16px auto 0 auto;
+}
+
 .modalWorkersBlock {
     display: flex;
     flex-direction: column;
@@ -359,6 +390,22 @@ html, body {
     width: 510px;
     height: 100%;
     margin: 0 auto 0 auto;
+}
+
+.advancedModalWorkersBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 656px;
+    height: 100%;
+    margin: 0 auto 0 auto;
+}
+
+.advancedWorkersSwitchBlock {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 74px;
 }
 
 .modalSubnetBlock {
@@ -401,6 +448,26 @@ html, body {
     height: 20px;
     position: absolute;
     top: -12px;
+    background-color: var(--background-dialog);
+}
+
+.advancedWorkersTitleContainer {
+    display: flex;
+    justify-content: center;
+    min-width: 290px;
+    height: 60px;
+    position: absolute;
+    top: -36px;
+    background-color: var(--background-dialog);
+}
+
+.advancedWorkersSaveGroupContainer {
+    display: flex;
+    justify-content: center;
+    min-width: 124px;
+    height: 30px;
+    position: absolute;
+    bottom: -19px;
     background-color: var(--background-dialog);
 }
 
@@ -739,6 +806,8 @@ button.borderButtonCritical:hover a {
 }
 
 button.solidMdButtonDefault {
+    display: flex;
+    align-items: center;
     height: 22px;
     border: none;
     padding: 4px 12px 4px 12px;
@@ -830,6 +899,13 @@ button.addAllowedBlocks:disabled {
     margin: 0 0 2px 0;
 }
 
+.inputBlockLarge {
+    height: 68px;
+    min-width: 260px;
+    max-width: 260px;
+    margin: 0 0 2px 0;
+}
+
 .addOnBlock {
     display: flex;
     flex-direction: row;
@@ -915,6 +991,15 @@ button.addAllowedBlocks:disabled {
     gap: 4px;
 }
 
+.advancedWorkersSettingsRow {
+    display: flex;
+    flex-direction: row;
+    margin: 16px auto 24px auto;
+    width: 656px;
+    height: 178px;
+    gap: 4px;
+}
+
 .advancedControlPlaneSwitchRow {
     display: flex;
     flex-direction: row;
@@ -965,6 +1050,14 @@ button.addAllowedBlocks:disabled {
     flex-direction: row;
     margin: 0 auto 0 auto;
     width: 510px;
+    gap: 8px;
+}
+
+.advancedWorkersInputRow {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 0 auto;
+    width: 656px;
     gap: 8px;
 }
 
