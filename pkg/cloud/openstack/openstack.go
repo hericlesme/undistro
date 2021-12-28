@@ -101,7 +101,6 @@ func (c CloudConf) renderConf() (string, error) {
 }
 
 func ReconcileCloudProvider(ctx context.Context, c client.Client, log logr.Logger, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
-
 	cfg := config{}
 	err := json.Unmarshal(cl.Spec.InfrastructureProvider.ExtraConfiguration.Raw, &cfg)
 	if err != nil {
@@ -242,13 +241,23 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 	}
 
 	log.Info("Reconciling OpenStack Network")
+	log.Info("CAPI Cluster InfraRef",
+		"name", capiCluster.Spec.InfrastructureRef.Name,
+		"namespace", capiCluster.Spec.InfrastructureRef.Namespace,
+	)
+	log.Info("CAPI Cluster ControlPlaneRef",
+		"name", capiCluster.Spec.ControlPlaneRef.Name,
+		"namespace", capiCluster.Spec.ControlPlaneRef.Namespace,
+	)
+
 	u := unstructured.Unstructured{}
 	key := client.ObjectKey{}
 	u.SetGroupVersionKind(capiCluster.Spec.InfrastructureRef.GroupVersionKind())
 	key = client.ObjectKey{
-		Name:      capiCluster.Spec.InfrastructureRef.Name,
-		Namespace: capiCluster.Spec.InfrastructureRef.Namespace,
+		Name:      capiCluster.Spec.ControlPlaneRef.Name,
+		Namespace: capiCluster.Spec.ControlPlaneRef.Namespace,
 	}
+
 	log.Info("Retrieving cluster obj")
 	err = r.Get(ctx, key, &u)
 	if err != nil {
