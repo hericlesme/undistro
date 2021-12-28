@@ -241,28 +241,19 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 	}
 
 	log.Info("Reconciling OpenStack Network")
-	log.Info("CAPI Cluster InfraRef",
-		"name", capiCluster.Spec.InfrastructureRef.Name,
-		"namespace", capiCluster.Spec.InfrastructureRef.Namespace,
-	)
-	log.Info("CAPI Cluster ControlPlaneRef",
-		"name", capiCluster.Spec.ControlPlaneRef.Name,
-		"namespace", capiCluster.Spec.ControlPlaneRef.Namespace,
-	)
-
 	u := unstructured.Unstructured{}
 	key := client.ObjectKey{}
 	u.SetGroupVersionKind(capiCluster.Spec.InfrastructureRef.GroupVersionKind())
 	key = client.ObjectKey{
-		Name:      capiCluster.Spec.ControlPlaneRef.Name,
-		Namespace: capiCluster.Spec.ControlPlaneRef.Namespace,
+		Name:      capiCluster.Spec.InfrastructureRef.Name,
+		Namespace: capiCluster.Spec.InfrastructureRef.Namespace,
 	}
-
 	log.Info("Retrieving cluster obj")
 	err = r.Get(ctx, key, &u)
 	if err != nil {
 		return client.IgnoreNotFound(err)
 	}
+	log.Info("CAPO cluster object", "object", u.Object)
 	return clusterNetwork(log, cl, u)
 }
 
@@ -272,7 +263,7 @@ func clusterNetwork(log logr.Logger, cl *appv1alpha1.Cluster, u unstructured.Uns
 		return err
 	}
 	log.Info("Control Plane endpoint host from child cluster", "host", host)
-	if ok && host != "" {
+	if ok && host != "" && cl.Spec.ControlPlane.Endpoint.Host == "" {
 		cl.Spec.ControlPlane.Endpoint.Host = host
 	}
 	log.Info("Control Plane endpoint host from child cluster assign to spec", "host", cl.Spec.ControlPlane.Endpoint.Host)
@@ -286,5 +277,6 @@ func clusterNetwork(log logr.Logger, cl *appv1alpha1.Cluster, u unstructured.Uns
 		cl.Spec.ControlPlane.Endpoint.Port = int32(port)
 	}
 	log.Info("Control Plane endpoint port from child cluster", "port", cl.Spec.ControlPlane.Endpoint.Port)
+	log.Info("UnDistro cluster object", "object", cl)
 	return nil
 }
