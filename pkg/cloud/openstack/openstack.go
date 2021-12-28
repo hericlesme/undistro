@@ -101,7 +101,6 @@ func (c CloudConf) renderConf() (string, error) {
 }
 
 func ReconcileCloudProvider(ctx context.Context, c client.Client, log logr.Logger, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
-
 	cfg := config{}
 	err := json.Unmarshal(cl.Spec.InfrastructureProvider.ExtraConfiguration.Raw, &cfg)
 	if err != nil {
@@ -241,7 +240,6 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 		log = ctrl.Log
 	}
 
-	log.Info("Reconciling OpenStack Network")
 	u := unstructured.Unstructured{}
 	key := client.ObjectKey{}
 	u.SetGroupVersionKind(capiCluster.Spec.InfrastructureRef.GroupVersionKind())
@@ -249,6 +247,7 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 		Name:      capiCluster.Spec.InfrastructureRef.Name,
 		Namespace: capiCluster.Spec.InfrastructureRef.Namespace,
 	}
+
 	log.Info("Retrieving cluster obj")
 	err = r.Get(ctx, key, &u)
 	if err != nil {
@@ -263,7 +262,7 @@ func clusterNetwork(log logr.Logger, cl *appv1alpha1.Cluster, u unstructured.Uns
 		return err
 	}
 	log.Info("Control Plane endpoint host from child cluster", "host", host)
-	if ok && host != "" {
+	if ok && host != "" && cl.Spec.ControlPlane.Endpoint.Host == "" {
 		cl.Spec.ControlPlane.Endpoint.Host = host
 	}
 	log.Info("Control Plane endpoint host from child cluster assign to spec", "host", cl.Spec.ControlPlane.Endpoint.Host)
