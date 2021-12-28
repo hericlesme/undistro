@@ -240,7 +240,6 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 		log = ctrl.Log
 	}
 
-	log.Info("Reconciling OpenStack Network")
 	u := unstructured.Unstructured{}
 	key := client.ObjectKey{}
 	u.SetGroupVersionKind(capiCluster.Spec.InfrastructureRef.GroupVersionKind())
@@ -248,6 +247,7 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 		Name:      capiCluster.Spec.InfrastructureRef.Name,
 		Namespace: capiCluster.Spec.InfrastructureRef.Namespace,
 	}
+
 	log.Info("Retrieving cluster obj")
 	err = r.Get(ctx, key, &u)
 	if err != nil {
