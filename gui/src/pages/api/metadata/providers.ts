@@ -6,7 +6,7 @@ import { Session } from 'next-auth'
 
 import * as request from 'request'
 
-import { clusterDataHandler } from '@/helpers/dataFetching'
+import { providersDataHandler } from '@/helpers/dataFetching'
 import { isIdentityEnabled } from '@/helpers/identity'
 import { DEFAULT_USER_GROUP } from '@/helpers/constants'
 import { getResourcePath, getServerAddress } from '@/helpers/server'
@@ -18,8 +18,6 @@ type UnDistroSession = Session & {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Cluster[]>) {
-  let clusters = []
-
   const opts = {
     url: req.url
   } as request.Options
@@ -35,15 +33,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   }
 
   const server = getServerAddress(opts)
-  const url = getResourcePath({ server: server, kind: 'app', resource: 'clusters' })
+  const url = getResourcePath({ server: server, kind: 'metadata', resource: 'providers' })
 
   request.get(url, opts, (error, response, body) => {
     if (error || response.statusCode !== 200) {
-      res.status(response.statusCode).json([])
+      res.status(response.statusCode).send(error)
     }
+
     if (response) {
-      clusters = clusterDataHandler(JSON.parse(body))
-      res.json(clusters)
+      console.log(body)
+      let machines = providersDataHandler(JSON.parse(body).items)
+      res.json(machines)
       res.status(200).end()
     }
   })
