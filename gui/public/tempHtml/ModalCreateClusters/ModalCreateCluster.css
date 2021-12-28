@@ -232,6 +232,23 @@ html, body {
     background-color: var(--background-dialog);
 }
 
+.createClusterSubDialogContainer {
+    display: flex;
+    flex-direction: column;
+    width: 322px;
+    height: 600px;
+    padding: 70px 52px 70px 52px;
+    background-color: var(--background-dialog);
+}
+
+.shadowLeft {
+    box-shadow: -12px 0 20px #00000088;
+}
+
+.shadowRight {
+    box-shadow: 12px 0 20px #00000088;
+}
+
 .modalDialogTitleContainer {
     display: flex;
     flex-direction: row;
@@ -266,6 +283,20 @@ html, body {
     justify-content: center;
 }
 
+.modalSubDialogTitleContainer {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalSubDialogInputContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
 .modalDialogButtonsContainer {
     width: 100%;
     min-height: 82px;
@@ -273,6 +304,13 @@ html, body {
     flex-direction: row;
     padding: 24px;
     align-items: self-end;
+}
+
+.modalSubDialogButtonContainer {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
 }
 
 .modalWorkersContainer {
@@ -381,6 +419,10 @@ html, body {
     width: 678px;
     height: 100%;
     margin: 16px auto 0 auto;
+}
+
+.modalSubDialogInputColumnBlock {
+    margin: auto 0 auto 0;
 }
 
 .modalWorkersBlock {
@@ -747,6 +789,36 @@ button.borderButtonDefault a {
 }
 
 button.borderButtonDefault:hover a {
+    color: var(--text-dark);
+}
+
+
+button.borderButtonSmallDefault {
+    display: flex;
+    align-items: center;
+    height: 22px;
+    border: 1px solid var(--border-default);
+    padding: 4px 12px 4px 12px;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+button.borderButtonSmallDefault:hover {
+    background-color: var(--background-offwhite);
+}
+
+button.borderButtonSmallDefault a {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    line-height: 16px;
+    text-transform: capitalize;
+    color: var(--text-default);
+}
+
+button.borderButtonSmallDefault:hover a {
     color: var(--text-dark);
 }
 
