@@ -3,9 +3,32 @@ import type { FormActions } from '@/types/utils'
 
 import classNames from 'classnames'
 
-import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
+import { useFetch } from '@/hooks/query'
 
-const ClusterInfo: VFC<FormActions> = ({ register }: FormActions) => {
+import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
+import { Provider } from '@/types/cluster'
+import { useWatch } from 'react-hook-form'
+
+const ClusterInfo: VFC<FormActions> = ({ register, control }: FormActions) => {
+  const selectedProvider = useWatch({
+    control: control,
+    name: 'clusterProvider'
+  })
+
+  const { data: providers, isLoading } = useFetch<Provider[]>('/api/metadata/providers')
+
+  const getRegionOptions = () => {
+    const provider = selectedProvider && providers.find(p => p.metadata.name === selectedProvider)
+
+    if (!provider || !provider.status.regionNames) return []
+
+    return provider.status.regionNames.map(region => (
+      <option key={region} value={region}>
+        {region}
+      </option>
+    ))
+  }
+
   return (
     <>
       <div className={styles.inputBlock}>
@@ -45,14 +68,18 @@ const ClusterInfo: VFC<FormActions> = ({ register }: FormActions) => {
             className={classNames(styles.createClusterTextSelect, styles.input100)}
             id="clusterProvider"
             name="clusterProvider"
+            required
             {...register('clusterProvider', { required: true })}
           >
             <option value="" disabled selected hidden>
               Select provider
             </option>
-            <option value="option1">option1</option>
-            <option value="option2">option2</option>
-            <option value="option3">option3</option>
+            {!isLoading &&
+              providers.map(provider => (
+                <option key={provider.metadata.name} value={provider.metadata.name}>
+                  {provider.metadata.name}
+                </option>
+              ))}
           </select>
           <a className={styles.assistiveTextDefault}>Assistive text default color</a>
         </div>
@@ -64,14 +91,13 @@ const ClusterInfo: VFC<FormActions> = ({ register }: FormActions) => {
             className={classNames(styles.createClusterTextSelect, styles.input100)}
             id="clusterDefaultRegion"
             name="clusterDefaultRegion"
+            required
             {...register('clusterDefaultRegion', { required: true })}
           >
             <option value="" disabled selected hidden>
               Select region
             </option>
-            <option value="option1">option1</option>
-            <option value="option2">option2</option>
-            <option value="option3">option3</option>
+            {getRegionOptions()}
           </select>
           <a className={styles.assistiveTextDefault}>Assistive text default color</a>
         </div>

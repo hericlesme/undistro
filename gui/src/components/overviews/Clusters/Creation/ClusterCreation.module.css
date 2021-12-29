@@ -809,6 +809,11 @@ button.deleteTableItem:hover {
   border-width: 0 0 1px 0;
   border-color: var(--border-light);
   cursor: pointer;
+  color: var(--text-default);
+}
+
+select.createClusterTextSelect:required:invalid {
+  color: var(--text-disabled);
 }
 
 select.createClusterTextSelect option {

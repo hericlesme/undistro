@@ -11,7 +11,7 @@ import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.mod
 import classNames from 'classnames'
 
 const Wizard = ({ step }) => {
-  const { watch, register, setValue } = useForm()
+  const { watch, register, setValue, getValues, control } = useForm()
   const [currentSection, setCurrentSection] = useState('')
 
   const steps = [
@@ -46,7 +46,9 @@ const Wizard = ({ step }) => {
 
   const formActions = {
     register,
-    setValue
+    setValue,
+    getValues,
+    control
   }
 
   return (

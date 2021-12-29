@@ -65,3 +65,12 @@ export interface CreateClusterRequest extends KubernetesObject {
     network: Network
   }
 }
+
+export interface Provider extends KubernetesObject {
+  metadata: {
+    name: string
+  }
+  status: {
+    regionNames?: string[]
+  }
+}
