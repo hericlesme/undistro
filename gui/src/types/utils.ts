@@ -2,7 +2,7 @@ import type { Control, FieldValues, UseFormGetValues, UseFormRegister, UseFormSe
 
 export type FormActions = {
   register: UseFormRegister<FieldValues>
-  setValue: UseFormSetValue<FieldValues>
-  getValues: UseFormGetValues<FieldValues>
-  control: Control<FieldValues, object>
+  setValue?: UseFormSetValue<FieldValues>
+  getValues?: UseFormGetValues<FieldValues>
+  control?: Control<FieldValues, object>
 }

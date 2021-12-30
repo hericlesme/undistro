@@ -6,6 +6,7 @@ import { AppProviders } from '@/contexts'
 
 import '@reach/dialog/styles.css'
 import '@/styles/globals.css'
+import '@reach/combobox/styles.css'
 
 function UndistroDashBoard({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (

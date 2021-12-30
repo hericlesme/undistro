@@ -1,11 +1,13 @@
 import type { MouseEventHandler, VFC } from 'react'
-import type { Worker as IWorker } from '@/types/cluster'
+import type { MachineType, Worker as IWorker } from '@/types/cluster'
 import type { FormActions } from '@/types/utils'
 
 import { useState, useEffect } from 'react'
 import classNames from 'classnames'
 
 import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
+import { useFetch } from '@/hooks/query'
+import { Select } from '@/components/forms/Select'
 
 type WorkerProps = {
   worker: IWorker
@@ -28,8 +30,23 @@ const Worker: VFC<WorkerProps> = ({ worker, index, removeWorker }: WorkerProps) 
   </tr>
 )
 
-const ControlPlane: VFC<FormActions> = ({ register, setValue }: FormActions) => {
+const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormActions) => {
   const [workers, setWorkers] = useState([])
+  const { data: machineTypes } = useFetch<MachineType[]>('/api/metadata/machinetypes')
+
+  const getMachineTypeOptions = () => {
+    if (!machineTypes) return []
+    return machineTypes.map(machineType => machineType.name)
+  }
+
+  const getMachineMemOptions = () => {
+    if (!machineTypes) return []
+    return Array.from(new Set(machineTypes.map(machineType => machineType.mem)))
+  }
+
+  const getMachineCpuOptions = () => {
+    return Array.from(new Set(machineTypes.map(machineType => machineType.cpu)))
+  }
 
   const [workerConfig, setWorkerConfig] = useState({
     workersInfraNodeSwitch: false,
@@ -126,10 +143,18 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue }: FormActions) => 
           </select>
           <a className={styles.assistiveTextDefault}>Assistive text default color</a>
         </div>
-        <div className={styles.inputBlock}>
+        <Select
+          label="MachineType"
+          fieldName="controlPlaneMachineType"
+          placeholder="machine type"
+          register={register}
+          options={getMachineTypeOptions()}
+        />
+        {/* <div className={styles.inputBlock}>
           <label className={styles.createClusterLabel} htmlFor="controlPlaneMachineType">
             machineType
           </label>
+
           <select
             className={classNames(styles.createClusterTextSelect, styles.input100)}
             id="controlPlaneMachineType"
@@ -144,7 +169,7 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue }: FormActions) => 
             <option value="option3">option3</option>
           </select>
           <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-        </div>
+        </div> */}
       </div>
 
       <div className={styles.modalWorkersContainer}>

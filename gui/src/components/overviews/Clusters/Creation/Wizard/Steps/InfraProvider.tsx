@@ -4,89 +4,51 @@ import type { FormActions } from '@/types/utils'
 import classNames from 'classnames'
 
 import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
+import { TextInput } from '@/components/forms/TextInput'
+import { useFetch } from '@/hooks/query'
+import { Flavor } from '@/types/cluster'
+import { useWatch } from 'react-hook-form'
+import { Select } from '@/components/forms/Select'
 
-const InfraProvider: VFC<FormActions> = ({ register }: FormActions) => {
+const InfraProvider: VFC<FormActions> = ({ register, control }: FormActions) => {
+  const { data: flavors } = useFetch<Flavor[]>('/api/metadata/flavors')
+
+  const selectedFlavor = useWatch({
+    control: control,
+    name: 'infraProviderFlavor'
+  })
+
+  const getFlavorOptions = () => {
+    if (!flavors) return []
+    return flavors.map(flavor => flavor.name)
+  }
+
+  const getK8SVersionOptions = () => {
+    if (!selectedFlavor) return []
+    return flavors.find(f => f.name === selectedFlavor).supportedVersions
+  }
+
   return (
     <>
       <div className={styles.inputRow}>
-        <div className={styles.inputBlock}>
-          <label className={styles.createClusterLabel} htmlFor="infraProviderID">
-            ID
-          </label>
-          <select
-            className={classNames(styles.createClusterTextSelect, styles.input100)}
-            id="infraProviderID"
-            name="infraProviderID"
-            {...register('infraProviderID', { required: true })}
-          >
-            <option value="" disabled selected hidden>
-              ID
-            </option>
-            <option value="option1">option1</option>
-            <option value="option2">option2</option>
-            <option value="option3">option3</option>
-          </select>
-          <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-        </div>
-        <div className={styles.inputBlock}>
-          <label className={styles.createClusterLabel} htmlFor="infraProviderCIDR">
-            CIDR block
-          </label>
-          <select
-            className={classNames(styles.createClusterTextSelect, styles.input100)}
-            id="infraProviderCIDR"
-            name="infraProviderCIDR"
-            {...register('infraProviderCIDR', { required: true })}
-          >
-            <option value="" disabled selected hidden>
-              CIDR block
-            </option>
-            <option value="option1">option1</option>
-            <option value="option2">option2</option>
-            <option value="option3">option3</option>
-          </select>
-          <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-        </div>
+        <TextInput label="ID" placeholder="ID" fieldName="infraProviderID" register={register} />
+        <TextInput label="CIDR block" placeholder="CIDR block" fieldName="infraProviderCIDR" register={register} />
       </div>
       <div className={styles.inputRow}>
-        <div className={styles.inputBlock}>
-          <label className={styles.createClusterLabel} htmlFor="infraProviderFlavor">
-            flavor
-          </label>
-          <select
-            className={classNames(styles.createClusterTextSelect, styles.input100)}
-            id="infraProviderFlavor"
-            name="infraProviderFlavor"
-            {...register('infraProviderFlavor', { required: true })}
-          >
-            <option value="" disabled selected hidden>
-              select flavor
-            </option>
-            <option value="option1">option1</option>
-            <option value="option2">option2</option>
-            <option value="option3">option3</option>
-          </select>
-          <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-        </div>
-        <div className={styles.inputBlock}>
-          <label className={styles.createClusterLabel} htmlFor="infraProviderK8sVersion">
-            kubernetes version
-          </label>
-          <select
-            className={classNames(styles.createClusterTextSelect, styles.input100)}
-            id="infraProviderK8sVersion"
-            name="infraProviderK8sVersion"
-            {...register('infraProviderK8sVersion', { required: true })}
-          >
-            <option value="" disabled selected hidden>
-              select K8s
-            </option>
-            <option value="option1">option1</option>
-            <option value="option2">option2</option>
-            <option value="option3">option3</option>
-          </select>
-          <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-        </div>
+        <Select
+          label="Flavor"
+          fieldName="infraProviderFlavor"
+          placeholder="Select flavor"
+          register={register}
+          options={getFlavorOptions()}
+        />
+        <Select
+          label="Kubernetes version"
+          fieldName="infraProviderK8sVersion"
+          placeholder="Select K8s"
+          register={register}
+          options={getK8SVersionOptions()}
+        />
       </div>
       <div className={styles.inputBlockTextArea}>
         <label className={styles.createClusterLabel} htmlFor="infraProviderSshKey">

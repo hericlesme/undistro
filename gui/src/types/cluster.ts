@@ -24,12 +24,6 @@ export interface KubernetesResource extends KubernetesObject {
     clusterName: string
   }
 }
-
-export interface Option {
-  value: string
-  label: string
-}
-
 export interface Subnet {
   id: string
   cidrBlock: string
@@ -73,4 +67,16 @@ export interface Provider extends KubernetesObject {
   status: {
     regionNames?: string[]
   }
+}
+
+export interface Flavor {
+  name: string
+  supportedVersions: string[]
+}
+
+export interface MachineType {
+  name: string
+  mem: number
+  cpu: number
+  zones: string[]
 }
