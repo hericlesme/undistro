@@ -190,8 +190,9 @@ spec:
 {{$olduid := .OldID}}
 {{range $index, $element := .Cluster.Spec.Workers}}
 {{$changed := containInt $workersChanged $index}}
+{{$newuid := $uid}}
 {{if not $changed}}
-{{$uid = $olduid}}
+{{$newuid = $olduid}}
 {{end}}
 ---
 apiVersion: cluster.x-k8s.io/v1alpha4
@@ -220,12 +221,12 @@ spec:
       version: "{{$k8s}}"
       bootstrap:
         configRef:
-          name: "{{$name}}-mp-{{$uid}}-{{$index}}"
+          name: "{{$name}}-mp-{{$newuid}}-{{$index}}"
           namespace: "{{$namespace}}"
           apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
           kind: KubeadmConfigTemplate
       infrastructureRef:
-        name: "{{$name}}-mp-{{$uid}}-{{$index}}"
+        name: "{{$name}}-mp-{{$newuid}}-{{$index}}"
         namespace: "{{$namespace}}"
         apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
         kind: OpenStackMachineTemplate
@@ -233,7 +234,7 @@ spec:
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: OpenStackMachineTemplate
 metadata:
-  name: "{{$name}}-mp-{{$uid}}-{{$index}}"
+  name: "{{$name}}-mp-{{$newuid}}-{{$index}}"
   namespace: "{{$namespace}}"
   labels:
     cluster.x-k8s.io/cluster-name: "{{$name}}"
@@ -255,7 +256,7 @@ spec:
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
 kind: KubeadmConfigTemplate
 metadata:
-  name: "{{$name}}-mp-{{$uid}}-{{$index}}"
+  name: "{{$name}}-mp-{{$newuid}}-{{$index}}"
   namespace: "{{$namespace}}"
   labels:
     cluster.x-k8s.io/cluster-name: "{{$name}}"
