@@ -6,6 +6,7 @@ import { Session } from 'next-auth'
 
 import * as request from 'request'
 
+import { machineTypeDataHandler } from '@/helpers/dataFetching'
 import { isIdentityEnabled } from '@/helpers/identity'
 import { DEFAULT_USER_GROUP } from '@/helpers/constants'
 import { getResourcePath, getServerAddress } from '@/helpers/server'
@@ -31,9 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   const server = getServerAddress(opts)
   const baseUrl = getResourcePath({ server: server, kind: 'app', resource: 'namespaces' })
-  const url = `${baseUrl}/${req.body.metadata.namespace}/clusters`
+  const url = `${baseUrl}/${req.body.metadata.namespace}/defaultpolicies`
 
-  request.post({ url: url, body: JSON.stringify(req.body), ...opts }, (error, response, body) => {
+  request.post({ url: url, body: req.body, ...opts }, (error, response, body) => {
+    console.log(response)
+    console.log(body)
     if (error || response.statusCode !== 200) {
       //@ts-ignore
       res.status(500).json(response)

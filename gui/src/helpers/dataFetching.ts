@@ -9,9 +9,13 @@ export function clusterDataHandler(clusterList): Cluster[] {
   return clusterList.items.map(cl => {
     let machines = 0
     let workers = cl.spec.workers as Array<any>
-    workers.forEach(w => {
-      machines += w.replicas as number
-    })
+
+    if (workers) {
+      workers.forEach(w => {
+        machines += w.replicas as number
+      })
+    }
+
     let conditions = cl.status.conditions
     if (cl.spec.controlPlane != undefined && cl.spec.controlPlane.replicas != undefined) {
       machines += cl.spec.controlPlane.replicas as number

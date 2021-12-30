@@ -76,7 +76,7 @@ const InfraProvider: VFC<FormActions> = ({ register, control }: FormActions) => 
             type="text"
             id="infraProviderUploadFile"
             name="infraProviderUploadFile"
-            {...register('infraProviderUploadFile', { required: true })}
+            {...register('infraProviderUploadFile', { required: false })}
           />
           <div className={styles.uploadFileButtonContainer}>
             <button className={styles.uploadFileIcon}></button>

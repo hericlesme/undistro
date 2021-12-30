@@ -9,14 +9,14 @@ import { Input } from '@/types/forms'
 
 type TextInputProps = FormActions & Input
 
-const TextInput: VFC<TextInputProps> = ({ label, placeholder, fieldName, register }: TextInputProps) => {
+const TextInput: VFC<TextInputProps> = ({ label, placeholder, fieldName, required, register }: TextInputProps) => {
   const inputProperties = {
     id: fieldName,
     name: fieldName,
     type: 'text',
     placeholder: placeholder,
     className: classNames(styles.createClusterTextInput, styles.input100),
-    ...register(fieldName, { required: true })
+    ...register(fieldName, { required })
   }
 
   return (

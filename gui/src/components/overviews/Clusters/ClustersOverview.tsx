@@ -39,7 +39,7 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
   const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 })
 
-  const [isCreationOpen, setIsCreationOpen] = useState<boolean>(true)
+  const [isCreationOpen, setIsCreationOpen] = useState<boolean>(false)
 
   const columns = ['provider', 'flavor', 'k8s version', 'cluster group', 'machines', 'age', 'status']
 

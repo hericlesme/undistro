@@ -9,7 +9,7 @@ import { PAGINATION_DOTS } from '@/helpers/constants'
 import styles from '@/components/Pagination/Pagination.module.css'
 
 type PaginationProps = usePaginationProps & {
-  onPageChange: (page: string | number) => void
+  onPageChange?: (page: string | number) => void
 }
 
 let cx = classnames.bind(styles)

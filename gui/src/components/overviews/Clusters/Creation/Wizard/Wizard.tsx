@@ -9,10 +9,13 @@ import {
 } from '@/components/overviews/Clusters/Creation/Wizard/Steps'
 import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
 import classNames from 'classnames'
+import { useMutate } from '@/hooks/query'
 
 const Wizard = ({ step }) => {
-  const { watch, register, setValue, getValues, control } = useForm()
+  const { watch, register, setValue, getValues, handleSubmit, control } = useForm()
   const [currentSection, setCurrentSection] = useState('')
+  const createCluster = useMutate({ url: `/api/clusters/create`, method: 'post' })
+  const createPolicy = useMutate({ url: `/api/clusters/policies`, method: 'post' })
 
   const steps = [
     {
@@ -31,7 +34,6 @@ const Wizard = ({ step }) => {
   ]
 
   useEffect(() => {
-    console.log(steps[step.value - 1])
     setCurrentSection(steps[step.value - 1].title)
   }, [step.value])
 
@@ -43,6 +45,68 @@ const Wizard = ({ step }) => {
   const inputAreaStyles = classNames(styles.modalInputArea, {
     [styles.modalControlPlaneBlock]: currentSection === 'Control Plane'
   })
+
+  const onSubmit = (data, e) => {
+    const clusterData = {
+      apiVersion: 'app.undistro.io/v1alpha1',
+      kind: 'Cluster',
+      metadata: {
+        name: data.clusterName,
+        namespace: data.clusterNamespace
+      },
+      spec: {
+        kubernetesVersion: data.infraProviderK8sVersion,
+        controlPlane: {
+          machineType: data.controlPlaneMachineType,
+          replicas: data.controlPlaneReplicas
+        },
+        infrastructureProvider: {
+          flavor: data.infraProviderFlavor,
+          name: data.clusterProvider,
+          region: data.clusterDefaultRegion,
+          sshKey: data.infraProviderSshKey
+        },
+        workers: data.workers,
+        network: {
+          vpc: {
+            id: data.infraProviderID,
+            cidrBlock: data.infraProviderCIDR
+          }
+        }
+      }
+    }
+
+    const dataPolicies = {
+      apiVersion: 'app.undistro.io/v1alpha1',
+      kind: 'DefaultPolicies',
+      metadata: {
+        name: `defaultpolicies-${data.clusterName}`,
+        namespace: data.clusterNamespace
+      },
+      spec: {
+        clusterName: data.clusterName
+      }
+    }
+
+    const identity = {
+      apiVersion: 'app.undistro.io/v1alpha1',
+      kind: 'Identity',
+      metadata: {
+        name: `identity-${data.clusterName}`,
+        namespace: data.clusterNamespace
+      },
+      spec: {
+        clusterName: data.clusterName
+      }
+    }
+
+    createCluster.mutate(clusterData)
+    createPolicy.mutate(dataPolicies)
+  }
+  const onError = (errors, e) => {
+    console.log(errors)
+    console.log(e)
+  }
 
   const formActions = {
     register,
@@ -59,28 +123,35 @@ const Wizard = ({ step }) => {
 
       <div className={styles.modalContentContainer}>
         <div className={inputAreaStyles}>
-          <form className={styles.modalForm} id="wizardClusterForm">
+          <form onSubmit={handleSubmit(onSubmit, onError)} className={styles.modalForm} id="wizardClusterForm">
             {steps.map(({ component: Component }, index) => (
               <Step step={index + 1} currentStep={step.value}>
                 <Component {...formActions} />
               </Step>
             ))}
+            <div className={styles.modalDialogButtonsContainer}>
+              <div className={styles.leftButtonContainer}>
+                <button onClick={step.previous} className={styles.borderButtonDefault}>
+                  <a>back</a>
+                </button>
+              </div>
+              {step.value !== steps.length && (
+                <div className={styles.rightButtonContainer}>
+                  <button onClick={step.next} className={styles.borderButtonSuccess}>
+                    <a>next</a>
+                  </button>
+                </div>
+              )}
+              {step.value === steps.length && (
+                <div className={styles.rightButtonContainer}>
+                  <button type="submit" className={styles.borderButtonSuccess}>
+                    <a>Create</a>
+                  </button>
+                </div>
+              )}
+            </div>
           </form>
         </div>
-      </div>
-      <div className={styles.modalDialogButtonsContainer}>
-        <div className={styles.leftButtonContainer}>
-          <button onClick={step.previous} className={styles.borderButtonDefault}>
-            <a>back</a>
-          </button>
-        </div>
-        {step.value !== steps.length && (
-          <div className={styles.rightButtonContainer}>
-            <button onClick={step.next} className={styles.borderButtonSuccess}>
-              <a>next</a>
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )

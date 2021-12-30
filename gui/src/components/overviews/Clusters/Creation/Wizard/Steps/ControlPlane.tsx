@@ -45,6 +45,7 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
   }
 
   const getMachineCpuOptions = () => {
+    if (!machineTypes) return []
     return Array.from(new Set(machineTypes.map(machineType => machineType.cpu)))
   }
 
@@ -57,7 +58,6 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
   })
 
   useEffect(() => {
-    console.log(workers)
     setValue('workers', workers)
   }, [workers])
 
@@ -69,8 +69,6 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
 
   const removeWorker = (index: number) => (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    console.log(index)
-    console.log(workers)
     const newWorkers = [...workers]
     newWorkers.splice(index, 1)
     setWorkers(newWorkers)
@@ -99,9 +97,9 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
             <option value="" disabled selected hidden>
               n#
             </option>
-            <option value="option1">option1</option>
-            <option value="option2">option2</option>
-            <option value="option3">option3</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
           </select>
           <a className={styles.assistiveTextDefault}>Assistive text default color</a>
         </div>
@@ -118,9 +116,11 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
             <option value="" disabled selected hidden>
               CPU
             </option>
-            <option value="option1">option1</option>
-            <option value="option2">option2</option>
-            <option value="option3">option3</option>
+            {getMachineCpuOptions().map(cpu => (
+              <option key={`cpu-${cpu}`} value={cpu}>
+                {cpu}
+              </option>
+            ))}
           </select>
           <a className={styles.assistiveTextDefault}>Assistive text default color</a>
         </div>
@@ -137,9 +137,11 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
             <option value="" disabled selected hidden>
               mem
             </option>
-            <option value="option1">option1</option>
-            <option value="option2">option2</option>
-            <option value="option3">option3</option>
+            {getMachineMemOptions().map(mem => (
+              <option key={`mem-${mem}`} value={mem}>
+                {mem}
+              </option>
+            ))}
           </select>
           <a className={styles.assistiveTextDefault}>Assistive text default color</a>
         </div>

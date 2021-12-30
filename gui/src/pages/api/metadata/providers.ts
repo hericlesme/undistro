@@ -41,7 +41,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
 
     if (response) {
-      console.log(body)
       let machines = providersDataHandler(JSON.parse(body).items)
       res.json(machines)
       res.status(200).end()

@@ -29,12 +29,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
   }
 
+  let { clusterName, namespace } = req.body
+
   const server = getServerAddress(opts)
   const baseUrl = getResourcePath({ server: server, kind: 'app', resource: 'namespaces' })
-  const url = `${baseUrl}/${req.body.metadata.namespace}/clusters`
+  const url = `${baseUrl}/${namespace}/clusters/${clusterName}`
 
-  request.post({ url: url, body: JSON.stringify(req.body), ...opts }, (error, response, body) => {
+  request.delete({ url: url, body: JSON.stringify(req.body), ...opts }, (error, response, body) => {
     if (error || response.statusCode !== 200) {
+      console.log(error)
+      console.log(body)
       //@ts-ignore
       res.status(500).json(response)
     }
