@@ -620,18 +620,11 @@ html, body {
     color: var(--text-default);
 }
 
-.modalCreateClusterTitleBottom {
-    font-family: Montserrat;
-    font-style: normal;
-    font-weight: 500;
-    font-size: 16px;
-    line-height: 20px;
-    letter-spacing: 0.04em;
+.flexBottom {
     align-self: flex-end;
-    color: var(--text-default);
 }
 
-.modalCreateClusterTitleCentered {
+.modalCreateClusterTitle {
     font-family: Montserrat;
     font-style: normal;
     font-weight: 500;
