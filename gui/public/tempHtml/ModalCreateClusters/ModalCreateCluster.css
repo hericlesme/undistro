@@ -710,7 +710,7 @@ html, body {
     display: inline-block;
     width: 32px;
     height: 24px;
-    background-image: url("img/closeDialogIcon.svg");
+    background-image: url("/gui/public/img/closeDialogIcon.svg");
     background-repeat: no-repeat;
     background-position: center;
     cursor: pointer;
@@ -718,7 +718,7 @@ html, body {
 
 .closeWindowBtn:hover {
     background-color:var(--background-light-hover);
-    background-image: url("img/closeDialogIconHover.svg");
+    background-image: url("/gui/public/img/closeDialogIconHover.svg");
     background-repeat: no-repeat;
     background-position: center;
 }
@@ -728,18 +728,18 @@ button.uploadFileIcon {
     width: 32px;
     background-color: transparent;
     border: none;
-    background-image: url("./img/uploadYamlDefault.svg");
+    background-image: url("/gui/public/img/uploadYamlDefault.svg");
     background-repeat: no-repeat;
     background-position: center;
     cursor: pointer;
 }
 
 button.uploadFileIcon:hover {
-    background-image: url("./img/uploadYamlHover.svg");
+    background-image: url("/gui/public/img/uploadYamlHover.svg");
 }
 
 button.uploadFileIcon:disabled {
-    background-image: url("./img/uploadYamlDisabled.svg");
+    background-image: url("/gui/public/img/uploadYamlDisabled.svg");
 }
 
 
@@ -750,19 +750,19 @@ button.tableAddSettings {
     padding: 0;
     background-color: var(--background-medium);
     border: none;
-    background-image: url("./img/tableAddSettingsDefault.svg");
+    background-image: url("/gui/public/img/tableAddSettingsDefault.svg");
     background-repeat: no-repeat;
     background-position: center;
     cursor: pointer;
 }
 
 button.tableAddSettings:hover {
-    background-image: url("./img/tableAddSettingsHover.svg");
+    background-image: url("/gui/public/img/tableAddSettingsHover.svg");
     background-color: var(--background-light);
 }
 
 button.tableAddSettings:disabled {
-    background-image: url("./img/tableAddSettingsDisabled.svg");
+    background-image: url("/gui/public/img/tableAddSettingsDisabled.svg");
 }
 
 button.borderButtonDefault {
@@ -906,14 +906,14 @@ button.deleteTableItem {
     width: 20px;
     background-color: transparent;
     border: none;
-    background-image: url("./img/modalDeleteTableItemDefault.svg");
+    background-image: url("/gui/public/img/modalDeleteTableItemDefault.svg");
     background-repeat: no-repeat;
     background-position: center;
     cursor: pointer;
 }
 
 button.deleteTableItem:hover {
-    background-image: url("./img/modalDeleteTableItemHover.svg");
+    background-image: url("/gui/public/img/modalDeleteTableItemHover.svg");
 }
 
 button.addAllowedBlocks {
@@ -921,18 +921,18 @@ button.addAllowedBlocks {
     width: 30px;
     background-color: transparent;
     border: none;
-    background-image: url("./img/bastionAddAllowedBlocksDefault.svg");
+    background-image: url("/gui/public/img/bastionAddAllowedBlocksDefault.svg");
     background-repeat: no-repeat;
     background-position: center;
     cursor: pointer;
 }
 
 button.addAllowedBlocks:hover {
-    background-image: url("./img/bastionAddAllowedBlocksHover.svg");
+    background-image: url("/gui/public/img/bastionAddAllowedBlocksHover.svg");
 }
 
 button.addAllowedBlocks:disabled {
-    background-image: url("./img/bastionAddAllowedBlocksDisabled.svg");
+    background-image: url("/gui/public/img/bastionAddAllowedBlocksDisabled.svg");
 }
 
 /* form elements*/
@@ -941,11 +941,7 @@ button.addAllowedBlocks:disabled {
     width: 100%;
 }
 
-.inputBlock {
-    height: 68px;
-    width: 100%;
-    margin: 0 0 2px 0;
-}
+
 
 .advancedControlPlaneSwitchBlock {
     width: 100%;
@@ -957,24 +953,33 @@ button.addAllowedBlocks:disabled {
     margin: 0 0 16px 0;
 }
 
-.inputBlockSmall {
+.inputBlock {
     height: 68px;
+    margin: 0 0 2px 0;
+}
+
+.inputFit {
+    width: 100%;
+}
+
+.inputSmall {
     min-width: 90px;
     max-width: 90px;
-    margin: 0 0 2px 0;
 }
 
-.inputBlockMedium {
-    height: 68px;
+.inputMedium {
     min-width: 172px;
     max-width: 172px;
-    margin: 0 0 2px 0;
 }
 
-.inputBlockLarge {
-    height: 68px;
+.inputLarge {
     min-width: 260px;
     max-width: 260px;
+}
+
+.inputBlockTextArea {
+    height: 118px;
+    width: 100%;
     margin: 0 0 2px 0;
 }
 
@@ -1021,12 +1026,6 @@ button.addAllowedBlocks:disabled {
     flex-direction: row;
     align-items: center;
     height: 22px;
-    width: 100%;
-    margin: 0 0 2px 0;
-}
-
-.inputBlockTextArea {
-    height: 118px;
     width: 100%;
     margin: 0 0 2px 0;
 }
