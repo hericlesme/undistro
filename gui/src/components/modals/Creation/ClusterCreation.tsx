@@ -1,20 +1,24 @@
-import type { VFC } from 'react'
+import { useReducer, VFC } from 'react'
 import { useState } from 'react'
 import { DialogOverlay, DialogContent } from '@reach/dialog'
-import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
 import { Wizard } from './Wizard/Wizard'
+import { useModalContext } from '@/contexts/ModalContext'
 
-type ClusterCreationProps = {
-  isOpen: boolean
+import styles from '@/components/modals/Creation/ClusterCreation.module.css'
+
+enum CREATION_OPTION {
+  WIZARD = 'Wizard',
+  ADVANCED = 'Advanced'
 }
 
-enum CreationOptionType {
-  wizard = 'Wizard',
-  advanced = 'Advanced'
+enum CREATION_STEP {
+  OPTIONS = 'OPTIONS',
+  STEPS = 'STEPS',
+  STATUS = 'STATUS'
 }
 
 type CreationOption = {
-  type: CreationOptionType
+  type: CREATION_OPTION
   subtitle: string
   description: string
   onClick?: (e: any) => void
@@ -44,9 +48,27 @@ const CreationOption: VFC<CreationOption> = ({ subtitle, description, type, ...p
   )
 }
 
-const ClusterCreation: VFC<ClusterCreationProps> = ({ isOpen }: ClusterCreationProps) => {
+const ClusterCreation: VFC = () => {
   const [step, setStep] = useState(1)
-  const [creationMode, setCreationMode] = useState('')
+  const { hideModal } = useModalContext()
+
+  const reducer = (state, action) => {
+    switch (action.type) {
+      case 'SET_STEP':
+        return { ...state, step: action.payload.step }
+      case 'SET_CREATION_MODE':
+        return {
+          ...state,
+          step: CREATION_STEP.STEPS,
+          creationMode: action.payload.creationMode
+        }
+    }
+  }
+
+  const [creationState, dispatch] = useReducer(reducer, {
+    step: CREATION_STEP.OPTIONS,
+    creationMode: ''
+  })
 
   const nextStep = () => {
     setStep(step + 1)
@@ -54,7 +76,7 @@ const ClusterCreation: VFC<ClusterCreationProps> = ({ isOpen }: ClusterCreationP
 
   const prevStep = () => {
     if (step - 1 === 0) {
-      setCreationMode('')
+      dispatch({ type: 'SET_STEP', payload: { step: CREATION_STEP.OPTIONS } })
     } else {
       setStep(step - 1)
     }
@@ -62,40 +84,40 @@ const ClusterCreation: VFC<ClusterCreationProps> = ({ isOpen }: ClusterCreationP
 
   const creationOptions: CreationOption[] = [
     {
-      type: CreationOptionType.wizard,
+      type: CREATION_OPTION.WIZARD,
       subtitle: 'The fastest way to start.',
       description: 'Create a cluster in just a few steps.'
     },
     {
-      type: CreationOptionType.advanced,
+      type: CREATION_OPTION.ADVANCED,
       subtitle: 'No shortcuts.',
       description: 'Control every aspect of the cluster.'
     }
   ]
 
-  const handleOptionClick = (type: CreationOptionType) => e => {
-    setCreationMode(type)
+  const setCreationOption = (type: CREATION_OPTION) => () => {
+    dispatch({ type: 'SET_CREATION_MODE', payload: { creationMode: type } })
   }
 
   const renderClusterCreationOptions = () => {
-    switch (creationMode) {
-      case CreationOptionType.wizard:
-        return <Wizard step={{ value: step, next: nextStep, previous: prevStep }} />
-      case CreationOptionType.advanced:
-        return <div>Advanced</div>
-      default:
+    switch (creationState.step) {
+      case CREATION_STEP.OPTIONS:
         return (
           <div className={styles.createClusterOptionsContainer}>
             {creationOptions.map((option: CreationOption) => (
-              <CreationOption onClick={handleOptionClick(option.type)} {...option} key={option.type} />
+              <CreationOption onClick={setCreationOption(option.type)} {...option} key={option.type} />
             ))}
           </div>
         )
+      case CREATION_STEP.STEPS:
+        return <Wizard step={{ value: step, next: nextStep, previous: prevStep }} />
+      case CREATION_STEP.STATUS:
+        return <div>Advanced</div>
     }
   }
 
   return (
-    <DialogOverlay isOpen={isOpen} className={styles.dialogOverlay}>
+    <DialogOverlay isOpen={true} className={styles.dialogOverlay}>
       <DialogContent className={styles.dialogContent}>
         <div className={styles.createClusterOptionscontainer}>
           <div className={styles.modalDialogTitleBar}>
@@ -105,9 +127,8 @@ const ClusterCreation: VFC<ClusterCreationProps> = ({ isOpen }: ClusterCreationP
                 <a className={styles.dialogTitleBold}>CLUSTER</a>
               </span>
             </div>
-
             <div className={styles.closeWindowBtnContainer}>
-              <button className={styles.closeWindowBtn}></button>
+              <button onClick={hideModal} className={styles.closeWindowBtn}></button>
             </div>
           </div>
           {renderClusterCreationOptions()}

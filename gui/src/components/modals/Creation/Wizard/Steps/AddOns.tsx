@@ -3,7 +3,7 @@ import type { FormActions } from '@/types/utils'
 
 import classNames from 'classnames'
 
-import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
+import styles from '@/components/modals/Creation/ClusterCreation.module.css'
 
 const AddOns: VFC<FormActions> = ({ register }: FormActions) => {
   return (

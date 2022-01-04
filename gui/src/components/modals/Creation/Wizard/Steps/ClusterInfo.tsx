@@ -5,10 +5,9 @@ import { useFetch } from '@/hooks/query'
 
 import { Provider } from '@/types/cluster'
 import { useWatch } from 'react-hook-form'
-import { TextInput } from '@/components/forms/TextInput'
+import { TextInput, Select } from '@/components/forms'
 
-import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
-import { Select } from '@/components/forms/Select'
+import styles from '@/components/modals/Creation/ClusterCreation.module.css'
 
 const ClusterInfo: VFC<FormActions> = ({ register, control }: FormActions) => {
   const selectedProvider = useWatch({

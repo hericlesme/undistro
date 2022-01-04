@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import {
-  ClusterInfo,
-  InfraProvider,
-  AddOns,
-  Step,
-  ControlPlane
-} from '@/components/overviews/Clusters/Creation/Wizard/Steps'
-import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
+import { ClusterInfo, InfraProvider, AddOns, Step, ControlPlane } from '@/components/modals/Creation/Wizard/Steps'
+import styles from '@/components/modals/Creation/ClusterCreation.module.css'
 import classNames from 'classnames'
 import { useMutate } from '@/hooks/query'
+import { ClusterCreationData } from '@/types/cluster'
 
 const Wizard = ({ step }) => {
   const { watch, register, setValue, getValues, handleSubmit, control } = useForm()
@@ -47,7 +42,9 @@ const Wizard = ({ step }) => {
   })
 
   const onSubmit = (data, e) => {
-    const clusterData = {
+    e.preventDefault()
+
+    const clusterData: ClusterCreationData = {
       apiVersion: 'app.undistro.io/v1alpha1',
       kind: 'Cluster',
       metadata: {
@@ -65,13 +62,19 @@ const Wizard = ({ step }) => {
           name: data.clusterProvider,
           region: data.clusterDefaultRegion,
           sshKey: data.infraProviderSshKey
-        },
-        workers: data.workers,
-        network: {
-          vpc: {
-            id: data.infraProviderID,
-            cidrBlock: data.infraProviderCIDR
-          }
+        }
+      }
+    }
+
+    if (data.workers) {
+      clusterData.spec.workers = data.workers
+    }
+
+    if (data.infraProviderID && data.infraProviderCIDR) {
+      clusterData.spec.network = {
+        vpc: {
+          id: data.infraProviderID,
+          cidrBlock: data.infraProviderCIDR
         }
       }
     }
