@@ -7,7 +7,7 @@ export enum MODAL_TYPES {
   UPDATE_MODAL = 'UPDATE_MODAL'
 }
 
-const MODAL_COMPONENTS: any = {
+const MODAL_COMPONENTS: Record<string, React.VFC> = {
   [MODAL_TYPES.CREATE_CLUSTER]: ClusterCreation
 }
 

@@ -12,7 +12,7 @@ function UndistroDashBoard({ Component, pageProps: { session, ...pageProps } }: 
   return (
     <AppProviders>
       <SessionProvider session={session}>
-        <div className="backgroundDefault responsiveScreenHeight">
+        <div className="backgroundDefault">
           <CheckAuthRoute>
             <Component {...pageProps} />
           </CheckAuthRoute>

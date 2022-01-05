@@ -283,11 +283,7 @@
 }
 
 .modalProgressArea {
-  display: flex;
-  flex-direction: column;
-  margin-top: 32px;
-  width: 100%;
-  height: 100%;
+  margin: 0;
 }
 
 .modalControlPlaneBlock {
@@ -358,6 +354,7 @@
   width: 100%;
   padding: 24px;
   background-color: var(--background-default);
+  overflow: auto;
 }
 
 .errorMessageContainer {
@@ -960,7 +957,7 @@ ol.progressDialog {
 }
 
 ol.progressDialog li {
-  height: 24px;
+  /* height: 24px; */
 }
 
 ol.progressDialog li a {
@@ -1003,3 +1000,69 @@ ol.progressDialog li a {
 }
 
 /* Add-Ons */
+
+.modalSubnetContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  position: relative;
+}
+
+.modalSubnetBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 638px;
+  height: 100%;
+}
+
+.subnetInputRow {
+  display: flex;
+  flex-direction: row;
+  margin: 0 auto 0 auto;
+  width: 638px;
+  gap: 8px;
+}
+
+.infraNetworkInputRowSmall {
+  display: flex;
+  flex-direction: row;
+  margin: 0 auto 0 auto;
+  width: 318px;
+  gap: 8px;
+}
+
+.bordered {
+  border: 1px solid var(--border-medium);
+}
+
+.inputBlock {
+  height: 68px;
+  margin: 0 0 2px 0;
+}
+
+.inputFit {
+  width: 100%;
+}
+
+.inputSmall {
+  min-width: 90px;
+  max-width: 90px;
+}
+
+.inputMedium {
+  min-width: 172px;
+  max-width: 172px;
+}
+
+.inputLarge {
+  min-width: 260px;
+  max-width: 260px;
+}
+
+.inputBlockTextArea {
+  height: 118px;
+  width: 100%;
+  margin: 0 0 2px 0;
+}

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { DialogOverlay, DialogContent } from '@reach/dialog'
 import { Wizard } from './Wizard/Wizard'
 import { useModalContext } from '@/contexts/ModalContext'
+import { Progress } from '@/components/modals/Creation/Progress'
 
 import styles from '@/components/modals/Creation/ClusterCreation.module.css'
 
@@ -66,7 +67,7 @@ const ClusterCreation: VFC = () => {
   }
 
   const [creationState, dispatch] = useReducer(reducer, {
-    step: CREATION_STEP.OPTIONS,
+    step: CREATION_STEP.STATUS,
     creationMode: ''
   })
 
@@ -112,7 +113,7 @@ const ClusterCreation: VFC = () => {
       case CREATION_STEP.STEPS:
         return <Wizard step={{ value: step, next: nextStep, previous: prevStep }} />
       case CREATION_STEP.STATUS:
-        return <div>Advanced</div>
+        return <Progress />
     }
   }
 
