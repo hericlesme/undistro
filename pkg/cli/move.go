@@ -143,7 +143,7 @@ func (o *MoveOptions) RunMove(f cmdutil.Factory, cmd *cobra.Command) error {
 	objectGraph.CheckVirtualNode()
 	clusters := objectGraph.GetClusters()
 	fmt.Fprintf(o.Out, "Moving %d clusters\n", len(clusters))
-	errList := []error{}
+	var errList []error
 	for i := range clusters {
 		cluster := clusters[i]
 		clusterObj := &appv1alpha1.Cluster{}
@@ -230,7 +230,7 @@ func getClusterObj(ctx context.Context, proxy client.Client, cluster *graph.Node
 	return nil
 }
 
-// getMachineObj retrieves the the machineObj corresponding to a node with type Machine.
+// getMachineObj retrieves the machineObj corresponding to a node with type Machine.
 func getMachineObj(ctx context.Context, proxy client.Client, machine *graph.Node, machineObj *clusterv1.Machine) error {
 	machineObjKey := client.ObjectKey{
 		Namespace: machine.Identity.Namespace,

@@ -1,3 +1,4 @@
+{{- if .Values.observer.enabled }}
 apiVersion: app.undistro.io/v1alpha1
 kind: Observer
 metadata:
@@ -5,3 +6,4 @@ metadata:
   namespace: {{ .Values.identity.namespace }}
 spec:
   clusterName: ""
+{{- end }}
