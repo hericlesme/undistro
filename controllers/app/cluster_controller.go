@@ -311,14 +311,14 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 
 		newUUID := string(uuid.NewUUID())
 		log.Info("New UUID", "newUUID", newUUID)
-		if cpChanged {
+		if (cpChanged || len(workersChanged) > 0){
 			vars["CPID"] = newUUID
 			cl.Status.LastUsedUID = newUUID
 		} else {
 			vars["CPID"] = cl.Status.LastUsedUID
 		}
-		log.Info("Control Plane UUID", "controlPlaneUUID", vars["CPID"])
 
+		log.Info("Control Plane UUID", "controlPlaneUUID", vars["CPID"])
 		vars["WorkersChanged"] = workersChanged
 		vars["OldID"] = cl.Status.LastUsedUID
 		log.Info("Template variables", "vars", vars)
