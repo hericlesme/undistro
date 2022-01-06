@@ -28,6 +28,7 @@ import (
 	"github.com/getupio-undistro/undistro/pkg/version"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
@@ -115,57 +116,68 @@ func (r *Cluster) validate(old *Cluster) error {
 			if *r.Spec.Bastion.Enabled && r.Spec.InfrastructureProvider.SSHKey == "" {
 				allErrs = append(allErrs, field.Required(
 					field.NewPath("spec", "infrastructureProvider", "sshKey"),
-					"sshKey is required when bastion is enabled",
+					SshKeyRequired,
 				))
 			}
 		}
 	}
+
 	if r.Spec.InfrastructureProvider.Flavor == "" {
 		allErrs = append(allErrs, field.Required(
 			field.NewPath("spec", "infrastructureProvider", "flavor"),
-			"must to be populated",
+			FlavorRequired,
 		))
 	}
+
 	if !r.Spec.InfrastructureProvider.IsManaged() && reflect.DeepEqual(*r.Spec.ControlPlane, ControlPlaneNode{}) {
 		allErrs = append(allErrs, field.Required(
 			field.NewPath("spec", "controlPlane"),
-			"must to be populated",
+			CPRequiredInNonManaged,
 		))
 	}
+
 	if !util.ContainsStringInSlice(r.Spec.InfrastructureProvider.Flavors(), r.Spec.InfrastructureProvider.Flavor) {
 		allErrs = append(allErrs, field.Invalid(
 			field.NewPath("spec", "infrastructureProvider", "flavor"),
 			r.Spec.InfrastructureProvider.Flavor,
-			fmt.Sprintf("valid valid values are %v", r.Spec.InfrastructureProvider.Flavors()),
+			fmt.Sprintf("%s. Valid values are %v", FlavorNotValid, r.Spec.InfrastructureProvider.Flavors()),
 		))
 	}
+
 	if r.Spec.ControlPlane == nil && !r.Spec.InfrastructureProvider.IsManaged() {
 		allErrs = append(allErrs, field.Required(
 			field.NewPath("spec", "controlPlane"),
-			"controlPlane must to be populated when is a self hosted cluster",
+			CPRequiredInSelfHosted,
 		))
 	}
+
 	_, err := version.ParseVersion(r.Spec.KubernetesVersion)
 	if err != nil {
 		allErrs = append(allErrs, field.Invalid(
 			field.NewPath("spec", "kubernetesVersion"),
 			r.Spec.KubernetesVersion,
-			"kubernetesVersion must to be a semantic versioning",
+			InvalidSemVer,
 		))
 	}
-	const immutableMsg = "field is immutable"
+
 	if old != nil {
 		if !reflect.DeepEqual(old.Spec.ControlPlane.Endpoint, capi.APIEndpoint{}) && !reflect.DeepEqual(old.Spec.Network.ClusterNetwork, capi.ClusterNetwork{}) {
+			isInDeleting := apimeta.IsStatusConditionTrue(r.Status.Conditions, meta.ReconciliationDeletingReason)
+			clusterlog.Info("Checking if condition is true", "isInDeleting", isInDeleting)
+			if isInDeleting {
+				return nil
+			}
 			if !meta.InReadyCondition(r.Status.Conditions) {
-				return apierrors.NewBadRequest("can't update cluster that isn't ready")
+				return apierrors.NewBadRequest(UpdateClusterNotReady)
 			}
 		}
 	}
+
 	if old != nil && r.Spec.InfrastructureProvider.Region != old.Spec.InfrastructureProvider.Region {
 		allErrs = append(allErrs, field.Invalid(
 			field.NewPath("spec", "infrastructureProvider", "region"),
 			r.Spec.InfrastructureProvider.Region,
-			immutableMsg,
+			ImmutableField,
 		))
 	}
 	switch r.Spec.InfrastructureProvider.Name {
@@ -189,7 +201,7 @@ func (r *Cluster) validate(old *Cluster) error {
 				allErrs = append(allErrs, field.Invalid(
 					field.NewPath("spec", "network", "vpc"),
 					r.Spec.Network.VPC,
-					"ID or CIDRBlock must be set to avoid network conflicts with others clusters",
+					NetAddrConflict,
 				))
 				break
 			}
@@ -205,14 +217,14 @@ func (r *Cluster) validateAWS(allErrs field.ErrorList) field.ErrorList {
 	if r.Spec.InfrastructureProvider.Name == Amazon.String() && r.Spec.InfrastructureProvider.Flavor == EC2.String() && r.Spec.InfrastructureProvider.SSHKey == "" {
 		allErrs = append(allErrs, field.Required(
 			field.NewPath("spec", "infrastructureProvider", "sshKey"),
-			"sshKey is required when flavor is ec2",
+			SshRequiredInEC2,
 		))
 	}
 	if r.Spec.InfrastructureProvider.Name == Amazon.String() && !isValidNameForAWS(r.Name) {
 		allErrs = append(allErrs, field.Invalid(
 			field.NewPath("metadata", "name"),
 			r.Name,
-			"Invalid cluster name for AWS",
+			InvalidClusterNameInAws,
 		))
 	}
 	return allErrs
@@ -229,7 +241,7 @@ func (r *Cluster) ValidateUpdate(old runtime.Object) error {
 	clusterlog.Info("validate update", "name", r.Name)
 	oldCl, ok := old.(*Cluster)
 	if !ok {
-		return apierrors.NewBadRequest(fmt.Sprintf("expected a Cluster but got a %T", old))
+		return apierrors.NewBadRequest(fmt.Sprintf("Expected a Cluster but got a %T", old))
 	}
 	return r.validate(oldCl)
 }

@@ -139,7 +139,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			_, isKyverno = hr.Annotations[meta.KyvernoAnnotation]
 		}
 		if !meta.InReadyCondition(cl.Status.Conditions) && !isCNIChart {
-			hr = appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "wait cluster to be ready")
+			hr = appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "Wait cluster to be ready")
 			return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
 
@@ -155,7 +155,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		for _, p := range policies.Items {
 			if p.Spec.ClusterName == cl.Name && !isCNIChart && !isKyverno {
 				if !meta.InReadyCondition(p.Status.Conditions) {
-					hr = appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "wait cluster policies to be applied")
+					hr = appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "Wait cluster policies to be applied")
 				}
 			}
 		}
@@ -163,7 +163,7 @@ func (r *HelmReleaseReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	hr, result, err := r.reconcile(ctx, hr)
 
 	// Log reconciliation duration
-	durationMsg := fmt.Sprintf("reconcilation finished in %s", time.Since(start).String())
+	durationMsg := fmt.Sprintf("Reconcilation finished in %s", time.Since(start).String())
 	if result.RequeueAfter > 0 {
 		durationMsg = fmt.Sprintf("%s, next run in %s", durationMsg, result.RequeueAfter.String())
 	}

@@ -63,16 +63,17 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	start := time.Now()
 
 	// Retrieve cluster instance
-	cl := appv1alpha1.Cluster{}
-	if err := r.Get(ctx, req.NamespacedName, &cl); err != nil {
+	undistroCluster := appv1alpha1.Cluster{}
+	if err := r.Get(ctx, req.NamespacedName, &undistroCluster); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// Setup log with default values
 	keysAndValues := []interface{}{
 		"cluster", req.NamespacedName,
-		"infra", cl.Spec.InfrastructureProvider.Name,
-		"flavor", cl.Spec.InfrastructureProvider.Flavor,
+		"infra", undistroCluster.Spec.InfrastructureProvider.Name,
+		"flavor", undistroCluster.Spec.InfrastructureProvider.Flavor,
+		"uid", undistroCluster.UID,
 	}
 	log, err := logr.FromContext(ctx)
 	if err != nil {
@@ -81,55 +82,53 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	log.WithValues(keysAndValues...)
 
 	// Initialize the patch helper.
-	patchHelper, err := patch.NewHelper(&cl, r.Client)
+	patchHelper, err := patch.NewHelper(&undistroCluster, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 	defer controllerlib.PatchInstance(ctx, controllerlib.InstanceOpts{
 		Controller: "ClusterController",
 		Request:    req.String(),
-		Object:     &cl,
+		Object:     &undistroCluster,
 		Error:      err,
 		Helper:     patchHelper,
 	})
 
 	log.Info("Checking object age")
-	if cl.Generation < cl.Status.ObservedGeneration {
+	if undistroCluster.Generation < undistroCluster.Status.ObservedGeneration {
 		log.Info("Skipping this old version of reconciled object")
 		return ctrl.Result{}, nil
 	}
 
 	// Add our finalizer if it does not exist
 	log.Info("Checking if has finalizer")
-	if !controllerutil.ContainsFinalizer(&cl, meta.Finalizer) {
+	if !controllerutil.ContainsFinalizer(&undistroCluster, meta.Finalizer) {
 		log.Info("Adding Finalizer")
-		controllerutil.AddFinalizer(&cl, meta.Finalizer)
+		controllerutil.AddFinalizer(&undistroCluster, meta.Finalizer)
 		return ctrl.Result{}, nil
 	}
 
 	log.Info("Checking if object is paused")
-	if cl.Spec.Paused {
+	if undistroCluster.Spec.Paused {
 		log.Info("Reconciliation is paused for this object")
-		cl = appv1alpha1.ClusterPaused(cl)
+		undistroCluster = appv1alpha1.ClusterPaused(undistroCluster)
 		return ctrl.Result{}, nil
 	}
 
 	// Retrieve Cluster API Cluster object
-	log.Info("Checking if has finalizer")
 	capiCluster := capi.Cluster{}
-	err = r.Get(ctx, client.ObjectKeyFromObject(&cl), &capiCluster)
+	err = r.Get(ctx, client.ObjectKeyFromObject(&undistroCluster), &capiCluster)
 	if client.IgnoreNotFound(err) != nil {
 		return ctrl.Result{}, err
 	}
 
 	log.Info("Checking if under deletion")
-	if !cl.DeletionTimestamp.IsZero() {
-		log.Info("Object is under deletion")
-		cl = appv1alpha1.ClusterDeleting(cl)
-		return r.reconcileDelete(ctx, cl)
+	if !undistroCluster.DeletionTimestamp.IsZero() {
+		undistroCluster = appv1alpha1.ClusterDeleting(undistroCluster)
+		return r.reconcileDelete(ctx, &undistroCluster)
 	}
 
-	cl, result, err := r.reconcile(ctx, cl, capiCluster)
+	undistroCluster, result, err := r.reconcile(ctx, undistroCluster, capiCluster)
 
 	durationMsg := fmt.Sprintf("Reconcilation finished in %s", time.Since(start).String())
 	if result.RequeueAfter > 0 {
@@ -560,36 +559,53 @@ func (r *ClusterReconciler) reconcileClusterAutoscaler(ctx context.Context, cl *
 	return nil
 }
 
-func (r *ClusterReconciler) reconcileDelete(ctx context.Context, cl appv1alpha1.Cluster) (ctrl.Result, error) {
+func (r *ClusterReconciler) reconcileDelete(ctx context.Context, undistroCluster *appv1alpha1.Cluster) (ctrl.Result, error) {
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
+	log.Info("Cluster is under deletion")
 	capiCluster := capi.Cluster{}
-	err := r.Get(ctx, client.ObjectKeyFromObject(&cl), &capiCluster)
+	err = r.Get(ctx, client.ObjectKeyFromObject(undistroCluster), &capiCluster)
 	if apierrors.IsNotFound(err) {
-		controllerutil.RemoveFinalizer(&cl, meta.Finalizer)
-		_, err = util.CreateOrUpdate(ctx, r.Client, &cl)
-		if err != nil {
-			return ctrl.Result{}, err
+		if controllerutil.ContainsFinalizer(undistroCluster, meta.Finalizer) {
+			controllerutil.RemoveFinalizer(undistroCluster, meta.Finalizer)
 		}
+		// update is done by patch helper in the main reconcile func
 		return ctrl.Result{}, nil
 	}
 
+	log.Info("Deleting CAPI Cluster")
 	err = r.Delete(ctx, &capiCluster)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	err = r.removeDeps(ctx, cl)
+
+	err = r.removeDeps(ctx, *undistroCluster)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	return ctrl.Result{Requeue: true}, nil
+	if controllerutil.ContainsFinalizer(undistroCluster, meta.Finalizer) {
+		controllerutil.RemoveFinalizer(undistroCluster, meta.Finalizer)
+	}
+	// update is done by patch helper in the main reconcile func
+	return ctrl.Result{}, nil
 }
 
-func (r *ClusterReconciler) removeDeps(ctx context.Context, cl appv1alpha1.Cluster) error {
-	releaseClusterName := fmt.Sprintf("%s/%s", cl.GetNamespace(), cl.Name)
+func (r *ClusterReconciler) removeDeps(ctx context.Context, undistroCluster appv1alpha1.Cluster) error {
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+	log.Info("Removing UnDistro Cluster dependencies")
+	releaseClusterName := fmt.Sprintf("%s/%s", undistroCluster.GetNamespace(), undistroCluster.Name)
 	releaseList := appv1alpha1.HelmReleaseList{}
-	err := r.List(ctx, &releaseList)
+	err = r.List(ctx, &releaseList)
 	if err != nil {
 		return err
 	}
+	log.Info("Removing cluster releases")
 	for _, item := range releaseList.Items {
 		if item.Spec.ClusterName == releaseClusterName {
 			err = r.Delete(ctx, &item)
@@ -599,12 +615,13 @@ func (r *ClusterReconciler) removeDeps(ctx context.Context, cl appv1alpha1.Clust
 		}
 	}
 	policies := appv1alpha1.DefaultPoliciesList{}
-	err = r.List(ctx, &policies, client.InNamespace(cl.GetNamespace()))
+	err = r.List(ctx, &policies, client.InNamespace(undistroCluster.GetNamespace()))
 	if err != nil {
 		return err
 	}
+	log.Info("Removing cluster policies")
 	for _, item := range policies.Items {
-		if item.Spec.ClusterName == cl.Name {
+		if item.Spec.ClusterName == undistroCluster.Name {
 			err = r.Delete(ctx, &item)
 			if err != nil {
 				return err

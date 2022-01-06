@@ -26,6 +26,8 @@ resources:
   requests:
     cpu: "0.5"
     memory: 256Mi
+observer:
+  enabled: false
 identity:
   enabled: false
   name: undistro-identity
