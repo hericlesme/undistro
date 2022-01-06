@@ -5,7 +5,7 @@ import type { FormActions } from '@/types/utils'
 import { useState, useEffect } from 'react'
 import classNames from 'classnames'
 
-import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
+import styles from '@/components/modals/Creation/ClusterCreation.module.css'
 import { useFetch } from '@/hooks/query'
 import { Select } from '@/components/forms/Select'
 

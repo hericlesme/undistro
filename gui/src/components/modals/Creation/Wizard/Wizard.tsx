@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import {
-  ClusterInfo,
-  InfraProvider,
-  AddOns,
-  Step,
-  ControlPlane
-} from '@/components/overviews/Clusters/Creation/Wizard/Steps'
-import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
+import { ClusterInfo, InfraProvider, AddOns, Step, ControlPlane } from '@/components/modals/Creation/Wizard/Steps'
 import classNames from 'classnames'
 import { useMutate } from '@/hooks/query'
+import { ClusterCreationData } from '@/types/cluster'
+
+import styles from '@/components/modals/Creation/ClusterCreation.module.css'
+import { Progress } from '../common/Progress'
+// import { InfraNetVPC } from '../Advanced/Steps/InfraNetVPC'
+// import { KubernetesNetwork } from '../Advanced/Steps/KubernetesNetwork'
 
 const Wizard = ({ step }) => {
   const { watch, register, setValue, getValues, handleSubmit, control } = useForm()
@@ -18,19 +17,20 @@ const Wizard = ({ step }) => {
   const createPolicy = useMutate({ url: `/api/clusters/policies`, method: 'post' })
 
   const steps = [
-    {
-      title: 'Cluster',
-      component: ClusterInfo
-    },
-    {
-      title: 'Infrastructure Provider',
-      component: InfraProvider
-    },
+    // { title: 'Infra Network - VPC', component: InfraNetVPC },
+    // { title: 'Kubernetes Network', component: KubernetesNetwork },
+    { title: 'Cluster', component: ClusterInfo },
+    { title: 'Infrastructure Provider', component: InfraProvider },
     { title: 'Add-Ons', component: AddOns },
-    {
-      title: 'Control Plane',
-      component: ControlPlane
-    }
+    { title: 'Control Plane', component: ControlPlane },
+  ]
+
+  const wizardSteps = [
+
+  ]
+
+  const advancedSteps = [
+
   ]
 
   useEffect(() => {
@@ -43,11 +43,14 @@ const Wizard = ({ step }) => {
   }, [watch])
 
   const inputAreaStyles = classNames(styles.modalInputArea, {
-    [styles.modalControlPlaneBlock]: currentSection === 'Control Plane'
+    [styles.modalControlPlaneBlock]: currentSection === 'Control Plane',
+    [styles.modalProgressArea]: currentSection === 'Progress'
   })
 
   const onSubmit = (data, e) => {
-    const clusterData = {
+    e.preventDefault()
+
+    const clusterData: ClusterCreationData = {
       apiVersion: 'app.undistro.io/v1alpha1',
       kind: 'Cluster',
       metadata: {
@@ -65,13 +68,19 @@ const Wizard = ({ step }) => {
           name: data.clusterProvider,
           region: data.clusterDefaultRegion,
           sshKey: data.infraProviderSshKey
-        },
-        workers: data.workers,
-        network: {
-          vpc: {
-            id: data.infraProviderID,
-            cidrBlock: data.infraProviderCIDR
-          }
+        }
+      }
+    }
+
+    if (data.workers && data.workers.length > 0) {
+      clusterData.spec.workers = data.workers
+    }
+
+    if (data.infraProviderID && data.infraProviderCIDR) {
+      clusterData.spec.network = {
+        vpc: {
+          id: data.infraProviderID,
+          cidrBlock: data.infraProviderCIDR
         }
       }
     }
@@ -121,38 +130,38 @@ const Wizard = ({ step }) => {
         <a className={styles.modalCreateClusterTitle}>{currentSection}</a>
       </div>
 
-      <div className={styles.modalContentContainer}>
+      <form onSubmit={handleSubmit(onSubmit, onError)} id="wizardClusterForm" className={styles.modalContentContainer}>
         <div className={inputAreaStyles}>
-          <form onSubmit={handleSubmit(onSubmit, onError)} className={styles.modalForm} id="wizardClusterForm">
+          <div className={styles.modalForm}>
             {steps.map(({ component: Component }, index) => (
               <Step step={index + 1} currentStep={step.value}>
                 <Component {...formActions} />
               </Step>
             ))}
-            <div className={styles.modalDialogButtonsContainer}>
-              <div className={styles.leftButtonContainer}>
-                <button onClick={step.previous} className={styles.borderButtonDefault}>
-                  <a>back</a>
-                </button>
-              </div>
-              {step.value !== steps.length && (
-                <div className={styles.rightButtonContainer}>
-                  <button onClick={step.next} className={styles.borderButtonSuccess}>
-                    <a>next</a>
-                  </button>
-                </div>
-              )}
-              {step.value === steps.length && (
-                <div className={styles.rightButtonContainer}>
-                  <button type="submit" className={styles.borderButtonSuccess}>
-                    <a>Create</a>
-                  </button>
-                </div>
-              )}
-            </div>
-          </form>
+          </div>
         </div>
-      </div>
+        <div className={styles.modalDialogButtonsContainer}>
+          <div className={styles.leftButtonContainer}>
+            <button onClick={step.previous} className={styles.borderButtonDefault}>
+              <a>back</a>
+            </button>
+          </div>
+          {step.value !== steps.length && (
+            <div className={styles.rightButtonContainer}>
+              <button onClick={step.next} className={styles.borderButtonSuccess}>
+                <a>next</a>
+              </button>
+            </div>
+          )}
+          {step.value === steps.length && (
+            <div className={styles.rightButtonContainer}>
+              <button type="submit" className={styles.borderButtonSuccess}>
+                <a>Create</a>
+              </button>
+            </div>
+          )}
+        </div>
+      </form>
     </div>
   )
 }

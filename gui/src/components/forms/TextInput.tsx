@@ -4,7 +4,7 @@ import classNames from 'classnames'
 
 import { FormActions } from '@/types/utils'
 
-import styles from '@/components/overviews/Clusters/Creation/ClusterCreation.module.css'
+import styles from '@/components/modals/Creation/ClusterCreation.module.css'
 import { Input } from '@/types/forms'
 
 type TextInputProps = FormActions & Input

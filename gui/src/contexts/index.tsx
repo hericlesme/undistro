@@ -1,6 +1,9 @@
 import type { FunctionComponent } from 'react'
+
 import { ThemeProvider } from 'next-themes'
 import { QueryCache, QueryClient, QueryClientProvider } from 'react-query'
+
+import { ModalProvider } from '@/contexts/ModalContext'
 import api from '@/lib/axios'
 
 const queryClient = new QueryClient({
@@ -18,9 +21,11 @@ const queryClient = new QueryClient({
 
 const AppProviders: FunctionComponent = ({ children }) => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="dark-mode" themes={['dark-mode']}>
-      {children}
-    </ThemeProvider>
+    <ModalProvider>
+      <ThemeProvider defaultTheme="dark-mode" themes={['dark-mode']}>
+        {children}
+      </ThemeProvider>
+    </ModalProvider>
   </QueryClientProvider>
 )
 

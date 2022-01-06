@@ -7,7 +7,6 @@ import { useResizeDetector } from 'react-resize-detector'
 import { MenuActions } from '@/components/MenuActions/MenuActions'
 import { ContentNotFound } from '@/components/ContentNotFound'
 import { ClustersOverviewRow, ClustersOverviewEmptyRow, ClustersOverviewFooter } from '@/components/overviews/Clusters'
-import { ClusterCreation } from '@/components/overviews/Clusters/Creation/ClusterCreation'
 import { useClusters } from '@/contexts/ClusterContext'
 import { paginate } from '@/helpers/pagination'
 import { useFetch } from '@/hooks/query'
@@ -187,7 +186,6 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
         </thead>
         <tbody>{renderClusters()}</tbody>
       </table>
-      <ClusterCreation isOpen={isCreationOpen} />
       <MenuActions isOpen={isMenuOpen} position={menuPosition} />
       <ClustersOverviewFooter
         total={clusters?.length || 0}

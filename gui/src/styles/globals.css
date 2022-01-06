@@ -98,3 +98,16 @@ body {
 .dialogWindowShadow {
   box-shadow: 12px 12px 20px rgba(0, 0, 0, 0.15);
 }
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background-color: var(--background-default);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--background-weak);
+  border-radius: 10px;
+}

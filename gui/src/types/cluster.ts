@@ -80,3 +80,13 @@ export interface MachineType {
   cpu: number
   zones: string[]
 }
+
+export interface ClusterCreationData extends KubernetesObject {
+  spec: {
+    kubernetesVersion: string
+    controlPlane: ControlPlane
+    infrastructureProvider: InfrastructureProvider
+    workers?: Worker[]
+    network?: Network
+  }
+}

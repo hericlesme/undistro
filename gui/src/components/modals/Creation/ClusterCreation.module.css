@@ -56,14 +56,14 @@
   display: inline-block;
   width: 32px;
   height: 24px;
-  background-image: url('../../../../../public/img/closeDialogIcon.svg');
+  background-image: url('../../../../public/img/closeDialogIcon.svg');
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .closeWindowBtn:hover {
   background-color: var(--background-light-hover);
-  background-image: url('../../../../../public/img/closeDialogIconHover.svg');
+  background-image: url('../../../../public/img/closeDialogIconHover.svg');
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -101,13 +101,13 @@
   width: 100px;
   height: 100px;
   background-color: var(--background-medium);
-  background-image: url('../../../../../public/img/createClusterWizardIcon.svg');
+  background-image: url('../../../../public/img/createClusterWizardIcon.svg');
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .createClusterWizardContainer:hover .wizardIconContainer {
-  background-image: url('../../../../../public/img/createClusterWizardIconHover.svg');
+  background-image: url('../../../../public/img/createClusterWizardIconHover.svg');
 }
 
 .wizardTitlesContainer {
@@ -141,13 +141,13 @@
   width: 100px;
   height: 100px;
   background-color: var(--background-medium);
-  background-image: url('../../../../../public/img/createClusterAdvancedIcon.svg');
+  background-image: url('../../../../public/img/createClusterAdvancedIcon.svg');
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .createClusterAdvancedContainer:hover .advancedIconContainer {
-  background-image: url('../../../../../public/img/createClusterAdvancedIconHover.svg');
+  background-image: url('../../../../public/img/createClusterAdvancedIconHover.svg');
 }
 
 .advancedTitlesContainer {
@@ -176,12 +176,12 @@
   padding: 4px 0 6px 8px;
 }
 
-.dialogContent {
+[data-reach-dialog-content].dialogContent {
   width: 720px;
   height: 600px;
-  background: transparent;
   padding: 0;
   margin: 10vh auto;
+  background: transparent;
 }
 
 .dialogOverlay {
@@ -283,11 +283,7 @@
 }
 
 .modalProgressArea {
-  display: flex;
-  flex-direction: column;
-  margin-top: 32px;
-  width: 100%;
-  height: 100%;
+  margin: 0;
 }
 
 .modalControlPlaneBlock {
@@ -358,6 +354,7 @@
   width: 100%;
   padding: 24px;
   background-color: var(--background-default);
+  overflow: auto;
 }
 
 .errorMessageContainer {
@@ -504,7 +501,7 @@
   display: inline-block;
   width: 32px;
   height: 24px;
-  background-image: url('../../../../../public/img/closeDialogIcon.svg');
+  background-image: url('../../../../public/img/closeDialogIcon.svg');
   background-repeat: no-repeat;
   background-position: center;
   cursor: pointer;
@@ -512,7 +509,7 @@
 
 .closeWindowBtn:hover {
   background-color: var(--background-light-hover);
-  background-image: url('../../../../../public/img/closeDialogIconHover.svg');
+  background-image: url('../../../../public/img/closeDialogIconHover.svg');
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -522,18 +519,18 @@ button.uploadFileIcon {
   width: 32px;
   background-color: transparent;
   border: none;
-  background-image: url('../../../../../public/img/uploadYamlDefault.svg');
+  background-image: url('../../../../public/img/uploadYamlDefault.svg');
   background-repeat: no-repeat;
   background-position: center;
   cursor: pointer;
 }
 
 button.uploadFileIcon:hover {
-  background-image: url('../../../../../public/img/uploadYamlHover.svg');
+  background-image: url('../../../../public/img/uploadYamlHover.svg');
 }
 
 button.uploadFileIcon:disabled {
-  background-image: url('../../../../../public/img/uploadYamlDisabled.svg');
+  background-image: url('../../../../public/img/uploadYamlDisabled.svg');
 }
 
 button.borderButtonDefault {
@@ -640,14 +637,14 @@ button.deleteTableItem {
   width: 20px;
   background-color: transparent;
   border: none;
-  background-image: url('../../../../../public/img/modalDeleteTableItemDefault.svg');
+  background-image: url('../../../../public/img/modalDeleteTableItemDefault.svg');
   background-repeat: no-repeat;
   background-position: center;
   cursor: pointer;
 }
 
 button.deleteTableItem:hover {
-  background-image: url('../../../../../public/img/modalDeleteTableItemHover.svg');
+  background-image: url('../../../../public/img/modalDeleteTableItemHover.svg');
 }
 
 /* form elements*/
@@ -801,7 +798,7 @@ button.deleteTableItem:hover {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none; /* Remove default arrow */
-  background-image: url('./../../../../../public/img/arrowDown.svg'); /* Add custom arrow */
+  background-image: url('./../../../../public/img/arrowDown.svg'); /* Add custom arrow */
   background-repeat: no-repeat;
   background-position: center right;
   background-color: var(--background-weak);
@@ -960,7 +957,7 @@ ol.progressDialog {
 }
 
 ol.progressDialog li {
-  height: 24px;
+  /* height: 24px; */
 }
 
 ol.progressDialog li a {
@@ -975,7 +972,7 @@ ol.progressDialog li a {
 .createClusterErrorIcon {
   width: 106px;
   height: 103px;
-  /* background-image: url("../../../../../public/img/createClusterErrorIcon.svg"); */
+  /* background-image: url("../../../../public/img/createClusterErrorIcon.svg"); */
   background-repeat: no-repeat;
   background-position: center right;
 }
@@ -983,7 +980,7 @@ ol.progressDialog li a {
 .createClusterSuccessIcon {
   width: 106px;
   height: 103px;
-  /* background-image: url("../../../../../public/img/createClusterSuccessIcon.svg"); */
+  /* background-image: url("../../../../public/img/createClusterSuccessIcon.svg"); */
   background-repeat: no-repeat;
   background-position: center right;
 }
@@ -1003,3 +1000,69 @@ ol.progressDialog li a {
 }
 
 /* Add-Ons */
+
+.modalSubnetContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  position: relative;
+}
+
+.modalSubnetBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 638px;
+  height: 100%;
+}
+
+.subnetInputRow {
+  display: flex;
+  flex-direction: row;
+  margin: 0 auto 0 auto;
+  width: 638px;
+  gap: 8px;
+}
+
+.infraNetworkInputRowSmall {
+  display: flex;
+  flex-direction: row;
+  margin: 0 auto 0 auto;
+  width: 318px;
+  gap: 8px;
+}
+
+.bordered {
+  border: 1px solid var(--border-medium);
+}
+
+.inputBlock {
+  height: 68px;
+  margin: 0 0 2px 0;
+}
+
+.inputFit {
+  width: 100%;
+}
+
+.inputSmall {
+  min-width: 90px;
+  max-width: 90px;
+}
+
+.inputMedium {
+  min-width: 172px;
+  max-width: 172px;
+}
+
+.inputLarge {
+  min-width: 260px;
+  max-width: 260px;
+}
+
+.inputBlockTextArea {
+  height: 118px;
+  width: 100%;
+  margin: 0 0 2px 0;
+}
