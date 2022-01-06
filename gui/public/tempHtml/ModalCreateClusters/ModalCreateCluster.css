@@ -933,8 +933,6 @@ button.addAllowedBlocks:disabled {
     width: 100%;
 }
 
-
-
 .advancedControlPlaneSwitchBlock {
     width: 100%;
 }
@@ -1209,7 +1207,7 @@ button.addAllowedBlocks:disabled {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;                               /* Remove default arrow */
-    background-image: url(./img/arrowDown.svg);     /* Add custom arrow */
+    background-image: url(/gui/public/img/arrowDown.svg);     /* Add custom arrow */
     background-repeat: no-repeat;
     background-position: center right;
     background-color: var(--background-weak);
@@ -1392,7 +1390,7 @@ ol.progressDialog li a {
 .createClusterErrorIcon {
     width: 106px;
     height: 103px;
-    background-image: url(./img/createClusterErrorIcon.svg);
+    background-image: url(/gui/public/img/createClusterErrorIcon.svg);
     background-repeat: no-repeat;
     background-position: center right;
 
@@ -1401,7 +1399,7 @@ ol.progressDialog li a {
 .createClusterSuccessIcon {
     width: 106px;
     height: 103px;
-    background-image: url(./img/createClusterSuccessIcon.svg);
+    background-image: url(/gui/public/img/createClusterSuccessIcon.svg);
     background-repeat: no-repeat;
     background-position: center right;
 
