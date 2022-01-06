@@ -208,6 +208,39 @@ button.btnBorder-critical:hover {
     color: var(--text-dark);
 }
 
+/* Buttons size */
+
+button.small {
+    font-size: 12px;
+    line-height: 14px;
+    padding: 4px 12px;
+}
+
+button.borderButtonSmallDefault {
+    display: flex;
+    align-items: center;
+    height: 22px;
+    border: 1px solid var(--border-default);
+    padding: 4px 12px 4px 12px;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+button.borderButtonSmallDefault:hover {
+    background-color: var(--background-offwhite);
+}
+
+button.borderButtonSmallDefault a {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    line-height: 16px;
+    text-transform: capitalize;
+    color: var(--text-default);
+}
+
 
 
 
