@@ -338,6 +338,10 @@
   overflow-y: scroll;
 }
 
+.modalTableContainer::-webkit-scrollbar {
+  display: none;
+}
+
 .modalDeleteTableItemContainer {
   height: 20px;
   width: 20px;
@@ -347,6 +351,7 @@
   height: 6px;
   width: 100%;
   background-color: var(--background-weak);
+  position: relative;
 }
 
 .progressDialogContainer {
@@ -930,9 +935,34 @@ table.modalWorkersTable td a {
 /* progress bar */
 
 .progressBar {
+  position: absolute;
   height: 6px;
   width: 35%;
   background-color: var(--success-background-default);
+  animation: loading 4s linear infinite;
+}
+
+@keyframes loading {
+  0% {
+    left: 0%;
+    right: 100%;
+    width: 0%;
+  }
+  10% {
+    left: 0%;
+    right: 75%;
+    width: 25%;
+  }
+  90% {
+    right: 0%;
+    left: 75%;
+    width: 25%;
+  }
+  100% {
+    left: 100%;
+    right: 0%;
+    width: 0%;
+  }
 }
 
 .progressBarSuccess {

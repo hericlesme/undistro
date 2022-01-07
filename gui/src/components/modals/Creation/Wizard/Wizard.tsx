@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { ClusterInfo, InfraProvider, AddOns, Step, ControlPlane } from '@/components/modals/Creation/Wizard/Steps'
-import classNames from 'classnames'
 import { useMutate } from '@/hooks/query'
 import { ClusterCreationData } from '@/types/cluster'
+import { Progress } from '@/components/modals/Creation/Progress'
+import { removeEmpty } from '@/helpers/encoding'
+import classNames from 'classnames'
 
 import styles from '@/components/modals/Creation/ClusterCreation.module.css'
-import { Progress } from '../common/Progress'
 // import { InfraNetVPC } from '../Advanced/Steps/InfraNetVPC'
 // import { KubernetesNetwork } from '../Advanced/Steps/KubernetesNetwork'
 
@@ -22,16 +23,12 @@ const Wizard = ({ step }) => {
     { title: 'Cluster', component: ClusterInfo },
     { title: 'Infrastructure Provider', component: InfraProvider },
     { title: 'Add-Ons', component: AddOns },
-    { title: 'Control Plane', component: ControlPlane },
+    { title: 'Control Plane', component: ControlPlane }
   ]
 
-  const wizardSteps = [
+  const wizardSteps = []
 
-  ]
-
-  const advancedSteps = [
-
-  ]
+  const advancedSteps = []
 
   useEffect(() => {
     setCurrentSection(steps[step.value - 1].title)
@@ -61,29 +58,26 @@ const Wizard = ({ step }) => {
         kubernetesVersion: data.infraProviderK8sVersion,
         controlPlane: {
           machineType: data.controlPlaneMachineType,
-          replicas: data.controlPlaneReplicas
+          replicas: Number(data.controlPlaneReplicas)
         },
         infrastructureProvider: {
           flavor: data.infraProviderFlavor,
           name: data.clusterProvider,
           region: data.clusterDefaultRegion,
           sshKey: data.infraProviderSshKey
+        },
+        network: {
+          vpc: {
+            id: data.infraProviderID,
+            cidrBlock: data.infraProviderCIDR
+          }
         }
       }
     }
 
-    if (data.workers && data.workers.length > 0) {
-      clusterData.spec.workers = data.workers
-    }
-
-    if (data.infraProviderID && data.infraProviderCIDR) {
-      clusterData.spec.network = {
-        vpc: {
-          id: data.infraProviderID,
-          cidrBlock: data.infraProviderCIDR
-        }
-      }
-    }
+    // if (data.workers && data.workers.length > 0) {
+    //   clusterData.spec.workers = data.workers
+    // }
 
     const dataPolicies = {
       apiVersion: 'app.undistro.io/v1alpha1',
@@ -109,8 +103,8 @@ const Wizard = ({ step }) => {
       }
     }
 
-    createCluster.mutate(clusterData)
-    createPolicy.mutate(dataPolicies)
+    createCluster.mutate(JSON.stringify(removeEmpty(clusterData)))
+    createPolicy.mutate(JSON.stringify(dataPolicies))
   }
   const onError = (errors, e) => {
     console.log(errors)
@@ -130,11 +124,16 @@ const Wizard = ({ step }) => {
         <a className={styles.modalCreateClusterTitle}>{currentSection}</a>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit, onError)} id="wizardClusterForm" className={styles.modalContentContainer}>
+      <form
+        autoComplete="off"
+        onSubmit={handleSubmit(onSubmit, onError)}
+        id="wizardClusterForm"
+        className={styles.modalContentContainer}
+      >
         <div className={inputAreaStyles}>
           <div className={styles.modalForm}>
             {steps.map(({ component: Component }, index) => (
-              <Step step={index + 1} currentStep={step.value}>
+              <Step key={`step-${index}`} step={index + 1} currentStep={step.value}>
                 <Component {...formActions} />
               </Step>
             ))}

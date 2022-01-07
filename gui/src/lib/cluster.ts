@@ -22,21 +22,21 @@ export function getAge(tm: string, humanize = true, compact = true): string | nu
 }
 
 export const getStatusFromConditions = (conditions: Array<k8s.V1Condition>): string => {
-  let status = 'Unknown'
-  if (conditions) {
-    if (conditions.some(c => c.message.toLowerCase().includes('reconciliation succeeded'))) {
-      status = 'Ready'
-    } else if (conditions.some(c => c.message.toLowerCase() == 'wait cluster to be provisioned')) {
-      status = 'Provisioning'
-    } else if (conditions.some(c => c.message.toLowerCase() == 'paused')) {
-      status = 'Paused'
-    } else if (conditions.some(c => c.message.toLowerCase() == 'deleting')) {
-      status = 'Deleting'
-    } else if (conditions.some(c => c.message.toLowerCase().includes('error'))) {
-      status = 'Error'
-    } else {
-      status = 'Unknown'
-    }
+  if (!conditions || conditions.length === 0) {
+    return 'Error'
   }
-  return status
+
+  if (conditions.some(c => c.message.toLowerCase().includes('reconciliation succeeded'))) {
+    return 'Ready'
+  } else if (conditions.some(c => c.message.toLowerCase() == 'wait cluster to be provisioned')) {
+    return 'Provisioning'
+  } else if (conditions.some(c => c.message.toLowerCase() == 'paused')) {
+    return 'Paused'
+  } else if (conditions.some(c => c.message.toLowerCase() == 'deleting')) {
+    return 'Deleting'
+  } else if (conditions.some(c => c.message.toLowerCase().includes('error'))) {
+    return 'Error'
+  } else {
+    return 'Unknown'
+  }
 }

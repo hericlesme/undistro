@@ -32,12 +32,19 @@ const ClusterInfo: VFC<FormActions> = ({ register, control }: FormActions) => {
   return (
     <>
       <TextInput
+        type="text"
         label="Cluster name"
         placeholder="choose a cool name for this cluster"
         fieldName="clusterName"
         register={register}
       />
-      <TextInput label="Namespace" placeholder="namespace" fieldName="clusterNamespace" register={register} />
+      <TextInput
+        type="text"
+        label="Namespace"
+        placeholder="namespace"
+        fieldName="clusterNamespace"
+        register={register}
+      />
       <div className={styles.inputRow}>
         <Select
           label="Provider"

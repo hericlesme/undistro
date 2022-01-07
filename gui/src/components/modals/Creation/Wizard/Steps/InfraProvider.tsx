@@ -31,8 +31,14 @@ const InfraProvider: VFC<FormActions> = ({ register, control }: FormActions) => 
   return (
     <>
       <div className={styles.inputRow}>
-        <TextInput label="ID" placeholder="ID" fieldName="infraProviderID" register={register} />
-        <TextInput label="CIDR block" placeholder="CIDR block" fieldName="infraProviderCIDR" register={register} />
+        <TextInput type="text" label="ID" placeholder="ID" fieldName="infraProviderID" register={register} />
+        <TextInput
+          type="text"
+          label="CIDR block"
+          placeholder="CIDR block"
+          fieldName="infraProviderCIDR"
+          register={register}
+        />
       </div>
       <div className={styles.inputRow}>
         <Select
