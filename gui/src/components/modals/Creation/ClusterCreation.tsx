@@ -67,7 +67,7 @@ const ClusterCreation: VFC = () => {
   }
 
   const [creationState, dispatch] = useReducer(reducer, {
-    step: CREATION_STEP.STATUS,
+    step: CREATION_STEP.OPTIONS,
     creationMode: ''
   })
 
@@ -119,7 +119,7 @@ const ClusterCreation: VFC = () => {
 
   return (
     <DialogOverlay isOpen={true} className={styles.dialogOverlay}>
-      <DialogContent className={styles.dialogContent}>
+      <DialogContent aria-label="Create Cluster" className={styles.dialogContent}>
         <div className={styles.createClusterOptionscontainer}>
           <div className={styles.modalDialogTitleBar}>
             <div className={styles.modalDialogTitleContainer}>

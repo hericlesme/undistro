@@ -12,8 +12,8 @@ export interface Cluster {
 }
 
 export interface Worker {
-  id: string
-  name: string
+  id?: string
+  name?: string
   machineType: string
   replicas: number
   infraNode: boolean

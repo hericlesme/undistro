@@ -3,16 +3,24 @@ import type { MachineType, Worker as IWorker } from '@/types/cluster'
 import type { FormActions } from '@/types/utils'
 
 import { useState, useEffect } from 'react'
+import { useWatch } from 'react-hook-form'
 import classNames from 'classnames'
 
 import styles from '@/components/modals/Creation/ClusterCreation.module.css'
 import { useFetch } from '@/hooks/query'
 import { Select } from '@/components/forms/Select'
+import { TextInput } from '@/components/forms'
 
 type WorkerProps = {
   worker: IWorker
   index: number
   removeWorker: (index: number) => MouseEventHandler<HTMLButtonElement>
+}
+
+enum MACHINE_ATTR {
+  MEM = 'mem',
+  CPU = 'cpu',
+  NAME = 'name'
 }
 
 const Worker: VFC<WorkerProps> = ({ worker, index, removeWorker }: WorkerProps) => (
@@ -31,6 +39,16 @@ const Worker: VFC<WorkerProps> = ({ worker, index, removeWorker }: WorkerProps) 
 )
 
 const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormActions) => {
+  const clusterName = useWatch({
+    control,
+    name: 'clusterName'
+  })
+
+  const currCPU = useWatch({
+    control,
+    name: 'controlPlaneCPU'
+  })
+
   const [workers, setWorkers] = useState([])
   const { data: machineTypes } = useFetch<MachineType[]>('/api/metadata/machinetypes')
 
@@ -39,32 +57,39 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
     return machineTypes.map(machineType => machineType.name)
   }
 
-  const getMachineMemOptions = () => {
-    if (!machineTypes) return []
-    return Array.from(new Set(machineTypes.map(machineType => machineType.mem)))
+  const sortUniques = (arr: (string | number)[]): (string | number)[] => {
+    const sortAlphaNum = (a, b) => a.localeCompare(b, 'en', { numeric: true })
+    return Array.from(new Set(arr)).sort(sortAlphaNum)
   }
 
-  const getMachineCpuOptions = () => {
+  const getMachineAttr = (attr: MACHINE_ATTR) => {
     if (!machineTypes) return []
-    return Array.from(new Set(machineTypes.map(machineType => machineType.cpu)))
+    return sortUniques(machineTypes.map(machineType => machineType[attr]))
   }
 
-  const [workerConfig, setWorkerConfig] = useState({
+  const workerDefaults = {
     workersInfraNodeSwitch: false,
-    workersReplicas: '',
-    workersCPU: '',
-    workersMem: '',
+    workersReplicas: 3,
     workersMachineType: ''
-  })
+  }
+
+  const [workerConfig, setWorkerConfig] = useState(workerDefaults)
 
   useEffect(() => {
-    setValue('workers', workers)
+    console.log(workers)
+    let workersData = workers.map(w => ({
+      infraNode: w.workersInfraNodeSwitch ? true : false,
+      machineType: w.workersMachineType,
+      replicas: w.workersReplicas
+    }))
+
+    setValue('workers', workersData)
   }, [workers])
 
   const addWorker = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
 
-    setWorkers([...workers, { name: `worker-config-${Math.random() * 100}`, ...workerConfig }])
+    setWorkers([...workers, { name: `${clusterName}-mp-${workers.length}`, ...workerConfig }])
   }
 
   const removeWorker = (index: number) => (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -75,6 +100,7 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
   }
 
   const handleWorkerConfigChange = event => {
+    console.log(event.target.id)
     setWorkerConfig(prevState => ({
       ...prevState,
       [event.target.id]: event.target.value
@@ -83,95 +109,45 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
 
   return (
     <>
+      {/* Control Plane */}
       <div className={styles.controlPlaneInputRow}>
-        <div className={styles.inputBlockSmall}>
-          <label className={styles.createClusterLabel} htmlFor="controlPlaneReplicas">
-            replicas
-          </label>
-          <select
-            className={classNames(styles.createClusterTextSelect, styles.input100)}
-            id="controlPlaneReplicas"
-            name="controlPlaneReplicas"
-            {...register('controlPlaneReplicas')}
-          >
-            <option value="" disabled selected hidden>
-              n#
-            </option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-          </select>
-          <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-        </div>
-        <div className={styles.inputBlockSmall}>
-          <label className={styles.createClusterLabel} htmlFor="controlPlaneCPU">
-            CPU
-          </label>
-          <select
-            className={classNames(styles.createClusterTextSelect, styles.input100)}
-            id="controlPlaneCPU"
-            name="controlPlaneCPU"
-            {...register('controlPlaneCPU')}
-          >
-            <option value="" disabled selected hidden>
-              CPU
-            </option>
-            {getMachineCpuOptions().map(cpu => (
-              <option key={`cpu-${cpu}`} value={cpu}>
-                {cpu}
-              </option>
-            ))}
-          </select>
-          <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-        </div>
-        <div className={styles.inputBlockSmall}>
-          <label className={styles.createClusterLabel} htmlFor="controlPlaneMem">
-            mem
-          </label>
-          <select
-            className={classNames(styles.createClusterTextSelect, styles.input100)}
-            id="controlPlaneMem"
-            name="controlPlaneMem"
-            {...register('controlPlaneMem')}
-          >
-            <option value="" disabled selected hidden>
-              mem
-            </option>
-            {getMachineMemOptions().map(mem => (
-              <option key={`mem-${mem}`} value={mem}>
-                {mem}
-              </option>
-            ))}
-          </select>
-          <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-        </div>
+        {/* Replicas */}
+        <TextInput
+          type="number"
+          inputSize="sm"
+          label="Replicas"
+          placeholder="Replicas"
+          fieldName="controlPlaneReplicas"
+          register={register}
+          defaultValue={3}
+          min={3}
+        />
+        {/* CPU */}
+        <Select
+          label="CPU"
+          inputSize="sm"
+          fieldName="controlPlaneCPU"
+          placeholder="CPU"
+          register={register}
+          options={getMachineAttr(MACHINE_ATTR.CPU)}
+        />
+        {/* Memory */}
+        <Select
+          label="Mem"
+          inputSize="sm"
+          fieldName="controlPlaneMem"
+          placeholder="Mem"
+          register={register}
+          options={getMachineAttr(MACHINE_ATTR.MEM)}
+        />
+        {/* Machine Type */}
         <Select
           label="MachineType"
           fieldName="controlPlaneMachineType"
           placeholder="machine type"
           register={register}
-          options={getMachineTypeOptions()}
+          options={getMachineAttr(MACHINE_ATTR.NAME)}
         />
-        {/* <div className={styles.inputBlock}>
-          <label className={styles.createClusterLabel} htmlFor="controlPlaneMachineType">
-            machineType
-          </label>
-
-          <select
-            className={classNames(styles.createClusterTextSelect, styles.input100)}
-            id="controlPlaneMachineType"
-            name="controlPlaneMachineType"
-            {...register('controlPlaneMachineType')}
-          >
-            <option value="" disabled selected hidden>
-              machine type
-            </option>
-            <option value="option1">option1</option>
-            <option value="option2">option2</option>
-            <option value="option3">option3</option>
-          </select>
-          <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-        </div> */}
       </div>
 
       <div className={styles.modalWorkersContainer}>
@@ -194,91 +170,44 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
             </div>
           </div>
           <div className={styles.workersInputRow}>
-            <div className={styles.inputBlockSmall}>
-              <label className={styles.createClusterLabel} htmlFor="workersReplicas">
-                replicas
-              </label>
-
-              <select
-                className={classNames(styles.createClusterTextSelect, styles.input100)}
-                id="workersReplicas"
-                name="workersReplicas"
-                onChange={handleWorkerConfigChange}
-              >
-                <option value="" disabled selected hidden>
-                  n#
-                </option>
-                <option value="option1">option1</option>
-                <option value="option2">option2</option>
-                <option value="option3">option3</option>
-              </select>
-              <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-            </div>
-            <div className={styles.inputBlockSmall}>
-              <label className={styles.createClusterLabel} htmlFor="workersCPU">
-                CPU
-              </label>
-
-              <select
-                className={classNames(styles.createClusterTextSelect, styles.input100)}
-                id="workersCPU"
-                name="workersCPU"
-                onChange={handleWorkerConfigChange}
-              >
-                <option value="" disabled selected hidden>
-                  CPU
-                </option>
-                <option value="option1">option1</option>
-                <option value="option2">option2</option>
-                <option value="option3">option3</option>
-              </select>
-              <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-            </div>
-            <div className={styles.inputBlockSmall}>
-              <label className={styles.createClusterLabel} htmlFor="workersMem">
-                mem
-              </label>
-
-              <select
-                className={classNames(styles.createClusterTextSelect, styles.input100)}
-                id="workersMem"
-                name="workersMem"
-                onChange={handleWorkerConfigChange}
-              >
-                <option value="" disabled selected hidden>
-                  mem
-                </option>
-                <option value="option1">option1</option>
-                <option value="option2">option2</option>
-                <option value="option3">option3</option>
-              </select>
-              <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-            </div>
-            <div className={styles.inputBlock}>
-              <label className={styles.createClusterLabel} htmlFor="workersMachineType">
-                machineType
-              </label>
-
-              <select
-                className={classNames(styles.createClusterTextSelect, styles.input100)}
-                id="workersMachineType"
-                name="workersMachineType"
-                onChange={handleWorkerConfigChange}
-              >
-                <option value="" disabled selected hidden>
-                  machine type
-                </option>
-                <option value="option1">option1</option>
-                <option value="option2">option2</option>
-                <option value="option3">option3</option>
-              </select>
-              <a className={styles.assistiveTextDefault}>Assistive text default color</a>
-            </div>
+            <TextInput
+              type="number"
+              inputSize="sm"
+              label="Replicas"
+              placeholder="Replicas"
+              fieldName="workersReplicas"
+              defaultValue={3}
+              min={3}
+              onChange={handleWorkerConfigChange}
+            />
+            <Select
+              label="CPU"
+              inputSize="sm"
+              fieldName="workersCPU"
+              placeholder="CPU"
+              options={getMachineAttr(MACHINE_ATTR.CPU)}
+              onChange={handleWorkerConfigChange}
+            />
+            <Select
+              label="Mem"
+              inputSize="sm"
+              fieldName="workersMem"
+              placeholder="Mem"
+              options={getMachineAttr(MACHINE_ATTR.MEM)}
+              onChange={handleWorkerConfigChange}
+            />
+            <Select
+              label="MachineType"
+              fieldName="workersMachineType"
+              placeholder="Machine type"
+              options={getMachineAttr(MACHINE_ATTR.NAME)}
+              onChange={handleWorkerConfigChange}
+            />
           </div>
 
           <div className={classNames(styles.addButtonBlock, styles.justifyRight)}>
             <button onClick={addWorker} className={styles.solidMdButtonDefault}>
-              add
+              Add
             </button>
           </div>
 

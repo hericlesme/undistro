@@ -34,14 +34,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const url = `${baseUrl}/${req.body.metadata.namespace}/clusters`
 
   request.post({ url: url, body: JSON.stringify(req.body), ...opts }, (error, response, body) => {
-    if (error || response.statusCode !== 200) {
+    if (error || response.statusCode !== 201) {
       //@ts-ignore
       res.status(500).json(response)
     }
 
     if (response) {
       res.json(JSON.parse(body))
-      res.status(200).end()
+      res.status(201).end()
     }
   })
 }

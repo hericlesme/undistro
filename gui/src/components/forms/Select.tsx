@@ -1,4 +1,4 @@
-import type { VFC } from 'react'
+import type { InputHTMLAttributes, VFC } from 'react'
 import type { Input } from '@/types/forms'
 import type { FormActions } from '@/types/utils'
 
@@ -7,23 +7,44 @@ import classNames from 'classnames'
 import styles from '@/components/modals/Creation/ClusterCreation.module.css'
 
 type SelectProps = {
-  options: string[]
+  options: (string | number)[]
 } & FormActions &
-  Input
+  Input &
+  InputHTMLAttributes<HTMLSelectElement>
 
-const Select: VFC<SelectProps> = ({ label, fieldName, placeholder, options, register }: SelectProps) => {
-  const selectProperties = {
+const Select: VFC<SelectProps> = ({
+  label,
+  fieldName,
+  placeholder,
+  options,
+  inputSize = 'fit',
+  register,
+  ...otherProps
+}: SelectProps) => {
+  let selectProperties = {
     className: classNames(styles.createClusterTextSelect, styles.input100),
     id: fieldName,
     name: fieldName,
     defaultValue: '',
-    required: true,
-    ...register(fieldName, { required: true })
+    ...otherProps
   }
+
+  if (register !== undefined) {
+    selectProperties = { ...selectProperties, ...register(fieldName) }
+  }
+
+  const sizes: { [key: string]: string } = {
+    fit: styles.inputFit,
+    sm: styles.inputSmall,
+    md: styles.inputMedium,
+    lg: styles.inputLarge
+  }
+
+  const size = sizes[inputSize]
 
   return (
     <>
-      <div className={styles.inputBlock}>
+      <div className={classNames(styles.inputBlock, size)}>
         <label className={styles.createClusterLabel} htmlFor={fieldName}>
           {label}
         </label>
