@@ -144,6 +144,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 		log = ctrl.Log
 	}
 
+	// Update the actual worker replicas state
 	cl.Status.TotalWorkerPools = int32(len(cl.Spec.Workers))
 	cl.Status.TotalWorkerReplicas = 0
 	for _, w := range cl.Spec.Workers {
@@ -151,13 +152,14 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 	}
 	log.Info("Cluster capabilities", "totalWorkerPools", cl.Status.TotalWorkerPools, "totalWorkerReplicas", cl.Status.TotalWorkerReplicas)
 
-	// we need to install calico in managed flavors too for network policy support
+	// In managed flavors, we need to install calico too for network policy support. So we don't verify
 	err = r.reconcileCNI(ctx, &cl)
 	if err != nil {
 		meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionFalse, meta.CNIInstalledFailedReason, err.Error())
 		return cl, ctrl.Result{}, err
 	}
 
+	// Install all the AutoScaler related
 	if cl.Annotations != nil {
 		_, autoscalerEnabled := cl.Annotations[meta.EnableClusterAutoscaler]
 		if autoscalerEnabled {
@@ -169,15 +171,17 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 		}
 	}
 
-	err = cloud.ReconcileIntegration(ctx, r.Client, log, &cl, &capiCluster)
+	// Install and config cloud provider specific things
+	err = cloud.ReconcileIntegration(ctx, r.Client, log, &cl)
 	if err != nil {
 		meta.SetResourceCondition(&cl, meta.CloudProviderInstalledCondition, metav1.ConditionFalse, meta.CloudProvideInstalledFailedReason, err.Error())
 		return cl, ctrl.Result{}, err
 	}
 	log.Info("Cloud provider integration reconciled")
 
+	// Check if a bastion was specified
 	if cl.Spec.Bastion != nil {
-		log.Info("Bastion exist", "enabled", *cl.Spec.Bastion.Enabled)
+		log.Info("Bastion specification exists", "enabled", *cl.Spec.Bastion.Enabled)
 		if *cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
 			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, capiCluster)
 			if err != nil {
@@ -186,13 +190,13 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 		}
 	}
 
-	log.Info("Reconciling launch template")
-	err = cloud.ReconcileLaunchTemplate(ctx, r.Client, &cl, &capiCluster)
+	log.Info("Reconciling cluster config for each provider")
+	err = cloud.ReconcileClusterConf(ctx, r.Client, &cl, &capiCluster)
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.ReconcileLaunchTemplateFailed, err.Error()), ctrl.Result{}, err
 	}
 
-	log.Info("Reconciling network")
+	log.Info("Reconciling cluster network")
 	err = cloud.ReconcileNetwork(ctx, r.Client, &cl, &capiCluster)
 	if err != nil {
 		return appv1alpha1.ClusterNotReady(cl, meta.ReconcileNetworkFailed, err.Error()), ctrl.Result{}, err
@@ -200,7 +204,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 
 	log.Info("Checking if has diff between templates", "spec", cl.Spec, "status", cl.Status)
 	if r.hasDiff(ctx, &cl) {
-		log.Info("Has diff")
+		log.Info("Has diff!")
 		vars, err := r.templateVariables(ctx, r.Client, &cl)
 		if err != nil {
 			return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
@@ -311,7 +315,7 @@ func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Clie
 
 		newUUID := string(uuid.NewUUID())
 		log.Info("New UUID", "newUUID", newUUID)
-		if (cpChanged || len(workersChanged) > 0){
+		if cpChanged || len(workersChanged) > 0 {
 			vars["CPID"] = newUUID
 			cl.Status.LastUsedUID = newUUID
 		} else {

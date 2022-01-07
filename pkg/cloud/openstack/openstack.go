@@ -100,7 +100,7 @@ func (c CloudConf) renderConf() (string, error) {
 	return credsFileStr.String(), nil
 }
 
-func ReconcileCloudProvider(ctx context.Context, c client.Client, log logr.Logger, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
+func ReconcileCloudProvider(ctx context.Context, c client.Client, log logr.Logger, cl *appv1alpha1.Cluster) error {
 	cfg := config{}
 	err := json.Unmarshal(cl.Spec.InfrastructureProvider.ExtraConfiguration.Raw, &cfg)
 	if err != nil {
