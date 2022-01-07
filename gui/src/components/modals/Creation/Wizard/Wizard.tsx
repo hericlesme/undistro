@@ -20,7 +20,7 @@ type WizardProps = {
   }
 }
 const Wizard: VFC<WizardProps> = ({ step, dispatch }: WizardProps) => {
-  const { watch, register, setValue, getValues, handleSubmit, control } = useForm()
+  const { register, setValue, getValues, handleSubmit, control } = useForm()
   const [currentSection, setCurrentSection] = useState('')
 
   const createCluster = useMutate({
@@ -29,7 +29,7 @@ const Wizard: VFC<WizardProps> = ({ step, dispatch }: WizardProps) => {
     invalidate: '/api/clusters'
   })
 
-  const createPolicy = useMutate({ url: `/api/clusters/policies`, method: 'post' })
+  // const createPolicy = useMutate({ url: `/api/clusters/policies`, method: 'post' })
 
   const steps = [
     // { title: 'Infra Network - VPC', component: InfraNetVPC },
@@ -42,11 +42,6 @@ const Wizard: VFC<WizardProps> = ({ step, dispatch }: WizardProps) => {
   useEffect(() => {
     setCurrentSection(steps[step.value - 1].title)
   }, [step.value])
-
-  useEffect(() => {
-    const subscription = watch((value, { name, type }) => console.log(value, name, type))
-    return () => subscription.unsubscribe()
-  }, [watch])
 
   const inputStyles: { [key: string]: string } = {
     'Control Plane': styles.modalControlPlaneBlock,
@@ -122,6 +117,7 @@ const Wizard: VFC<WizardProps> = ({ step, dispatch }: WizardProps) => {
     }
     dispatch({ type: 'SET_STATUS', payload: { progress: payload } })
   }
+
   const onError = (errors, e) => {
     console.log(errors)
     console.log(e)

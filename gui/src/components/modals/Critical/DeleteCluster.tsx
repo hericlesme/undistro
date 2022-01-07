@@ -21,7 +21,6 @@ const DeleteCluster = ({ cluster }: DeleteClusterProps) => {
   })
 
   const handleDelete = async () => {
-    console.log(cluster.clusterGroup, cluster.name)
     deleteCluster.mutate({})
     hideModal()
   }

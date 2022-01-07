@@ -18,7 +18,6 @@ const ResumeCluster = ({ cluster }: ResumeClusterProps) => {
   })
 
   const handlePause = async () => {
-    console.log(cluster.clusterGroup, cluster.name)
     pauseCluster.mutate({
       spec: {
         paused: false

@@ -51,7 +51,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const namespace = namespaces.items.find(namespace => namespace.metadata.name === req.body.metadata.namespace)
 
   if (!namespace) {
-    console.log('creating namespace')
     let namespaceRes = await axios.post<KubernetesObject>(
       server + '/api/v1/namespaces',
       {
@@ -61,8 +60,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
       { headers: opts.headers }
     )
-
-    console.log(namespaceRes.data)
   }
 
   const baseUrl = getResourcePath({ server: server, kind: 'app', resource: 'namespaces' })
@@ -70,7 +67,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   request.post({ url: url, body: JSON.stringify(req.body), ...opts }, (error, response, body) => {
     if (error || response.statusCode !== 201) {
-      console.log(error)
       let statusCode = response ? response.statusCode : 500
       //@ts-ignore
       return res.status(statusCode).json({ error: JSON.parse(error || body) })

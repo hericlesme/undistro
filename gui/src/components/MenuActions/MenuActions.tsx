@@ -21,8 +21,6 @@ const MenuActions = ({ isOpen, position, clusters }: MenuActionsProps) => {
   const clusterStateToggle = (clusters: Cluster[]) => {
     if (!clusters || clusters.length === 0) return
 
-    console.log(clusters.map(cluster => cluster.name))
-
     if (clusters[0].status === 'Paused') {
       return {
         label: 'Resume UnDistro',
@@ -57,10 +55,6 @@ const MenuActions = ({ isOpen, position, clusters }: MenuActionsProps) => {
     }
   ]
 
-  useEffect(() => {
-    console.log(clusters)
-  }, [clusters])
-
   const menuActionsStyles = {
     container: classNames(styles.menuActionsContainer, 'dialogWindowShadow'),
     position: { left: position.left, top: position.top }
@@ -70,14 +64,16 @@ const MenuActions = ({ isOpen, position, clusters }: MenuActionsProps) => {
     <div style={menuActionsStyles.position} className={menuActionsStyles.container}>
       <div className={styles.actionsMenu}>
         <ol className={styles.actionsMenuList}>
-          {actions.map(item => (
-            <li key={`action-${item.label}`} onClick={item.action} className={styles.actionsMenuList}>
-              <button className={styles.actionMenuItemContainer}>
-                <div className={item.class}></div>
-                <a className={styles.actionMenuItemText}>{item.label}</a>
-              </button>
-            </li>
-          ))}
+          {actions
+            .filter(e => e !== undefined)
+            .map(item => (
+              <li key={`action-${item.label}`} onClick={item.action} className={styles.actionsMenuList}>
+                <button className={styles.actionMenuItemContainer}>
+                  <div className={item.class}></div>
+                  <a className={styles.actionMenuItemText}>{item.label}</a>
+                </button>
+              </li>
+            ))}
         </ol>
       </div>
       <div className={styles.pointerContainerBorder}>

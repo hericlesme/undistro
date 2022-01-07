@@ -17,7 +17,7 @@ const Logs: VFC<LogsProps> = ({ namespace, cluster }: LogsProps) => {
     elem.scrollTop = elem.scrollHeight
   }
 
-  const streamUpdates = controller => {
+  const streamUpdates = (controller: AbortController) => {
     fetch(`/api/events/${namespace}`, { signal: controller.signal })
       .then(response => {
         const stream = response.body.getReader()
@@ -42,11 +42,6 @@ const Logs: VFC<LogsProps> = ({ namespace, cluster }: LogsProps) => {
                 addLogMessage(newMessage)
               }
             } catch (error) {
-              //   setError({
-              //     code: error.code,
-              //     message: error.message || 'Unknown error'
-              //   })
-
               console.log('Error while parsing', chunk, '\n', error)
             }
           })
@@ -57,8 +52,7 @@ const Logs: VFC<LogsProps> = ({ namespace, cluster }: LogsProps) => {
       .catch(err => {
         console.log('Error! Retrying in 5 seconds...')
         console.log(err)
-
-        setTimeout(() => streamUpdates(controller), 5000)
+        if (!controller.signal.aborted) setTimeout(() => streamUpdates(controller), 5000)
       })
 
     const onNewLine = (buffer, fn) => {

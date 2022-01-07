@@ -44,39 +44,79 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
     name: 'clusterName'
   })
 
-  const currCPU = useWatch({
+  const controlPlaneCPU = useWatch({
     control,
     name: 'controlPlaneCPU'
   })
 
+  const controlPlaneMem = useWatch({
+    control,
+    name: 'controlPlaneMem'
+  })
+
+  const selectedMachineType = useWatch({
+    control,
+    name: 'controlPlaneMachineType'
+  })
+
+  useEffect(() => {
+    if (machineTypes) {
+      let selectedMachine = machineTypes.find(m => m.name === selectedMachineType)
+      setValue('controlPlaneCPU', selectedMachine.cpu)
+      setValue('controlPlaneMem', selectedMachine.mem)
+    }
+  }, [selectedMachineType])
+
   const [workers, setWorkers] = useState([])
   const { data: machineTypes } = useFetch<MachineType[]>('/api/metadata/machinetypes')
-
-  const getMachineTypeOptions = () => {
-    if (!machineTypes) return []
-    return machineTypes.map(machineType => machineType.name)
-  }
 
   const sortUniques = (arr: (string | number)[]): (string | number)[] => {
     const sortAlphaNum = (a, b) => a.localeCompare(b, 'en', { numeric: true })
     return Array.from(new Set(arr)).sort(sortAlphaNum)
   }
 
-  const getMachineAttr = (attr: MACHINE_ATTR) => {
+  const controlPlaneMachineTypeFilter = (machineType: string) => {
+    let machineFilter = true
+    let machine = machineTypes.find(m => m.name === machineType)
+    if (controlPlaneCPU !== undefined) {
+      machineFilter = machineFilter && machine.cpu == controlPlaneCPU
+    }
+    if (controlPlaneMem !== undefined) {
+      machineFilter = machineFilter && machine.mem == controlPlaneMem
+    }
+    return machineFilter
+  }
+
+  const workersMachineTypeFilter = (machineType: string) => {
+    let machineFilter = true
+    let machine = machineTypes.find(m => m.name === machineType)
+    if (workerConfig.workersCPU !== undefined) {
+      machineFilter = machineFilter && machine.cpu == workerConfig.workersCPU
+    }
+    if (workerConfig.workersMem !== undefined) {
+      machineFilter = machineFilter && machine.mem == workerConfig.workersMem
+    }
+    return machineFilter
+  }
+
+  const getMachineAttr = (attr: MACHINE_ATTR, filter = undefined) => {
     if (!machineTypes) return []
-    return sortUniques(machineTypes.map(machineType => machineType[attr]))
+    let machineAttrs = sortUniques(machineTypes.map(machineType => machineType[attr]))
+    if (filter) machineAttrs = machineAttrs.filter(e => filter(e))
+    return machineAttrs
   }
 
   const workerDefaults = {
     workersInfraNodeSwitch: false,
     workersReplicas: 3,
-    workersMachineType: ''
+    workersMachineType: '',
+    workersCPU: undefined,
+    workersMem: undefined
   }
 
   const [workerConfig, setWorkerConfig] = useState(workerDefaults)
 
   useEffect(() => {
-    console.log(workers)
     let workersData = workers.map(w => ({
       infraNode: w.workersInfraNodeSwitch ? true : false,
       machineType: w.workersMachineType,
@@ -100,7 +140,6 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
   }
 
   const handleWorkerConfigChange = event => {
-    console.log(event.target.id)
     setWorkerConfig(prevState => ({
       ...prevState,
       [event.target.id]: event.target.value
@@ -146,7 +185,7 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
           fieldName="controlPlaneMachineType"
           placeholder="machine type"
           register={register}
-          options={getMachineAttr(MACHINE_ATTR.NAME)}
+          options={getMachineAttr(MACHINE_ATTR.NAME, controlPlaneMachineTypeFilter)}
         />
       </div>
 
@@ -200,7 +239,7 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
               label="MachineType"
               fieldName="workersMachineType"
               placeholder="Machine type"
-              options={getMachineAttr(MACHINE_ATTR.NAME)}
+              options={getMachineAttr(MACHINE_ATTR.NAME, workersMachineTypeFilter)}
               onChange={handleWorkerConfigChange}
             />
           </div>

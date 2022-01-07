@@ -60,7 +60,6 @@ export const ModalProvider: React.FC<{}> = ({ children }) => {
   }
 
   const renderComponent = () => {
-    console.log(modalProps)
     const ModalComponent = MODAL_COMPONENTS[modalType]
     if (!modalType || !ModalComponent) {
       return null

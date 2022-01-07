@@ -43,22 +43,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const server = getServerAddress(opts)
 
   let { namespace } = req.query
-  console.log(namespace)
-
   const url = `${server}/api/v1/namespaces/${namespace}/events?watch=1`
 
   fetch(url, opts)
     .then(response => response.body)
-    .then(response =>
-      response
-        .on('readable', () => {
-          let chunk
-          while (null !== (chunk = response.read())) {
-            console.log(chunk.toString())
-            // pipe to response (or whatever)
-          }
-        })
-        .pipe(res)
-    )
+    .then(response => response.pipe(res))
     .catch(err => console.log(err))
 }

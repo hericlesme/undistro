@@ -37,8 +37,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   request.delete({ url: url, ...opts }, (error, response, body) => {
     if (error || response.statusCode !== 200) {
-      console.log(error)
-      console.log(body)
       //@ts-ignore
       res.status(500).json(response)
     }

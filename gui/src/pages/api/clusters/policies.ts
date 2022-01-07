@@ -35,8 +35,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const url = `${baseUrl}/${req.body.metadata.namespace}/defaultpolicies`
 
   request.post({ url: url, body: req.body, ...opts }, (error, response, body) => {
-    console.log(response)
-    console.log(body)
     if (error || response.statusCode !== 201) {
       //@ts-ignore
       res.status(500).json(response)
