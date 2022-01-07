@@ -3,7 +3,12 @@ import { useEffect } from 'react'
 
 import styles from '@/components/modals/Creation/ClusterCreation.module.css'
 
-const Logs: VFC = () => {
+type LogsProps = {
+  namespace: string
+  cluster: string
+}
+
+const Logs: VFC<LogsProps> = ({ namespace, cluster }: LogsProps) => {
   const [logs, setLogs] = useState<string[]>([])
 
   const addLogMessage = (message: string) => {
@@ -13,7 +18,7 @@ const Logs: VFC = () => {
   }
 
   const streamUpdates = controller => {
-    fetch('/api/events/picles', { signal: controller.signal })
+    fetch(`/api/events/${namespace}`, { signal: controller.signal })
       .then(response => {
         const stream = response.body.getReader()
         const utf8Decoder = new TextDecoder('utf-8')
@@ -31,7 +36,7 @@ const Logs: VFC = () => {
               const { object } = event
               const { involvedObject, message, reason } = object
 
-              if (involvedObject.name.includes('picles')) {
+              if (involvedObject.name.includes(cluster)) {
                 const newMessage = `Reason: ${reason} Message: ${message}`
 
                 addLogMessage(newMessage)

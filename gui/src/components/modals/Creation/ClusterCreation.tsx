@@ -63,6 +63,12 @@ const ClusterCreation: VFC = () => {
           step: CREATION_STEP.STEPS,
           creationMode: action.payload.creationMode
         }
+      case 'SET_STATUS':
+        return {
+          ...state,
+          step: CREATION_STEP.STATUS,
+          progress: action.payload.progress
+        }
     }
   }
 
@@ -111,9 +117,9 @@ const ClusterCreation: VFC = () => {
           </div>
         )
       case CREATION_STEP.STEPS:
-        return <Wizard step={{ value: step, next: nextStep, previous: prevStep }} />
+        return <Wizard dispatch={dispatch} step={{ value: step, next: nextStep, previous: prevStep }} />
       case CREATION_STEP.STATUS:
-        return <Progress />
+        return <Progress creationInfo={creationState.progress} />
     }
   }
 

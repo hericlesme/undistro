@@ -19,13 +19,17 @@ type UnDistroSession = Session & {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Cluster[]>) {
-  const creationNamespace = req.body.metadata.namespace
+  const { namespace, cluster } = req.query
   const secret = await getSecret({
     namespace: 'undistro-system',
     serviceAccount: 'undistro-controller-manager'
   })
+
   const opts: any = {
-    headers: { Authorization: `Bearer ${secret}` }
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      'Content-Type': 'application/merge-patch+json'
+    }
   }
 
   if (isIdentityEnabled()) {
@@ -41,34 +45,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   const server = getServerAddress(opts)
 
-  const { data: namespaces } = await axios.get<KubernetesListObject<KubernetesObject>>(server + '/api/v1/namespaces', {
-    headers: {
-      ...opts.headers,
-      Authorization: `Bearer ${secret}`
-    }
-  })
-
-  const namespace = namespaces.items.find(namespace => namespace.metadata.name === req.body.metadata.namespace)
-
-  if (!namespace) {
-    console.log('creating namespace')
-    let namespaceRes = await axios.post<KubernetesObject>(
-      server + '/api/v1/namespaces',
-      {
-        kind: 'Namespace',
-        apiVersion: 'v1',
-        metadata: { name: creationNamespace }
-      },
-      { headers: opts.headers }
-    )
-
-    console.log(namespaceRes.data)
-  }
-
   const baseUrl = getResourcePath({ server: server, kind: 'app', resource: 'namespaces' })
-  const url = `${baseUrl}/${creationNamespace}/clusters`
+  const url = `${baseUrl}/${namespace}/clusters/${cluster}`
 
-  request.post({ url: url, body: JSON.stringify(req.body), ...opts }, (error, response, body) => {
+  request.patch({ url: url, body: JSON.stringify(req.body), ...opts }, (error, response, body) => {
     if (error || response.statusCode !== 201) {
       console.log(error)
       let statusCode = response ? response.statusCode : 500

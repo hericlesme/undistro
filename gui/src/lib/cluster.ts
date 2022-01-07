@@ -22,10 +22,6 @@ export function getAge(tm: string, humanize = true, compact = true): string | nu
 }
 
 export const getStatusFromConditions = (conditions: Array<k8s.V1Condition>): string => {
-  if (!conditions || conditions.length === 0) {
-    return 'Error'
-  }
-
   if (conditions.some(c => c.message.toLowerCase().includes('reconciliation succeeded'))) {
     return 'Ready'
   } else if (conditions.some(c => c.message.toLowerCase() == 'wait cluster to be provisioned')) {

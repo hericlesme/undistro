@@ -6,8 +6,20 @@ import { useModalContext } from '@/contexts/ModalContext'
 import styles from '@/components/modals/Creation/ClusterCreation.module.css'
 import { Logs } from './Logs'
 
-const Progress: VFC = () => {
+type StatusProps = {
+  creationInfo: {
+    namespace: string
+    cluster: string
+    status: string
+  }
+}
+
+const Progress: VFC<StatusProps> = ({ creationInfo }: StatusProps) => {
   const { hideModal } = useModalContext()
+
+  let { namespace, cluster, status } = creationInfo
+
+  console.log(creationInfo)
 
   return (
     <>
@@ -23,7 +35,7 @@ const Progress: VFC = () => {
                   <div className={styles.progressBarContainer}>
                     <div className={styles.progressBar}></div>
                   </div>
-                  <Logs />
+                  <Logs namespace={namespace} cluster={cluster} />
                 </div>
               </div>
             </div>

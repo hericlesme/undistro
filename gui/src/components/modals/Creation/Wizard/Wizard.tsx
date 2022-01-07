@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Dispatch, useEffect, useState, VFC } from 'react'
 import { useForm } from 'react-hook-form'
 import { ClusterInfo, InfraProvider, AddOns, Step, ControlPlane } from '@/components/modals/Creation/Wizard/Steps'
 import { useMutate } from '@/hooks/query'
@@ -11,10 +11,24 @@ import styles from '@/components/modals/Creation/ClusterCreation.module.css'
 // import { InfraNetVPC } from '../Advanced/Steps/InfraNetVPC'
 // import { KubernetesNetwork } from '../Advanced/Steps/KubernetesNetwork'
 
-const Wizard = ({ step }) => {
+type WizardProps = {
+  dispatch: Dispatch<any>
+  step: {
+    value: number
+    next: () => void
+    previous: () => void
+  }
+}
+const Wizard: VFC<WizardProps> = ({ step, dispatch }: WizardProps) => {
   const { watch, register, setValue, getValues, handleSubmit, control } = useForm()
   const [currentSection, setCurrentSection] = useState('')
-  const createCluster = useMutate({ url: `/api/clusters/create`, method: 'post' })
+
+  const createCluster = useMutate({
+    url: `/api/clusters/create`,
+    method: 'post',
+    invalidate: '/api/clusters'
+  })
+
   const createPolicy = useMutate({ url: `/api/clusters/policies`, method: 'post' })
 
   const steps = [
@@ -25,11 +39,6 @@ const Wizard = ({ step }) => {
     { title: 'Add-Ons', component: AddOns },
     { title: 'Control Plane', component: ControlPlane }
   ]
-
-  const wizardSteps = []
-
-  const advancedSteps = []
-
   useEffect(() => {
     setCurrentSection(steps[step.value - 1].title)
   }, [step.value])
@@ -39,12 +48,14 @@ const Wizard = ({ step }) => {
     return () => subscription.unsubscribe()
   }, [watch])
 
-  const inputAreaStyles = classNames(styles.modalInputArea, {
-    [styles.modalControlPlaneBlock]: currentSection === 'Control Plane',
-    [styles.modalProgressArea]: currentSection === 'Progress'
-  })
+  const inputStyles: { [key: string]: string } = {
+    'Control Plane': styles.modalControlPlaneBlock,
+    Progress: styles.modalProgressArea
+  }
 
-  const onSubmit = (data, e) => {
+  const inputAreaStyles = inputStyles[currentSection] || styles.modalInputArea
+
+  const onSubmit = async (data, e) => {
     e.preventDefault()
 
     const clusterData: ClusterCreationData = {
@@ -90,7 +101,6 @@ const Wizard = ({ step }) => {
         clusterName: data.clusterName
       }
     }
-
     const identity = {
       apiVersion: 'app.undistro.io/v1alpha1',
       kind: 'Identity',
@@ -102,9 +112,15 @@ const Wizard = ({ step }) => {
         clusterName: data.clusterName
       }
     }
+    // createPolicy.mutate(JSON.stringify(dataPolicies))
 
-    createCluster.mutate(JSON.stringify(removeEmpty(clusterData)))
-    createPolicy.mutate(JSON.stringify(dataPolicies))
+    let res: any = await createCluster.mutateAsync(JSON.stringify(removeEmpty(clusterData)))
+    let payload = {
+      cluster: data.clusterName,
+      namespace: data.clusterNamespace,
+      status: res.status == 200 ? 'success' : 'failure'
+    }
+    dispatch({ type: 'SET_STATUS', payload: { progress: payload } })
   }
   const onError = (errors, e) => {
     console.log(errors)
@@ -141,13 +157,13 @@ const Wizard = ({ step }) => {
         </div>
         <div className={styles.modalDialogButtonsContainer}>
           <div className={styles.leftButtonContainer}>
-            <button onClick={step.previous} className={styles.borderButtonDefault}>
+            <button type="button" onClick={step.previous} className={styles.borderButtonDefault}>
               <a>back</a>
             </button>
           </div>
           {step.value !== steps.length && (
             <div className={styles.rightButtonContainer}>
-              <button onClick={step.next} className={styles.borderButtonSuccess}>
+              <button type="button" onClick={step.next} className={styles.borderButtonSuccess}>
                 <a>next</a>
               </button>
             </div>

@@ -10,6 +10,7 @@ import styles from '@/components/overviews/Clusters/ClustersOverviewRow.module.c
 type ClustersOverviewRowProps = {
   cluster: Cluster
   disabled: boolean
+  onClick?: (event: any) => void
 }
 
 const ClustersOverviewRow: VFC<ClustersOverviewRowProps> = ({
