@@ -1,12 +1,21 @@
-import { Cluster, getAge, getStatusFromConditions } from '@/lib/cluster'
+import type { Cluster } from '@/types/cluster'
+import { getAge, getStatusFromConditions } from '@/lib/cluster'
+
+export function getMetadataUrl(kind: string): string {
+  return `apis/metadata.undistro.io/v1alpha1/${kind}`
+}
 
 export function clusterDataHandler(clusterList): Cluster[] {
   return clusterList.items.map(cl => {
     let machines = 0
     let workers = cl.spec.workers as Array<any>
-    workers.forEach(w => {
-      machines += w.replicas as number
-    })
+
+    if (workers) {
+      workers.forEach(w => {
+        machines += w.replicas as number
+      })
+    }
+
     let conditions = cl.status.conditions
     if (cl.spec.controlPlane != undefined && cl.spec.controlPlane.replicas != undefined) {
       machines += cl.spec.controlPlane.replicas as number
@@ -22,4 +31,26 @@ export function clusterDataHandler(clusterList): Cluster[] {
       status: getStatusFromConditions(conditions)
     }
   })
+}
+
+export function machineTypeDataHandler(machines) {
+  return machines.map(machine => ({
+    zones: machine.spec.availabilityZones,
+    name: machine.metadata.name,
+    mem: machine.spec.memory,
+    cpu: machine.spec.vcpus
+  }))
+}
+
+export function providersDataHandler(providers) {
+  return providers.filter((provider: any) => {
+    return provider.spec.category.includes('infra')
+  })
+}
+
+export function flavorsDataHandler(flavors) {
+  return flavors.map(flavor => ({
+    name: flavor.metadata.name,
+    supportedVersions: flavor.spec.supportedK8SVersions
+  }))
 }

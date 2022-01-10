@@ -7,7 +7,6 @@
   --background-light: #656d7a;
   --background-light-hover: #7F8996;
   --background-medium: #495059;
-  --background-warning: #f9d58b;
   --background-strong-selected: #3b434e;
   --background-strong-hover: #3b434e;
   --background-dialog: #22262B;
@@ -16,16 +15,25 @@
   --background-black: #000000;
 
   /* primary */
+  --background-primary: #657f97;
   --background-primary-default: #657f97;
   --background-primary-hover: #799ec0;
 
   /* success */
+  --background-success: #39e9aa;
+  --background-success-hover: #84f0ca;
   --success-background-default: #39e9aa;
-  --success-background-hover: #4dcd9f;
+  --success-background-hover: #84f0ca;
+
+  /* warning */
+  --background-warning: #f9d58b;
+  --background-warning-hover: #f7deab;
 
   /* critical */
+  --background-critical: #ff5a60;
+  --background-critical-hover: #ff7479;
   --critical-background-default: #ff5a60;
-  --critical-background-hover: #AF4044;
+  --critical-background-hover: #ff7479;
 
   /* icon */
   --icon-strong: #ffffff;
@@ -42,12 +50,15 @@
   --text-disabled: #6c6c6c;
   --text-selected: #ffffff;
   --text-critical: #ff5a60;
+  --text-primary: #657f97;
   --text-warning: #f9d58b;
   --text-success: #39e9aa;
   --text-dark: #191a1d;
+  --text-black: #000000;
 
   /* border */
   --border-default: #d7d7d7;
+  --border-primary: #657f97;
   --border-success: #39e9aa;
   --border-warning: #f9d58b;
   --border-critical: #ff5a60;

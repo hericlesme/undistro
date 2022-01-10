@@ -222,7 +222,7 @@ html, body {
 
 /* containers */
 
-.createClusterWizContainer {
+.createClusterModalContainer {
     display: flex;
     flex-direction: column;
     width: 720px;
@@ -232,6 +232,27 @@ html, body {
     background-color: var(--background-dialog);
 }
 
+.createClusterSubDialogContainer {
+    display: flex;
+    flex-direction: column;
+    width: 322px;
+    height: 600px;
+    padding: 70px 52px 70px 52px;
+    background-color: var(--background-dialog);
+}
+
+.shadowLeft {
+    box-shadow: -12px 0 20px #00000088;
+}
+
+.shadowRight {
+    box-shadow: 12px 0 20px #00000088;
+}
+
+.bordered {
+    border: 1px solid var(--border-medium);    
+}
+
 .modalDialogTitleContainer {
     display: flex;
     flex-direction: row;
@@ -239,6 +260,7 @@ html, body {
     align-items: center;
     width: 100%;
     height: 24px;
+    padding-right: 48px;
 }
 
 .modalDialogCreateTypeContainer {
@@ -246,8 +268,9 @@ html, body {
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    width: 64px;
+    min-width: 80px;
     height: 24px;
+    padding-left: 8px;
 }
 
 .modalContentContainer {
@@ -264,6 +287,21 @@ html, body {
     justify-content: center;
 }
 
+.modalSubDialogTitleContainer {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalSubDialogInputContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+}
+
 .modalDialogButtonsContainer {
     width: 100%;
     min-height: 82px;
@@ -273,12 +311,34 @@ html, body {
     align-items: self-end;
 }
 
+.modalSubDialogButtonContainer {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+}
+
 .modalWorkersContainer {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 24px 0 24px 0;
-    border: 1px solid var(--border-medium);
+    position: relative;
+}
+
+.modalAdvancedWorkersContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0 8px 0;
+    position: relative;
+}
+
+.modalSubnetContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0 12px 0;
     position: relative;
 }
 
@@ -299,6 +359,27 @@ html, body {
     display:flex;
     flex-direction: row-reverse;
     width: 100%;
+}
+
+.addAlowedBlocksButtonContainer {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    min-height: 30px;
+    margin-left: -30px;
+}
+
+.advancedWorkersInfraNodeContainer {
+    display: flex;
+    flex-direction: row;
+    width: 238px;
+}
+
+.advancedWorkersAutoScaleContainer {
+    display: flex;
+    flex-direction: row;
+    width: 418px;
+    gap: 16px;
 }
 
 .modalInputArea {
@@ -333,11 +414,56 @@ html, body {
     margin: 0 auto 0 auto;
 }
 
+.modalAdvancedWorkersBlock {
+    display: flex;
+    align-items: center;
+    width: 678px;
+    height: 100%;
+    margin: 16px auto 0 auto;
+}
+
+.modalSubDialogInputColumnBlock {
+    margin: auto 0 auto 0;
+}
+
 .modalWorkersBlock {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 510px;
+    height: 100%;
+    margin: 0 auto 0 auto;
+}
+
+.advancedModalWorkersBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 656px;
+    height: 100%;
+    margin: 0 auto 0 auto;
+}
+
+.advancedWorkersSwitchBlock {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 74px;
+}
+
+.modalSubnetBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 638px;
+    height: 100%;
+    margin: 0 auto 0 auto;
+}
+
+.modalBastionBlock {
+    display: flex;
+    align-items: center;
+    width: 672px;
     height: 100%;
     margin: 0 auto 0 auto;
 }
@@ -368,11 +494,37 @@ html, body {
     background-color: var(--background-dialog);
 }
 
+.advancedWorkersTitleContainer {
+    display: flex;
+    justify-content: center;
+    min-width: 290px;
+    height: 60px;
+    position: absolute;
+    top: -36px;
+    background-color: var(--background-dialog);
+}
+
+.advancedWorkersSaveGroupContainer {
+    display: flex;
+    justify-content: center;
+    min-width: 124px;
+    height: 30px;
+    position: absolute;
+    bottom: -19px;
+    background-color: var(--background-dialog);
+}
+
 .modalTableContainer {
     width: 100%;
     height: 102px;
     margin-top: 12px;
-    border: 1px solid var(--border-medium);
+    padding: 1px;
+}
+
+.modalTableAllowedBlocksContainer {
+    width: 436px;
+    height: 102px;
+    margin-top: 12px;
     padding: 1px;
 }
 
@@ -469,6 +621,10 @@ html, body {
     color: var(--text-default);
 }
 
+.flexBottom {
+    align-self: flex-end;
+}
+
 .modalCreateClusterTitle {
     font-family: Montserrat;
     font-style: normal;
@@ -476,7 +632,6 @@ html, body {
     font-size: 16px;
     line-height: 20px;
     letter-spacing: 0.04em;
-    align-self: flex-end;
     color: var(--text-default);
 }
 
@@ -547,7 +702,7 @@ html, body {
     display: inline-block;
     width: 32px;
     height: 24px;
-    background-image: url("img/closeDialogIcon.svg");
+    background-image: url("/gui/public/img/closeDialogIcon.svg");
     background-repeat: no-repeat;
     background-position: center;
     cursor: pointer;
@@ -555,7 +710,7 @@ html, body {
 
 .closeWindowBtn:hover {
     background-color:var(--background-light-hover);
-    background-image: url("img/closeDialogIconHover.svg");
+    background-image: url("/gui/public/img/closeDialogIconHover.svg");
     background-repeat: no-repeat;
     background-position: center;
 }
@@ -565,18 +720,41 @@ button.uploadFileIcon {
     width: 32px;
     background-color: transparent;
     border: none;
-    background-image: url("./img/uploadYamlDefault.svg");
+    background-image: url("/gui/public/img/uploadYamlDefault.svg");
     background-repeat: no-repeat;
     background-position: center;
     cursor: pointer;
 }
 
 button.uploadFileIcon:hover {
-    background-image: url("./img/uploadYamlHover.svg");
+    background-image: url("/gui/public/img/uploadYamlHover.svg");
 }
 
 button.uploadFileIcon:disabled {
-    background-image: url("./img/uploadYamlDisabled.svg");
+    background-image: url("/gui/public/img/uploadYamlDisabled.svg");
+}
+
+
+button.tableAddSettings {
+    display: flex;
+    height: 22px;
+    width: 100%;
+    padding: 0;
+    background-color: var(--background-medium);
+    border: none;
+    background-image: url("/gui/public/img/tableAddSettingsDefault.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+}
+
+button.tableAddSettings:hover {
+    background-image: url("/gui/public/img/tableAddSettingsHover.svg");
+    background-color: var(--background-light);
+}
+
+button.tableAddSettings:disabled {
+    background-image: url("/gui/public/img/tableAddSettingsDisabled.svg");
 }
 
 button.borderButtonDefault {
@@ -603,6 +781,36 @@ button.borderButtonDefault a {
 }
 
 button.borderButtonDefault:hover a {
+    color: var(--text-dark);
+}
+
+
+button.borderButtonSmallDefault {
+    display: flex;
+    align-items: center;
+    height: 22px;
+    border: 1px solid var(--border-default);
+    padding: 4px 12px 4px 12px;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+button.borderButtonSmallDefault:hover {
+    background-color: var(--background-offwhite);
+}
+
+button.borderButtonSmallDefault a {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    line-height: 16px;
+    text-transform: capitalize;
+    color: var(--text-default);
+}
+
+button.borderButtonSmallDefault:hover a {
     color: var(--text-dark);
 }
 
@@ -662,6 +870,8 @@ button.borderButtonCritical:hover a {
 }
 
 button.solidMdButtonDefault {
+    display: flex;
+    align-items: center;
     height: 22px;
     border: none;
     padding: 4px 12px 4px 12px;
@@ -688,14 +898,33 @@ button.deleteTableItem {
     width: 20px;
     background-color: transparent;
     border: none;
-    background-image: url("./img/modalDeleteTableItemDefault.svg");
+    background-image: url("/gui/public/img/modalDeleteTableItemDefault.svg");
     background-repeat: no-repeat;
     background-position: center;
     cursor: pointer;
 }
 
 button.deleteTableItem:hover {
-    background-image: url("./img/modalDeleteTableItemHover.svg");
+    background-image: url("/gui/public/img/modalDeleteTableItemHover.svg");
+}
+
+button.addAllowedBlocks {
+    height: 30px;
+    width: 30px;
+    background-color: transparent;
+    border: none;
+    background-image: url("/gui/public/img/bastionAddAllowedBlocksDefault.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+}
+
+button.addAllowedBlocks:hover {
+    background-image: url("/gui/public/img/bastionAddAllowedBlocksHover.svg");
+}
+
+button.addAllowedBlocks:disabled {
+    background-image: url("/gui/public/img/bastionAddAllowedBlocksDisabled.svg");
 }
 
 /* form elements*/
@@ -704,10 +933,8 @@ button.deleteTableItem:hover {
     width: 100%;
 }
 
-.inputBlock {
-    height: 68px;
+.advancedControlPlaneSwitchBlock {
     width: 100%;
-    margin: 0 0 2px 0;
 }
 
 .addOnInputBlock {
@@ -716,10 +943,33 @@ button.deleteTableItem:hover {
     margin: 0 0 16px 0;
 }
 
-.inputBlockSmall {
+.inputBlock {
     height: 68px;
+    margin: 0 0 2px 0;
+}
+
+.inputFit {
+    width: 100%;
+}
+
+.inputSmall {
     min-width: 90px;
     max-width: 90px;
+}
+
+.inputMedium {
+    min-width: 172px;
+    max-width: 172px;
+}
+
+.inputLarge {
+    min-width: 260px;
+    max-width: 260px;
+}
+
+.inputBlockTextArea {
+    height: 118px;
+    width: 100%;
     margin: 0 0 2px 0;
 }
 
@@ -741,17 +991,31 @@ button.deleteTableItem:hover {
     margin: 0 0 2px 0;
 }
 
+.bastionBlock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: right;
+    height: 28px;
+    width: 280px;
+    margin: 0 0 2px 0;
+}
+
+.bastionUserDefaultBlock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: right;
+    height: 28px;
+    width: 386px;
+    margin: 0 0 2px 0;
+}
+
 .addButtonBlock {
     display: flex;
     flex-direction: row;
     align-items: center;
     height: 22px;
-    width: 100%;
-    margin: 0 0 2px 0;
-}
-
-.inputBlockTextArea {
-    height: 118px;
     width: 100%;
     margin: 0 0 2px 0;
 }
@@ -771,11 +1035,98 @@ button.deleteTableItem:hover {
     gap: 8px;
 }
 
+.advancedControlPlaneInputRow {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 24px auto;
+    width: 672px;
+    gap: 8px;
+}
+
+.advancedControlPlaneSettingsRow {
+    display: flex;
+    flex-direction: row;
+    margin: 32px auto 24px auto;
+    width: 672px;
+    height: 178px;
+    gap: 4px;
+}
+
+.advancedWorkersSettingsRow {
+    display: flex;
+    flex-direction: row;
+    margin: 16px auto 24px auto;
+    width: 656px;
+    height: 178px;
+    gap: 4px;
+}
+
+.advancedControlPlaneSwitchRow {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 672px;
+}
+
+.advancedControlPlaneSettingsContainer {
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--border-medium);
+}
+
+.infraNetworkInputRowSmall {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 0 auto;
+    width: 318px;
+    gap: 8px;
+}
+
+.bastionInputRow {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 0 auto;
+    width: 436px;
+    gap: 8px;
+}
+
+.bastionSwitchMarginTop {
+    margin-top: 32px !important;
+}
+
+.bastionSwitchInputRow {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 4px auto;
+    width: 672px;
+    gap: 8px;
+}
+
+.rowMargin {
+    margin-bottom: 24px;
+}
+
 .workersInputRow {
     display: flex;
     flex-direction: row;
     margin: 0 auto 0 auto;
     width: 510px;
+    gap: 8px;
+}
+
+.advancedWorkersInputRow {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 0 auto;
+    width: 656px;
+    gap: 8px;
+}
+
+.subnetInputRow {
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto 0 auto;
+    width: 638px;
     gap: 8px;
 }
 
@@ -792,6 +1143,17 @@ button.deleteTableItem:hover {
     letter-spacing: 0.03em;
     margin-right: 8px;
     color: var(--text-default);
+}
+
+.bastionDefaultBlocksTitle {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.03em;
+    margin-right: 8px;
+    color: var(--text-disabled);
 }
 
 .createClusterTextInput {
@@ -845,7 +1207,7 @@ button.deleteTableItem:hover {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;                               /* Remove default arrow */
-    background-image: url(./img/arrowDown.svg);     /* Add custom arrow */
+    background-image: url(/gui/public/img/arrowDown.svg);     /* Add custom arrow */
     background-repeat: no-repeat;
     background-position: center right;
     background-color: var(--background-weak);
@@ -930,6 +1292,10 @@ table.modalWorkersTable {
     width: 100%;
 }
 
+.removeBorderSpacing {
+    border-spacing: 0;
+}
+
 table.modalWorkersTable tr {
     height: 22px;
     background-color: transparent;
@@ -937,7 +1303,6 @@ table.modalWorkersTable tr {
 
 table.modalWorkersTable tr:hover {
     background-color: var(--background-weak);
-    cursor: pointer;
 }
 
 table.modalWorkersTable td {
@@ -945,7 +1310,19 @@ table.modalWorkersTable td {
     padding: 0 0 0 6px;
 }
 
-table.modalWorkersTable td a {
+table.modalWorkersTable th {
+    max-height: 22px;
+    padding: 0;
+    background-color: var(--background-medium);
+}
+
+.tfooter {
+    background-color: var(--background-medium);
+    max-height: 22px;
+    padding: 0 !important;
+}
+
+table.modalWorkersTable td, th a {
     font-family: Montserrat;
     font-style: normal;
     font-weight: normal;
@@ -963,6 +1340,8 @@ table.modalWorkersTable td a {
 }
 
 .modalTableItem {
+    display: flex;
+    align-items: center;
     width: 100%;
 }
 
@@ -1011,7 +1390,7 @@ ol.progressDialog li a {
 .createClusterErrorIcon {
     width: 106px;
     height: 103px;
-    background-image: url(./img/createClusterErrorIcon.svg);
+    background-image: url(/gui/public/img/createClusterErrorIcon.svg);
     background-repeat: no-repeat;
     background-position: center right;
 
@@ -1020,7 +1399,7 @@ ol.progressDialog li a {
 .createClusterSuccessIcon {
     width: 106px;
     height: 103px;
-    background-image: url(./img/createClusterSuccessIcon.svg);
+    background-image: url(/gui/public/img/createClusterSuccessIcon.svg);
     background-repeat: no-repeat;
     background-position: center right;
 

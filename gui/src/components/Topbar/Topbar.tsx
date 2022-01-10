@@ -6,17 +6,24 @@ import classNames from 'classnames'
 import topBarLogo from '@/public/img/logo-topbar.svg'
 import { isIdentityEnabled } from '@/helpers/identity'
 import { Navbar, TopbarMenuItemButton } from '@/components/Topbar'
+import { useModalContext, MODAL_TYPES } from '@/contexts/ModalContext'
 
 import styles from '@/components/Topbar/Topbar.module.css'
 
 const Topbar: VFC = () => {
+  const { showModal } = useModalContext()
+
   const topbarStyles = {
     container: classNames(styles.topBarContainer, 'responsiveWidth'),
     menu: classNames(styles.topBarMenuArea, 'responsiveWidth')
   }
 
   const topBarMenuItems = [
-    { title: 'create', id: styles.menuCreateButton },
+    {
+      title: 'create',
+      id: styles.menuCreateButton,
+      action: () => showModal(MODAL_TYPES.CREATE_CLUSTER)
+    },
     { title: 'modify', id: styles.menuModifyButton },
     { title: 'manage', id: styles.menuManageButton },
     { title: 'preferences', id: styles.menuPreferencesButton },
@@ -28,7 +35,7 @@ const Topbar: VFC = () => {
   }
 
   return (
-    <header className={styles.teste}>
+    <header>
       <div className={topbarStyles.container}>
         <div className={styles.topBarLogoArea}>
           <div className={styles.topLogo}>
@@ -40,7 +47,7 @@ const Topbar: VFC = () => {
         </div>
         <div className={topbarStyles.menu}>
           {topBarMenuItems.map((item, index) => (
-            <TopbarMenuItemButton key={index} title={item.title} id={item.id} />
+            <TopbarMenuItemButton key={index} title={item.title} id={item.id} action={item.action} />
           ))}
         </div>
         {isIdentityEnabled() && (

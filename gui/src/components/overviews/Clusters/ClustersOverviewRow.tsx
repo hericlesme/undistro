@@ -1,8 +1,8 @@
 import type { VFC } from 'react'
+import type { Cluster } from '@/types/cluster'
 
 import classNames from 'classnames'
 
-import { Cluster } from '@/lib/cluster'
 import { useClusters } from '@/contexts/ClusterContext'
 
 import styles from '@/components/overviews/Clusters/ClustersOverviewRow.module.css'
@@ -10,6 +10,7 @@ import styles from '@/components/overviews/Clusters/ClustersOverviewRow.module.c
 type ClustersOverviewRowProps = {
   cluster: Cluster
   disabled: boolean
+  onClick?: (event: any) => void
 }
 
 const ClustersOverviewRow: VFC<ClustersOverviewRowProps> = ({

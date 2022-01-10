@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" href="ModalCreateCluster.css">
+        <meta name="description" content="Template">
+        <meta name="keywords" content="html template">
+    </head>
+    <body>
+        
+        <div class="responsive" style="background-color:var(--background-default); display: flex; align-items: center;">
+
+            <div class="createClusterModalContainer">
+
+                <div class="modalDialogTitleBar">
+
+                    <div class="modalDialogCreateTypeContainer">
+                        <span>
+                            <a class="dialogTitleItalic">Advanced</a>    
+                        </span>    
+                    </div>
+
+                    <div class="modalDialogTitleContainer">
+                        <span class="dialogTitlesSpan">
+                            <a class="dialogTitleRegular">CREATE</a>
+                            <a class="dialogTitleBold">CLUSTER</a>
+                        </span>
+                    </div>
+
+                    <div class="closeWindowBtnContainer">
+                        <button class="closeWindowBtn"></button>
+                    </div>
+
+                </div>
+
+                <div class="modalTitleContainer">
+                    <a class="modalCreateClusterTitle flexBottom">add-ons</a>
+                </div>
+
+                <div class="modalContentContainer">
+                    <div class="modalAddonsArea">
+                        <form class="modalForm" id="wizardClusterForm">
+                            <div class="addOnBlock">
+                                <div class="switchContainer justifyRight">
+                                    <a class="createClusterLabel">default policies</a>
+                                    <label class="switch" for="addOnDefaultPolicies">
+                                        <input type="checkbox" id="addOnDefaultPolicies" name="addOnDefaultPolicies">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                                <div class="addOnDescriptionTitlesContainer">
+                                    <a class="addOnDescriptionTitles">applying default policies will enable  cluster best</a>
+                                    <a class="addOnDescriptionTitles">practices and security policies.</a>
+                                </div>
+                            </div>
+                            <div class="addOnBlock">
+                                <div class="switchContainer justifyRight">
+                                    <a class="createClusterLabel">observer</a>
+                                    <label class="switch" for="addOnObserver">
+                                        <input type="checkbox" id="addOnObserver" name="addOnObserver">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                                <div class="addOnDescriptionTitlesContainer">
+                                    <a class="addOnDescriptionTitles">this will install and configure logging and</a>
+                                    <a class="addOnDescriptionTitles">monitoring tools.</a>
+                                </div>
+                            </div>
+                            <div class="addOnBlock">
+                                <div class="switchContainer justifyRight">
+                                    <a class="createClusterLabel">identity</a>
+                                    <label class="switch" for="addOnIdentity">
+                                        <input type="checkbox" id="addOnIdentity" name="addOnIdentity">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                                <div class="addOnDescriptionTitlesContainer">
+                                    <a class="addOnDescriptionTitles">enable centralized authentication system between</a>
+                                    <a class="addOnDescriptionTitles">all clusters managed by UnDistro.</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="modalDialogButtonsContainer">
+                    <div class="leftButtonContainer">
+                        <button class="borderButtonDefault">
+                            <a>back</a>
+                        </button>
+                    </div>
+                    <div class="rightButtonContainer">
+                        <button class="borderButtonSuccess">
+                            <a>next</a>
+                        </button>
+                    </div>
+                </div>
+
+                
+
+            </div>
+
+        </div>
+            
+    </body>
+</html>
+
