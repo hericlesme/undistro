@@ -266,34 +266,34 @@ var InvalidMP = errors.New("invalid machinepool")
 // ClusterProgressing resets any failures and registers progress toward
 // reconciling the given Cluster by setting the meta.ReadyCondition to
 // 'Unknown' for meta.ProgressingReason.
-func ClusterProgressing(p Cluster) Cluster {
+func ClusterProgressing(p *Cluster) *Cluster {
 	p.Status.Conditions = []metav1.Condition{}
 	msg := "Reconciliation in progress"
-	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionUnknown, meta.ProgressingReason, msg)
+	meta.SetResourceCondition(p, meta.ReadyCondition, metav1.ConditionUnknown, meta.ProgressingReason, msg)
 	return p
 }
 
 // ClusterNotReady registers a failed reconciliation of the given Cluster.
-func ClusterNotReady(p Cluster, reason, message string) Cluster {
-	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionFalse, reason, message)
+func ClusterNotReady(p *Cluster, reason, message string) *Cluster {
+	meta.SetResourceCondition(p, meta.ReadyCondition, metav1.ConditionFalse, reason, message)
 	return p
 }
 
 // ClusterReady registers a successful reconciliation of the given Cluster.
-func ClusterReady(p Cluster) Cluster {
+func ClusterReady(p *Cluster) *Cluster {
 	msg := "Cluster reconciliation succeeded"
-	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationSucceededReason, msg)
+	meta.SetResourceCondition(p, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationSucceededReason, msg)
 	return p
 }
 
 // ClusterPaused registers a paused reconciliation of the given Cluster.
-func ClusterPaused(p Cluster) Cluster {
-	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationPausedReason, meta.ReconciliationPausedReason)
+func ClusterPaused(p *Cluster) *Cluster {
+	meta.SetResourceCondition(p, meta.ReadyCondition, metav1.ConditionTrue, meta.ReconciliationPausedReason, meta.ReconciliationPausedReason)
 	return p
 }
 
-func ClusterDeleting(p Cluster) Cluster {
-	meta.SetResourceCondition(&p, meta.ReadyCondition, metav1.ConditionFalse, meta.ReconciliationDeletingReason, meta.ReconciliationDeletingReason)
+func ClusterDeleting(p *Cluster) *Cluster {
+	meta.SetResourceCondition(p, meta.ReadyCondition, metav1.ConditionFalse, meta.ReconciliationDeletingReason, meta.ReconciliationDeletingReason)
 	return p
 }
 

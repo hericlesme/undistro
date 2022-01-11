@@ -63,71 +63,61 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	start := time.Now()
 
 	// Retrieve cluster instance
-	undistroCluster := appv1alpha1.Cluster{}
-	if err := r.Get(ctx, req.NamespacedName, &undistroCluster); err != nil {
+	instance := &appv1alpha1.Cluster{}
+	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	keysAndValues := []interface{}{
 		"cluster", req.NamespacedName,
-		"infra", undistroCluster.Spec.InfrastructureProvider.Name,
-		"flavor", undistroCluster.Spec.InfrastructureProvider.Flavor,
-		"uid", undistroCluster.UID,
+		"infra", instance.Spec.InfrastructureProvider.Name,
+		"flavor", instance.Spec.InfrastructureProvider.Flavor,
+		"uid", instance.UID,
 	}
-	log, err := logr.FromContext(ctx)
-	if err != nil {
-		log = ctrl.Log
-	}
+	log := setDefaultLog(ctx)
 	log.WithValues(keysAndValues...)
 
 	// Initialize the patch helper.
-	patchHelper, err := patch.NewHelper(&undistroCluster, r.Client)
+	patchHelper, err := patch.NewHelper(instance, r.Client)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 	defer controllerlib.PatchInstance(ctx, controllerlib.InstanceOpts{
 		Controller: "ClusterController",
 		Request:    req.String(),
-		Object:     &undistroCluster,
+		Object:     instance,
 		Error:      err,
 		Helper:     patchHelper,
 	})
 
 	log.Info("Checking object age")
-	if undistroCluster.Generation < undistroCluster.Status.ObservedGeneration {
+	if instance.Generation < instance.Status.ObservedGeneration {
 		log.Info("Skipping this old version of reconciled object")
 		return ctrl.Result{}, nil
 	}
 
 	// Add our finalizer if it does not exist
 	log.Info("Checking if has finalizer")
-	if !controllerutil.ContainsFinalizer(&undistroCluster, meta.Finalizer) {
+	if !controllerutil.ContainsFinalizer(instance, meta.Finalizer) {
 		log.Info("Adding Finalizer")
-		controllerutil.AddFinalizer(&undistroCluster, meta.Finalizer)
+		controllerutil.AddFinalizer(instance, meta.Finalizer)
 		return ctrl.Result{}, nil
 	}
 
 	log.Info("Checking if object is paused")
-	if undistroCluster.Spec.Paused {
+	if instance.Spec.Paused {
 		log.Info("Reconciliation is paused for this object")
-		undistroCluster = appv1alpha1.ClusterPaused(undistroCluster)
+		instance = appv1alpha1.ClusterPaused(instance)
 		return ctrl.Result{}, nil
 	}
 
-	// Retrieve Cluster API Cluster object
-	capiCluster := capi.Cluster{}
-	err = r.Get(ctx, client.ObjectKeyFromObject(&undistroCluster), &capiCluster)
-	if client.IgnoreNotFound(err) != nil {
-		return ctrl.Result{}, err
-	}
-
 	log.Info("Checking if under deletion")
-	if !undistroCluster.DeletionTimestamp.IsZero() {
-		undistroCluster = appv1alpha1.ClusterDeleting(undistroCluster)
-		return r.reconcileDelete(ctx, &undistroCluster)
+	if !instance.DeletionTimestamp.IsZero() {
+		instance = appv1alpha1.ClusterDeleting(instance)
+		return r.reconcileDelete(ctx, instance)
 	}
 
-	undistroCluster, result, err := r.reconcile(ctx, undistroCluster, capiCluster)
+	result, err := r.reconcile(ctx, instance)
 
 	durationMsg := fmt.Sprintf("Reconcilation finished in %s", time.Since(start).String())
 	if result.RequeueAfter > 0 {
@@ -137,10 +127,14 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	return result, err
 }
 
-func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluster, capiCluster capi.Cluster) (appv1alpha1.Cluster, ctrl.Result, error) {
-	log, err := logr.FromContext(ctx)
-	if err != nil {
-		log = ctrl.Log
+func (r *ClusterReconciler) reconcile(ctx context.Context, cl *appv1alpha1.Cluster) (ctrl.Result, error) {
+	log := setDefaultLog(ctx)
+
+	// Retrieve Cluster API Cluster object
+	capiCluster := capi.Cluster{}
+	err := r.Get(ctx, client.ObjectKeyFromObject(cl), &capiCluster)
+	if client.IgnoreNotFound(err) != nil {
+		return ctrl.Result{}, err
 	}
 
 	cl.Status.TotalWorkerPools = int32(len(cl.Spec.Workers))
@@ -151,10 +145,10 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 	log.Info("Cluster capabilities", "totalWorkerPools", cl.Status.TotalWorkerPools, "totalWorkerReplicas", cl.Status.TotalWorkerReplicas)
 
 	// we need to install calico in managed flavors too for network policy support
-	err = r.reconcileCNI(ctx, &cl)
+	err := r.reconcileCNI(ctx, &cl)
 	if err != nil {
 		meta.SetResourceCondition(&cl, meta.CNIInstalledCondition, metav1.ConditionFalse, meta.CNIInstalledFailedReason, err.Error())
-		return cl, ctrl.Result{}, err
+		return ctrl.Result{}, err
 	}
 
 	if cl.Annotations != nil {
@@ -163,7 +157,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 			err := r.reconcileClusterAutoscaler(ctx, &cl)
 			if err != nil {
 				meta.SetResourceCondition(&cl, meta.ClusterAutoscalerInstalledCondition, metav1.ConditionFalse, meta.ClusterAutoscalerInstalledFailedReason, err.Error())
-				return cl, ctrl.Result{}, err
+				return ctrl.Result{}, err
 			}
 		}
 	}
@@ -171,7 +165,7 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 	err = cloud.ReconcileIntegration(ctx, r.Client, log, &cl, &capiCluster)
 	if err != nil {
 		meta.SetResourceCondition(&cl, meta.CloudProviderInstalledCondition, metav1.ConditionFalse, meta.CloudProvideInstalledFailedReason, err.Error())
-		return cl, ctrl.Result{}, err
+		return ctrl.Result{}, err
 	}
 	log.Info("Cloud provider integration reconciled")
 
@@ -180,7 +174,8 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 		if *cl.Spec.Bastion.Enabled && cl.Status.BastionPublicIP == "" {
 			cl.Status.BastionPublicIP, err = r.getBastionIP(ctx, capiCluster)
 			if err != nil {
-				return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error()), ctrl.Result{RequeueAfter: 2 * time.Second}, nil
+				cl = appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, err.Error())
+				return ctrl.Result{RequeueAfter: 2 * time.Second}, nil
 			}
 		}
 	}
@@ -188,20 +183,31 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 	log.Info("Reconciling launch template")
 	err = cloud.ReconcileLaunchTemplate(ctx, r.Client, &cl, &capiCluster)
 	if err != nil {
-		return appv1alpha1.ClusterNotReady(cl, meta.ReconcileLaunchTemplateFailed, err.Error()), ctrl.Result{}, err
+		cl = appv1alpha1.ClusterNotReady(cl, meta.ReconcileLaunchTemplateFailed, err.Error())
+		return  ctrl.Result{}, err
 	}
 
 	log.Info("Reconciling network")
 	err = cloud.ReconcileNetwork(ctx, r.Client, &cl, &capiCluster)
 	if err != nil {
-		return appv1alpha1.ClusterNotReady(cl, meta.ReconcileNetworkFailed, err.Error()), ctrl.Result{}, err
+		cl = appv1alpha1.ClusterNotReady(cl, meta.ReconcileNetworkFailed, err.Error())
+		return ctrl.Result{}, err
 	}
 
+	return r.clusterStateChange(ctx, )
+}
+
+
+
+func (r *ClusterReconciler) clusterStateChange(ctx context.Context, cl *appv1alpha1.Cluster) (ctrl.Result, error){
+	log := setDefaultLog(ctx)
+
 	log.Info("Checking if has diff between templates", "spec", cl.Spec, "status", cl.Status)
-	if r.hasDiff(ctx, &cl) {
-		vars, err := r.templateVariables(ctx, r.Client, &cl)
+	if r.hasDiff(ctx, cl) {
+		vars, err := r.fillTemplateVariables(ctx, r.Client, cl)
 		if err != nil {
-			return appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error()), ctrl.Result{}, err
+			cl = appv1alpha1.ClusterNotReady(cl, meta.TemplateAppliedFailed, err.Error())
+			return ctrl.Result{}, err
 		}
 
 		objs, err := template.GetObjs(fs.FS, "clustertemplates", cl.GetTemplate(), vars)
@@ -257,7 +263,8 @@ func (r *ClusterReconciler) reconcile(ctx context.Context, cl appv1alpha1.Cluste
 	return appv1alpha1.ClusterNotReady(cl, meta.WaitProvisionReason, "wait cluster to be provisioned"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 }
 
-func (r *ClusterReconciler) templateVariables(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (map[string]interface{}, error) {
+
+func (r *ClusterReconciler) fillTemplateVariables(ctx context.Context, c client.Client, cl *appv1alpha1.Cluster) (map[string]interface{}, error) {
 	vars := make(map[string]interface{})
 	v := make(map[string]interface{})
 	err := template.SetVariablesFromEnvVar(ctx, template.VariablesInput{
@@ -364,10 +371,7 @@ func (r *ClusterReconciler) machineTypeChanged(cl *appv1alpha1.Cluster) (bool, [
 }
 
 func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *appv1alpha1.Cluster) bool {
-	log, err := logr.FromContext(ctx)
-	if err != nil {
-		log = ctrl.Log
-	}
+	log := setDefaultLog(ctx)
 
 	if cl.Spec.KubernetesVersion != cl.Status.KubernetesVersion {
 		log.Info("kubernetes version changed", "old", cl.Status.KubernetesVersion, "new", cl.Spec.KubernetesVersion)
@@ -432,10 +436,7 @@ func (r *ClusterReconciler) hasDiff(ctx context.Context, cl *appv1alpha1.Cluster
 }
 
 func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cluster) error {
-	log, err := logr.FromContext(ctx)
-	if err != nil {
-		log = ctrl.Log
-	}
+	log := setDefaultLog(ctx)
 
 	const (
 		cniCalicoName = "calico"
@@ -448,7 +449,7 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 		Namespace: cl.GetNamespace(),
 	}
 	release := appv1alpha1.HelmRelease{}
-	err = r.Get(ctx, key, &release)
+	err := r.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return err
@@ -482,10 +483,7 @@ func (r *ClusterReconciler) reconcileCNI(ctx context.Context, cl *appv1alpha1.Cl
 }
 
 func (r *ClusterReconciler) reconcileClusterAutoscaler(ctx context.Context, cl *appv1alpha1.Cluster) error {
-	log, err := logr.FromContext(ctx)
-	if err != nil {
-		log = ctrl.Log
-	}
+	log := setDefaultLog(ctx)
 
 	const (
 		chartName    = "cluster-autoscaler"
@@ -498,7 +496,7 @@ func (r *ClusterReconciler) reconcileClusterAutoscaler(ctx context.Context, cl *
 		Namespace: cl.GetNamespace(),
 	}
 	release := appv1alpha1.HelmRelease{}
-	err = r.Get(ctx, key, &release)
+	err := r.Get(ctx, key, &release)
 	if err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return err
@@ -534,14 +532,11 @@ func (r *ClusterReconciler) reconcileClusterAutoscaler(ctx context.Context, cl *
 }
 
 func (r *ClusterReconciler) reconcileDelete(ctx context.Context, undistroCluster *appv1alpha1.Cluster) (ctrl.Result, error) {
-	log, err := logr.FromContext(ctx)
-	if err != nil {
-		log = ctrl.Log
-	}
+	log := setDefaultLog(ctx)
 
 	log.Info("Cluster is under deletion")
 	capiCluster := capi.Cluster{}
-	err = r.Get(ctx, client.ObjectKeyFromObject(undistroCluster), &capiCluster)
+	err := r.Get(ctx, client.ObjectKeyFromObject(undistroCluster), &capiCluster)
 	if apierrors.IsNotFound(err) {
 		if controllerutil.ContainsFinalizer(undistroCluster, meta.Finalizer) {
 			controllerutil.RemoveFinalizer(undistroCluster, meta.Finalizer)
@@ -568,14 +563,11 @@ func (r *ClusterReconciler) reconcileDelete(ctx context.Context, undistroCluster
 }
 
 func (r *ClusterReconciler) removeDeps(ctx context.Context, undistroCluster appv1alpha1.Cluster) error {
-	log, err := logr.FromContext(ctx)
-	if err != nil {
-		log = ctrl.Log
-	}
+	log := setDefaultLog(ctx)
 	log.Info("Removing UnDistro Cluster dependencies")
 	releaseClusterName := fmt.Sprintf("%s/%s", undistroCluster.GetNamespace(), undistroCluster.Name)
 	releaseList := appv1alpha1.HelmReleaseList{}
-	err = r.List(ctx, &releaseList)
+	err := r.List(ctx, &releaseList)
 	if err != nil {
 		return err
 	}
@@ -615,6 +607,14 @@ func (r *ClusterReconciler) capiToUndistro(o client.Object) []ctrl.Request {
 			NamespacedName: client.ObjectKeyFromObject(capiCluster),
 		},
 	}
+}
+
+func setDefaultLog(ctx context.Context) logr.Logger {
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+	return log
 }
 
 func (r *ClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
