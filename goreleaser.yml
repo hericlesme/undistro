@@ -128,6 +128,11 @@ nfpms:
           - nss
 
 release:
+  prerelease: auto
+  header: |
+      ## UnDistro Release - ({{ .Date }})
+
+      Welcome to this new release!
   github:
     owner: getupio-undistro
     name: undistro
