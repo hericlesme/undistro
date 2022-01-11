@@ -1,0 +1,1098 @@
+.createClusterOptionscontainer {
+  width: 720px;
+  height: 600px;
+  margin: auto;
+  box-shadow: 12px 12px 20px #000000;
+}
+
+.modalDialogTitleBar {
+  width: 100%;
+  height: 24px;
+  display: flex;
+  flex-direction: row;
+  background-color: var(--background-light);
+}
+
+.modalDialogTitleContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 24px;
+}
+
+.dialogTitlesSpan {
+  padding-top: 2px;
+}
+
+.dialogTitleRegular {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 20px;
+  color: var(--text-default);
+}
+
+.dialogTitleBold {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  color: var(--text-default);
+}
+
+.closeWindowBtnContainer {
+  display: flex;
+}
+
+.closeWindowBtn {
+  background-color: var(--background-light);
+  border: none;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  display: inline-block;
+  width: 32px;
+  height: 24px;
+  background-image: url('../../../../public/img/closeDialogIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.closeWindowBtn:hover {
+  background-color: var(--background-light-hover);
+  background-image: url('../../../../public/img/closeDialogIconHover.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.createClusterOptionsContainer {
+  height: calc(100% - 24px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--background-dialog);
+  gap: 40px;
+}
+
+.createClusterWizardContainer {
+  width: 390px;
+  height: 100px;
+  display: flex;
+  flex-direction: row;
+}
+
+.createClusterWizardContainer:hover {
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.createClusterWizardContainer:hover .wizardIconContainer {
+  background-color: var(--background-light-hover);
+}
+
+.createClusterWizardContainer:hover .wizardTitlesContainer {
+  border: 2px solid var(--border-light-hover);
+}
+
+.wizardIconContainer {
+  width: 100px;
+  height: 100px;
+  background-color: var(--background-medium);
+  background-image: url('../../../../public/img/createClusterWizardIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.createClusterWizardContainer:hover .wizardIconContainer {
+  background-image: url('../../../../public/img/createClusterWizardIconHover.svg');
+}
+
+.wizardTitlesContainer {
+  width: 290px;
+  height: 100px;
+  background-color: var(--background-strong);
+  border: 2px solid var(--background-strong);
+  box-sizing: border-box;
+}
+
+.createClusterAdvancedContainer {
+  width: 390px;
+  height: 100px;
+  display: flex;
+  flex-direction: row;
+}
+
+.createClusterAdvancedContainer:hover {
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.createClusterAdvancedContainer:hover .advancedIconContainer {
+  background-color: var(--background-light-hover);
+}
+
+.createClusterAdvancedContainer:hover .advancedTitlesContainer {
+  border: 2px solid var(--border-light-hover);
+}
+
+.advancedIconContainer {
+  width: 100px;
+  height: 100px;
+  background-color: var(--background-medium);
+  background-image: url('../../../../public/img/createClusterAdvancedIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.createClusterAdvancedContainer:hover .advancedIconContainer {
+  background-image: url('../../../../public/img/createClusterAdvancedIconHover.svg');
+}
+
+.advancedTitlesContainer {
+  width: 290px;
+  height: 100px;
+  background-color: var(--background-strong);
+  border: 2px solid var(--background-strong);
+  box-sizing: border-box;
+}
+
+.titleCreateStrong {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 30px;
+  color: var(--text-strong);
+  padding: 10px 0 4px 8px;
+}
+
+.titleCreateDescription {
+  font-style: normal;
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 20px;
+  color: var(--text-default);
+  padding: 4px 0 6px 8px;
+}
+
+[data-reach-dialog-content].dialogContent {
+  width: 720px;
+  height: 600px;
+  padding: 0;
+  margin: 10vh auto;
+  background: transparent;
+}
+
+.dialogOverlay {
+  backdrop-filter: blur(1px);
+  z-index: 1;
+}
+
+.createClusterWizContainer {
+  height: calc(100% - 24px);
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  background-color: var(--background-dialog);
+}
+
+.modalDialogTitleContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 24px;
+}
+
+.modalDialogCreateTypeContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 64px;
+  height: 24px;
+}
+
+.modalContentContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.modalTitleContainer {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalDialogButtonsContainer {
+  width: 100%;
+  min-height: 82px;
+  display: flex;
+  flex-direction: row;
+  padding: 24px;
+  align-items: self-end;
+}
+
+.modalWorkersContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0 24px 0;
+  border: 1px solid var(--border-medium);
+  position: relative;
+}
+
+.uploadFileButtonContainer {
+  height: 28px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.leftButtonContainer {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.rightButtonContainer {
+  display: flex;
+  flex-direction: row-reverse;
+  width: 100%;
+}
+
+.modalInputArea {
+  display: flex;
+  align-items: center;
+  min-width: 436px;
+  height: 100%;
+  margin: 0 auto 0 auto;
+}
+
+.modalAddonsArea {
+  display: flex;
+  align-items: center;
+  width: 480px;
+  height: 100%;
+  margin: 0 auto 0 auto;
+}
+
+.modalProgressArea {
+  margin: 0;
+}
+
+.modalControlPlaneBlock {
+  display: flex;
+  align-items: center;
+  width: 678px;
+  height: 100%;
+  margin: 0 auto 0 auto;
+}
+
+.modalWorkersBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 510px;
+  height: 100%;
+  margin: 0 auto 0 auto;
+}
+
+.addOnDescriptionTitlesContainer {
+  display: flex;
+  flex-direction: column;
+  margin-left: 40px;
+  height: 100%;
+  padding-left: 8px;
+  border-left: 1px solid var(--border-default);
+}
+
+.switchContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-width: 140px;
+}
+
+.workersTitleContainer {
+  display: flex;
+  justify-content: center;
+  min-width: 90px;
+  height: 20px;
+  position: absolute;
+  top: -12px;
+  background-color: var(--background-dialog);
+}
+
+.modalTableContainer {
+  width: 100%;
+  height: 102px;
+  margin-top: 12px;
+  border: 1px solid var(--border-medium);
+  padding: 1px;
+  overflow-y: scroll;
+}
+
+.modalTableContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.modalDeleteTableItemContainer {
+  height: 20px;
+  width: 20px;
+}
+
+.progressBarContainer {
+  height: 6px;
+  width: 100%;
+  background-color: var(--background-weak);
+  position: relative;
+}
+
+.progressDialogContainer {
+  height: 376px;
+  width: 100%;
+  padding: 24px;
+  background-color: var(--background-default);
+  overflow: auto;
+}
+
+.errorMessageContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+}
+
+.successMessageContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  padding-top: 72px;
+}
+
+.progressResultTextContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 0 32px 0;
+}
+
+.progressResultMessageContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 0 0 0;
+}
+
+/* titles */
+
+.modalDialogTitleBar {
+  width: 100%;
+  height: 24px;
+  display: flex;
+  flex-direction: row;
+  background-color: var(--background-light);
+}
+
+.dialogTitlesSpan {
+  padding-top: 2px;
+}
+
+.dialogTitleRegular {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 20px;
+  color: var(--text-default);
+}
+
+.dialogTitleItalic {
+  font-style: italic;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-default);
+}
+
+.dialogTitleBold {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  color: var(--text-default);
+}
+
+.modalCreateClusterTitle {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0.04em;
+  align-self: flex-end;
+  color: var(--text-default);
+}
+
+.addOnDescriptionTitles {
+  font-style: normal;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 14px;
+  letter-spacing: -0.02em;
+  color: var(--text-default);
+}
+
+.assistiveTextDefault {
+  display: none;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 10px;
+  line-height: 12px;
+  letter-spacing: 0.01em;
+  color: var(--text-default);
+}
+
+.progressResultText {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 22px;
+  letter-spacing: 0.04em;
+  color: var(--text-strong);
+}
+
+.progressErrorMessage {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0.02em;
+  padding-bottom: 8px;
+  color: var(--text-default);
+}
+
+.progressErrorCode {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  color: var(--text-strong);
+}
+
+/* buttons */
+
+.closeWindowBtnContainer {
+  display: flex;
+}
+
+.closeWindowBtn {
+  background-color: var(--background-light);
+  border: none;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  display: inline-block;
+  width: 32px;
+  height: 24px;
+  background-image: url('../../../../public/img/closeDialogIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+}
+
+.closeWindowBtn:hover {
+  background-color: var(--background-light-hover);
+  background-image: url('../../../../public/img/closeDialogIconHover.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+button.uploadFileIcon {
+  height: 28px;
+  width: 32px;
+  background-color: transparent;
+  border: none;
+  background-image: url('../../../../public/img/uploadYamlDefault.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+}
+
+button.uploadFileIcon:hover {
+  background-image: url('../../../../public/img/uploadYamlHover.svg');
+}
+
+button.uploadFileIcon:disabled {
+  background-image: url('../../../../public/img/uploadYamlDisabled.svg');
+}
+
+button.borderButtonDefault {
+  height: 34px;
+  border: 1px solid var(--border-default);
+  padding: 8px 24px 8px 24px;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+button.borderButtonDefault:hover {
+  background-color: var(--background-offwhite);
+}
+
+button.borderButtonDefault a {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  line-height: 18px;
+  text-transform: capitalize;
+  color: var(--text-default);
+}
+
+button.borderButtonDefault:hover a {
+  color: var(--text-dark);
+}
+
+button.borderButtonSuccess {
+  height: 34px;
+  border: 1px solid var(--border-success);
+  padding: 8px 24px 8px 24px;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+button.borderButtonSuccess:hover {
+  background-color: var(--success-background-default);
+}
+
+button.borderButtonSuccess a {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  line-height: 18px;
+  text-transform: capitalize;
+  color: var(--text-success);
+}
+
+button.borderButtonSuccess:hover a {
+  color: var(--text-dark);
+}
+
+button.borderButtonCritical {
+  height: 34px;
+  border: 1px solid var(--border-critical);
+  padding: 8px 24px 8px 24px;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+button.borderButtonCritical:hover {
+  background-color: var(--critical-background-default);
+}
+
+button.borderButtonCritical a {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  line-height: 18px;
+  text-transform: capitalize;
+  color: var(--text-critical);
+}
+
+button.borderButtonCritical:hover a {
+  color: var(--text-strong);
+}
+
+button.solidMdButtonDefault {
+  height: 22px;
+  border: none;
+  padding: 4px 12px 4px 12px;
+  background-color: var(--background-offwhite);
+  cursor: pointer;
+}
+
+button.solidMdButtonDefault:hover {
+  background-color: var(--background-white);
+}
+
+button.solidMdButtonDefault a {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 14px;
+  text-transform: capitalize;
+  color: var(--text-dark);
+}
+
+button.deleteTableItem {
+  height: 20px;
+  width: 20px;
+  background-color: transparent;
+  border: none;
+  background-image: url('../../../../public/img/modalDeleteTableItemDefault.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+}
+
+button.deleteTableItem:hover {
+  background-image: url('../../../../public/img/modalDeleteTableItemHover.svg');
+}
+
+/* form elements*/
+
+.modalForm {
+  width: 100%;
+}
+
+.inputBlock {
+  height: 68px;
+  flex-direction: column;
+  flex-grow: 1;
+  margin: 0 0 2px 0;
+}
+
+.addOnInputBlock {
+  height: 68px;
+  width: 100%;
+  margin: 0 0 16px 0;
+}
+
+.inputBlockSmall {
+  height: 68px;
+  min-width: 90px;
+  max-width: 90px;
+  margin: 0 0 2px 0;
+}
+
+.addOnBlock {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 28px;
+  width: 100%;
+  margin: 0 0 16px 0;
+}
+
+.infraNodeBlock {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 28px;
+  width: 100%;
+  margin: 0 0 2px 0;
+}
+
+.addButtonBlock {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 22px;
+  width: 100%;
+  margin: 0 0 2px 0;
+}
+
+.inputBlockTextArea {
+  height: 118px;
+  width: 100%;
+  margin: 0 0 2px 0;
+}
+
+.inputRow {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  gap: 8px;
+}
+
+.controlPlaneInputRow {
+  display: flex;
+  flex-direction: row;
+  margin: 0 auto 24px auto;
+  width: 510px;
+  gap: 8px;
+}
+
+.workersInputRow {
+  display: flex;
+  flex-direction: row;
+  margin: 0 auto 0 auto;
+  width: 510px;
+  gap: 8px;
+}
+
+.input100 {
+  width: 100%;
+}
+
+.createClusterLabel {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.03em;
+  margin-right: 8px;
+  color: var(--text-default);
+}
+
+.createClusterTextInput {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  margin-top: 2px;
+  padding-left: 8px;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0.03em;
+  border-style: solid;
+  border-width: 0 0 1px 0;
+  border-color: var(--border-light);
+  background-color: var(--background-weak);
+  color: var(--text-strong);
+}
+
+.textAreaInput {
+  height: 80px !important;
+  align-items: flex-start !important;
+  width: 100%;
+  resize: none;
+}
+
+.inputUploadFileBlock {
+  height: 30px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.inputUploadFileBlock > input {
+  width: 100%;
+}
+
+.createClusterTextInput::placeholder {
+  color: var(--text-disabled);
+}
+
+.createClusterTextSelect {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  margin-top: 2px;
+  padding-left: 8px;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0.03em;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none; /* Remove default arrow */
+  background-image: url('./../../../../public/img/arrowDown.svg'); /* Add custom arrow */
+  background-repeat: no-repeat;
+  background-position: center right;
+  background-color: var(--background-weak);
+  border-style: solid;
+  border-width: 0 0 1px 0;
+  border-color: var(--border-light);
+  cursor: pointer;
+  color: var(--text-default);
+}
+
+select.createClusterTextSelect:required:invalid {
+  color: var(--text-disabled);
+}
+
+select.createClusterTextSelect option {
+  color: var(--text-default);
+}
+
+select.createClusterTextSelect option:invalid {
+  color: var(--text-disabled);
+}
+
+select.createClusterTextSelect option:disabled {
+  color: var(--text-disabled);
+}
+
+/* switch */
+
+.switch {
+  /* slider container */
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+}
+
+.switch input {
+  /* hide default checkbox */
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  /* slider */
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--background-medium);
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--background-strong);
+  -webkit-transition: 0.1s;
+  transition: 0.1s;
+}
+
+input:checked + .slider {
+  background-color: var(--success-background-default);
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(14px);
+  -ms-transform: translateX(14px);
+  transform: translateX(14px);
+}
+
+.slider.round {
+  /* rounded slider */
+  border-radius: 9px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* tables */
+
+table.modalWorkersTable {
+  width: 100%;
+}
+
+table.modalWorkersTable tr {
+  height: 22px;
+  background-color: transparent;
+}
+
+table.modalWorkersTable tr:hover {
+  background-color: var(--background-weak);
+  cursor: pointer;
+}
+
+table.modalWorkersTable td {
+  max-height: 22px;
+  padding: 0 0 0 6px;
+}
+
+table.modalWorkersTable td a {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.03em;
+  color: var(--text-default);
+}
+
+.modalTableRow {
+  display: flex;
+  flex-direction: row;
+  height: 22px;
+  width: 100%;
+}
+
+.modalTableItem {
+  width: 100%;
+}
+
+/* progress bar */
+
+.progressBar {
+  position: absolute;
+  height: 6px;
+  width: 35%;
+  background-color: var(--success-background-default);
+  animation: loading 4s linear infinite;
+}
+
+@keyframes loading {
+  0% {
+    left: 0%;
+    right: 100%;
+    width: 0%;
+  }
+  10% {
+    left: 0%;
+    right: 75%;
+    width: 25%;
+  }
+  90% {
+    right: 0%;
+    left: 75%;
+    width: 25%;
+  }
+  100% {
+    left: 100%;
+    right: 0%;
+    width: 0%;
+  }
+}
+
+.progressBarSuccess {
+  height: 6px;
+  width: 100%;
+  background-color: var(--success-background-default);
+}
+
+.progressBarError {
+  height: 6px;
+  width: 100%;
+  background-color: var(--critical-background-default);
+}
+
+/* progress dialog */
+
+ol.progressDialog {
+  width: 100%;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+ol.progressDialog li {
+  /* height: 24px; */
+}
+
+ol.progressDialog li a {
+  font-family: 'Ubuntu Mono', monospace;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 16px;
+  color: var(--text-default);
+}
+
+.createClusterErrorIcon {
+  width: 106px;
+  height: 103px;
+  /* background-image: url("../../../../public/img/createClusterErrorIcon.svg"); */
+  background-repeat: no-repeat;
+  background-position: center right;
+}
+
+.createClusterSuccessIcon {
+  width: 106px;
+  height: 103px;
+  /* background-image: url("../../../../public/img/createClusterSuccessIcon.svg"); */
+  background-repeat: no-repeat;
+  background-position: center right;
+}
+
+/* justify */
+
+.justifyRight {
+  justify-content: right;
+}
+
+.justifyLeft {
+  justify-content: left;
+}
+
+.justifyCenter {
+  justify-content: center;
+}
+
+/* Add-Ons */
+
+.modalSubnetContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  position: relative;
+}
+
+.modalSubnetBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 638px;
+  height: 100%;
+}
+
+.subnetInputRow {
+  display: flex;
+  flex-direction: row;
+  margin: 0 auto 0 auto;
+  width: 638px;
+  gap: 8px;
+}
+
+.infraNetworkInputRowSmall {
+  display: flex;
+  flex-direction: row;
+  margin: 0 auto 0 auto;
+  width: 318px;
+  gap: 8px;
+}
+
+.bordered {
+  border: 1px solid var(--border-medium);
+}
+
+.inputBlock {
+  height: 68px;
+  margin: 0 0 2px 0;
+}
+
+.inputFit {
+  width: 100%;
+}
+
+.inputSmall {
+  min-width: 90px;
+  max-width: 90px;
+}
+
+.inputMedium {
+  min-width: 172px;
+  max-width: 172px;
+}
+
+.inputLarge {
+  min-width: 260px;
+  max-width: 260px;
+}
+
+.inputBlockTextArea {
+  height: 118px;
+  width: 100%;
+  margin: 0 0 2px 0;
+}

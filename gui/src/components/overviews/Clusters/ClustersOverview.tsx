@@ -1,3 +1,5 @@
+import type { Cluster } from '@/types/cluster'
+
 import { createRef, useEffect, useState, useCallback, VFC } from 'react'
 import { useRouter } from 'next/router'
 import { useResizeDetector } from 'react-resize-detector'
@@ -5,13 +7,12 @@ import { useResizeDetector } from 'react-resize-detector'
 import { MenuActions } from '@/components/MenuActions/MenuActions'
 import { ContentNotFound } from '@/components/ContentNotFound'
 import { ClustersOverviewRow, ClustersOverviewEmptyRow, ClustersOverviewFooter } from '@/components/overviews/Clusters'
-
 import { useClusters } from '@/contexts/ClusterContext'
 import { paginate } from '@/helpers/pagination'
-import { Cluster } from '@/lib/cluster'
 import { useFetch } from '@/hooks/query'
 
 import styles from '@/components/overviews/Clusters/ClustersOverview.module.css'
+import { DeleteCluster } from '@/components/modals/Critical/DeleteCluster'
 
 type ClusterOverviewProps = {
   page: string
@@ -35,7 +36,7 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
   const [pageSize, setPageSize] = useState<number>(0)
   const [initialContainerSize, setInitialContainerSize] = useState<number>(0)
 
-  const [isOpen, setIsOpen] = useState<boolean>(false)
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
   const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 })
 
   const columns = ['provider', 'flavor', 'k8s version', 'cluster group', 'machines', 'age', 'status']
@@ -55,15 +56,41 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
     }
   }
 
+  const getClustersByName = (clusterNames: string[]) => {
+    return clusters?.filter(c => clusterNames.includes(c.name))
+  }
+
+  const toggleClusterSelection = clusterName => event => {
+    event.stopPropagation()
+    if (event.ctrlKey) {
+      let cls: string[] = [...selectedClusters]
+      if (cls.includes(clusterName)) {
+        cls = cls.filter(c => c !== clusterName)
+      } else {
+        cls.push(clusterName)
+      }
+      setSelectedClusters(cls)
+    } else {
+      setSelectedClusters([clusterName])
+    }
+
+    if (event.target.className.includes('actions') && selectedClusters.length > 0) {
+      handleClick(event)
+    } else {
+      setIsMenuOpen(false)
+    }
+  }
+
   const handleClick = event => {
     const { target } = event
+
     const targetRect = target.getBoundingClientRect()
 
     const tableContainer = document.getElementById('tableContainer')
     const tableContainerRect = tableContainer.getBoundingClientRect()
     const pointerOffset = 4
 
-    setIsOpen(true)
+    setIsMenuOpen(true)
     setMenuPosition({
       left: targetRect.left - tableContainerRect.left + pointerOffset,
       top: targetRect.bottom - tableContainerRect.top + pointerOffset
@@ -75,7 +102,7 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
     if (event.target.className.includes('actions')) {
       handleClick(event)
     } else {
-      setIsOpen(false)
+      setIsMenuOpen(false)
     }
   }, [])
 
@@ -143,7 +170,14 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
       if (clustersList[i] === undefined) {
         cls.push(<ClustersOverviewEmptyRow key={i} />)
       } else {
-        cls.push(<ClustersOverviewRow key={i} cluster={clustersList[i]} disabled={false} />)
+        cls.push(
+          <ClustersOverviewRow
+            onClick={toggleClusterSelection(clustersList[i].name)}
+            key={i}
+            cluster={clustersList[i]}
+            disabled={false}
+          />
+        )
       }
     }
     return cls
@@ -168,7 +202,7 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
               </div>
             </th>
             <th>
-              <div onClick={handleClick} className={styles.tableIconCol}>
+              <div className={styles.tableIconCol}>
                 <div className={styles.actionsIconAllDisabled}></div>
               </div>
             </th>
@@ -184,7 +218,7 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
         </thead>
         <tbody>{renderClusters()}</tbody>
       </table>
-      <MenuActions isOpen={isOpen} position={menuPosition} />
+      <MenuActions isOpen={isMenuOpen} position={menuPosition} clusters={getClustersByName(selectedClusters)} />
       <ClustersOverviewFooter
         total={clusters?.length || 0}
         currentPage={pageNumber}

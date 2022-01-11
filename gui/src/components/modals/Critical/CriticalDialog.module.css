@@ -1,0 +1,218 @@
+.criticalDialogOverlay {
+  backdrop-filter: blur(1px);
+  z-index: 1;
+}
+
+[data-reach-dialog-content].criticalDialogStripe {
+  width: 100%;
+  height: 340px;
+  display: flex;
+  justify-content: center;
+  background-color: var(--background-black);
+  margin-bottom: 80px;
+  margin: 20vh auto;
+  padding: 0;
+}
+
+.criticalDialogMessageContainer {
+  height: 100%;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 24px 0 24px;
+  align-items: center;
+}
+
+.criticalDialogObjectName {
+  font-style: normal;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 30px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-strong);
+}
+
+.criticalDialogIcon {
+  width: 56px;
+  height: 78px;
+  background-image: url('../../../../public/img/criticalDialogIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.warningDialogIcon {
+  width: 56px;
+  height: 78px;
+  background-image: url('../../../../public/img/warningDialogIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.successDialogIcon {
+  width: 56px;
+  height: 78px;
+  background-image: url('../../../../public/img/successDialogIcon.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.criticalDialogActionDescription {
+  font-style: normal;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 30px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-strong);
+}
+
+.criticalDialogActionAlertMessage {
+  font-style: normal;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  color: var(--text-critical);
+}
+
+.warningDialogActionAlertMessage {
+  font-style: normal;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  color: var(--text-warning);
+}
+
+.successDialogActionAlertMessage {
+  font-style: normal;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  color: var(--text-success);
+}
+
+.criticalDialogActionConfirmationContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding-top: 32px;
+  padding-bottom: 16px;
+}
+
+.criticalDialogConfirmationText {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  padding-right: 16px;
+  color: var(--text-default);
+}
+
+input.confirmationInputBox {
+  height: 34px;
+  width: 92px;
+  font-family: 'montserrat', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 22px;
+  padding-left: 16px;
+  border: none;
+  background-color: var(--background-strong);
+  color: var(--text-strong);
+}
+
+input.confirmationInputBox::-webkit-input-placeholder {
+  color: var(--text-disabled);
+}
+input.confirmationInputBox:-ms-input-placeholder {
+  color: var(--text-disabled);
+}
+input.confirmationInputBox::placeholder {
+  color: var(--text-disabled);
+}
+
+.criticalDialogBtnContainer {
+  display: flex;
+  flex-direction: row;
+  margin-top: auto;
+  padding-bottom: 24px;
+  gap: 140px;
+}
+
+.warningDialogBtnContainer {
+  display: flex;
+  flex-direction: row;
+  margin-top: auto;
+  padding-bottom: 24px;
+  gap: 140px;
+}
+
+.confirmBtnText {
+  width: 100px;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 30px;
+  text-align: center;
+  text-decoration: none;
+  text-transform: capitalize;
+  color: var(--text-default);
+}
+
+.cancelBtnText {
+  width: 100px;
+  height: 38px;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 30px;
+  text-align: center;
+  text-decoration: none;
+  text-transform: capitalize;
+  color: var(--text-default);
+}
+
+button.confirmDialogBtn {
+  background-color: transparent;
+  border: none;
+  display: inline-block;
+}
+
+button.confirmDialogBtn:hover:enabled .confirmBtnText {
+  font-size: 24px;
+  color: var(--text-strong);
+}
+
+button.confirmDialogBtn:disabled .confirmBtnText {
+  color: var(--text-disabled);
+}
+
+button.cancelDialogBtn {
+  width: 90px;
+  height: 38px;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 30px;
+  background-color: transparent;
+  border: none;
+  color: var(--text-default);
+  text-align: center;
+  text-decoration: none;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+button.cancelDialogBtn:hover .cancelBtnText {
+  font-size: 24px;
+  color: var(--text-strong);
+}
+
+button.cancelDialogBtn:disabled {
+  color: var(--text-disabled);
+}

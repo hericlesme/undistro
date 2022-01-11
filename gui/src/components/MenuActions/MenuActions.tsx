@@ -1,5 +1,8 @@
 import classNames from 'classnames'
 import styles from '@/components/MenuActions/MenuActions.module.css'
+import { Cluster } from '@/types/cluster'
+import { useEffect } from 'react'
+import { MODAL_TYPES, useModalContext } from '@/contexts/ModalContext'
 
 type MenuActionsPosition = {
   top: number
@@ -9,25 +12,46 @@ type MenuActionsPosition = {
 type MenuActionsProps = {
   isOpen: boolean
   position: MenuActionsPosition
+  clusters: Cluster[]
 }
 
-const MenuActions = ({ isOpen, position }: MenuActionsProps) => {
+const MenuActions = ({ isOpen, position, clusters }: MenuActionsProps) => {
+  const { showModal } = useModalContext()
+
+  const clusterStateToggle = (clusters: Cluster[]) => {
+    if (!clusters || clusters.length === 0) return
+
+    if (clusters[0].status === 'Paused') {
+      return {
+        label: 'Resume UnDistro',
+        class: styles.actionsMenuResumeClusterIcon,
+        action: () => showModal(MODAL_TYPES.RESUME_CLUSTER, { cluster: clusters[0] })
+      }
+    } else if (clusters[0].status === 'Ready') {
+      return {
+        label: 'Pause UnDistro',
+        class: styles.actionsMenuPauseClusterIcon,
+        action: () => showModal(MODAL_TYPES.PAUSE_CLUSTER, { cluster: clusters[0] })
+      }
+    }
+  }
+
   const actions = [
-    {
-      label: 'Pause UnDistro',
-      class: styles.actionsMenuPauseClusterIcon
-    },
+    clusterStateToggle(clusters),
     {
       label: 'Update K8s',
-      class: styles.actionsMenuUpdateClusterIcon
+      class: styles.actionsMenuUpdateClusterIcon,
+      action: () => console.log('update k8s')
     },
     {
       label: 'Cluster Settings',
-      class: styles.actionsMenuSettingsClusterIcon
+      class: styles.actionsMenuSettingsClusterIcon,
+      action: () => console.log('update k8s')
     },
     {
       label: 'Delete Cluster',
-      class: styles.actionsMenuDeleteClusterIcon
+      class: styles.actionsMenuDeleteClusterIcon,
+      action: () => showModal(MODAL_TYPES.DELETE_CLUSTER, { cluster: clusters[0] })
     }
   ]
 
@@ -40,14 +64,16 @@ const MenuActions = ({ isOpen, position }: MenuActionsProps) => {
     <div style={menuActionsStyles.position} className={menuActionsStyles.container}>
       <div className={styles.actionsMenu}>
         <ol className={styles.actionsMenuList}>
-          {actions.map(action => (
-            <li key={`action-${action.label}`} className={styles.actionsMenuList}>
-              <button className={styles.actionMenuItemContainer}>
-                <div className={action.class}></div>
-                <a className={styles.actionMenuItemText}>{action.label}</a>
-              </button>
-            </li>
-          ))}
+          {actions
+            .filter(e => e !== undefined)
+            .map(item => (
+              <li key={`action-${item.label}`} onClick={item.action} className={styles.actionsMenuList}>
+                <button className={styles.actionMenuItemContainer}>
+                  <div className={item.class}></div>
+                  <a className={styles.actionMenuItemText}>{item.label}</a>
+                </button>
+              </li>
+            ))}
         </ol>
       </div>
       <div className={styles.pointerContainerBorder}>

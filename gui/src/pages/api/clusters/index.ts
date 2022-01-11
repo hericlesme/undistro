@@ -1,14 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import type { Cluster } from '@/types/cluster'
+
 import { getSession } from 'next-auth/react'
 import { Session } from 'next-auth'
 
-import * as k8s from '@kubernetes/client-node'
 import * as request from 'request'
 
 import { clusterDataHandler } from '@/helpers/dataFetching'
 import { isIdentityEnabled } from '@/helpers/identity'
-import { Cluster } from '@/lib/cluster'
 import { DEFAULT_USER_GROUP } from '@/helpers/constants'
+import { getResourcePath, getServerAddress } from '@/helpers/server'
 
 type UnDistroSession = Session & {
   user?: {
@@ -33,22 +34,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
   }
 
-  const kc = new k8s.KubeConfig()
-  kc.loadFromDefault()
-  kc.applyToRequest(opts)
+  const server = getServerAddress(opts)
+  const url = getResourcePath({ server: server, kind: 'app', resource: 'clusters' })
 
-  request.get(
-    `${kc.getCurrentCluster().server}/apis/app.undistro.io/v1alpha1/clusters`,
-    opts,
-    (error, response, body) => {
-      if (error || response.statusCode !== 200) {
-        res.status(response.statusCode).json([])
-      }
-      if (response) {
-        clusters = clusterDataHandler(JSON.parse(body))
-        res.json(clusters)
-        res.status(200).end()
-      }
+  request.get(url, opts, (error, response, body) => {
+    if (error || response.statusCode !== 200) {
+      res.status(response.statusCode).json([])
     }
-  )
+    if (response) {
+      clusters = clusterDataHandler(JSON.parse(body))
+      res.json(clusters)
+      res.status(200).end()
+    }
+  })
 }

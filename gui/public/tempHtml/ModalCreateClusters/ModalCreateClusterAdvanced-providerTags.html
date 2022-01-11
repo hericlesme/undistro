@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" href="ModalCreateCluster.css">
+        <meta name="description" content="Template">
+        <meta name="keywords" content="html template">
+    </head>
+    <body>
+        
+        <div class="responsive" style="background-color:var(--background-default); display: flex; align-items: center;">
+
+            <div class="createClusterSubDialogContainer shadowRight">
+                <div class="modalSubDialogTitleContainer">
+                    <a class="modalCreateClusterTitle">add provider tags</a>
+                </div>
+                <div class="modalSubDialogInputContainer">
+                    <form id="nomeUnicoParaControlPlaneEworkers">
+                        <div class="modalSubDialogInputColumnBlock">
+                            <div class="inputBlock inputFit">
+                                <label class="createClusterLabel" for="advancedWorkersProviderTagKey">key</label><br>
+                                <input class="createClusterTextInput input100" placeholder="key" type="text" id="advancedWorkersProviderTagKey" name="advancedWorkersProviderTagKey">
+                                <a class="assistiveTextDefault">Assistive text default color</a>
+                            </div>
+                            <div class="inputBlock inputFit">
+                                <label class="createClusterLabel" for="advancedWorkersProviderTagValue">value</label><br>
+                                <input class="createClusterTextInput input100" placeholder="value" type="text" id="advancedWorkersProviderTagValue" name="advancedWorkersProviderTagValue">
+                                <a class="assistiveTextDefault">Assistive text default color</a>
+                            </div>
+                            <div class="addButtonBlock justifyRight">
+                                <button class="solidMdButtonDefault">
+                                    <a>add</a>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modalSubDialogButtonContainer">
+                    <button class="borderButtonSmallDefault">
+                        <a>close</a>
+                    </button>
+                </div>
+            </div>
+        </div> 
+    </body>
+</html>
+

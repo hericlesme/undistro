@@ -9,10 +9,6 @@
   z-index: 1;
 }
 
-.teste {
-  height: 84px;
-}
-
 /* LOGO */
 
 .topBarLogoArea {
@@ -25,7 +21,6 @@
 .topLogo {
   height: 16px;
 }
-
 
 /* TOP BAR MENU */
 
@@ -48,7 +43,6 @@
   height: 32px;
   background-color: var(--background-weak);
 }
-
 
 /* LOGOUT */
 

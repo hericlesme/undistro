@@ -1,0 +1,208 @@
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" href="ModalCreateCluster.css">
+        <meta name="description" content="Template">
+        <meta name="keywords" content="html template">
+    </head>
+    <body>
+        
+        <div class="responsive" style="background-color:var(--background-default); display: flex; align-items: center;">
+
+            <div class="createClusterModalContainer">
+
+                <div class="modalDialogTitleBar">
+
+                    <div class="modalDialogCreateTypeContainer">
+                        <span>
+                            <a class="dialogTitleItalic">Wizard</a>    
+                        </span>    
+                    </div>
+
+                    <div class="modalDialogTitleContainer">
+                        <span class="dialogTitlesSpan">
+                            <a class="dialogTitleRegular">CREATE</a>
+                            <a class="dialogTitleBold">CLUSTER</a>
+                        </span>
+                    </div>
+
+                    <div class="closeWindowBtnContainer">
+                        <button class="closeWindowBtn"></button>
+                    </div>
+
+                </div>
+
+                <div class="modalTitleContainer">
+                    <a class="modalCreateClusterTitle flexBottom">bastion</a>
+                </div>
+
+                <div class="modalContentContainer">
+                    <div class="modalBastionBlock">
+                        <form class="modalForm" id="wizardClusterForm">
+                            <div class="bastionSwitchInputRow  bastionSwitchMarginTop">
+                                <div class="bastionBlock">
+                                    <div class="switchContainer justifyRight">
+                                        <a class="createClusterLabel">enabled</a>
+                                        <label class="switch" for="bastionEnabled">
+                                            <input type="checkbox" id="bastionEnabled" name="bastionEnabled">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bastionSwitchInputRow">
+                                <div class="bastionBlock">
+                                    <div class="switchContainer justifyRight">
+                                        <a class="createClusterLabel">disable ingress rules</a>
+                                        <label class="switch" for="bastionDisableIngressRules">
+                                            <input type="checkbox" id="bastionDisableIngressRules" name="bastionDisableIngressRules">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bastionSwitchInputRow">
+                                <div class="bastionUserDefaultBlock">
+                                    <div class="switchContainer justifyLeft">
+                                        <a class="createClusterLabel">user default blocks CIDR:</a>
+                                        <div>
+                                            <a class="bastionDefaultBlocksTitle">000.000.000:000</a>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bastionInputRow rowMargin">
+                                <div class="inputBlock inputSmall">
+                                    <label class="createClusterLabel" for="bastionCPU">CPU</label><br>
+                                    <select class="createClusterTextSelect input100" id="bastionCPU" name="bastionCPU">
+                                        <option value="" disabled selected hidden>CPU</option>
+                                        <option value="option1">option1</option>
+                                        <option value="option2">option2</option>
+                                        <option value="option3">option3</option>
+                                    </select>
+                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                </div>
+                                <div class="inputBlock inputSmall">
+                                    <label class="createClusterLabel" for="bastionMem">mem</label><br>
+                                    <select class="createClusterTextSelect input100" id="bastionMem" name="bastionMem">
+                                        <option value="" disabled selected hidden>mem</option>
+                                        <option value="option1">option1</option>
+                                        <option value="option2">option2</option>
+                                        <option value="option3">option3</option>
+                                    </select>
+                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                </div>
+                                <div class="inputBlock inputFit">
+                                    <label class="createClusterLabel" for="bastionMachineType">machineType</label><br>
+                                    <select class="createClusterTextSelect input100" id="bastionMachineType" name="bastionMachineType">
+                                        <option value="" disabled selected hidden>machine type</option>
+                                        <option value="option1">option1</option>
+                                        <option value="option2">option2</option>
+                                        <option value="option3">option3</option>
+                                    </select>
+                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                </div>
+                            </div>
+
+                            <div class="modalSubnetContainer">
+                                <div class="modalSubnetBlock">
+                                    <div class="bastionInputRow">
+                                        <div class="inputBlock inputFit">
+                                            <label class="createClusterLabel" for="infraNetworkSubnetID">allowed blocks CIDR</label><br>
+                                            <div style="display: flex; flex-direction: row;">
+                                                <input class="createClusterTextInput input100" placeholder="allowed blocks" type="text" id="infraNetworkSubnetID" name="infraNetworkSubnetID">
+                                                <div class="addAlowedBlocksButtonContainer">
+                                                    <button class="addAllowedBlocks"></button>
+                                                </div>
+                                            </div>
+                                            <a class="assistiveTextDefault">Assistive text default color</a>
+                                        </div>
+                                    </div>
+
+                                    <div class="modalTableAllowedBlocksContainer bordered">
+                                        <table class="modalWorkersTable" id="wizardWorkersTable">
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <div class="modalTableRow">
+                                                            <div class="modalTableItem">
+                                                                <a>allowedBlock-0</a>
+                                                            </div>
+                                                            <div class="modalDeleteTableItemContainer">
+                                                                <button class="deleteTableItem"></button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="modalTableRow">
+                                                            <div class="modalTableItem">
+                                                                <a>allowedBlock-1</a>
+                                                            </div>
+                                                            <div class="modalDeleteTableItemContainer">
+                                                                <button class="deleteTableItem"></button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="modalTableRow">
+                                                            <div class="modalTableItem">
+                                                                <a>allowedBlock-2</a>
+                                                            </div>
+                                                            <div class="modalDeleteTableItemContainer">
+                                                                <button class="deleteTableItem"></button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="modalTableRow">
+                                                            <div class="modalTableItem">
+                                                                <a>allowedBlock-3</a>
+                                                            </div>
+                                                            <div class="modalDeleteTableItemContainer">
+                                                                <button class="deleteTableItem"></button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            
+                        </form>
+                    </div>
+                </div>
+
+                <div class="modalDialogButtonsContainer">
+                    <div class="leftButtonContainer">
+                        <button class="borderButtonDefault">
+                            <a>back</a>
+                        </button>
+                    </div>
+                    <div class="rightButtonContainer">
+                        <button class="borderButtonSuccess">
+                            <a>next</a>
+                        </button>
+                    </div>
+                </div>
+
+                
+
+            </div>
+
+        </div>
+            
+    </body>
+</html>
+

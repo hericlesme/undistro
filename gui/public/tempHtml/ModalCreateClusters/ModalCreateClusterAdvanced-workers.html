@@ -1,0 +1,456 @@
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" href="ModalCreateCluster.css">
+        <meta name="description" content="Template">
+        <meta name="keywords" content="html template">
+    </head>
+    <body>
+        
+        <div class="responsive" style="background-color:var(--background-default); display: flex; align-items: center;">
+            <div class="createClusterModalContainer">
+                <div class="modalDialogTitleBar">
+                    <div class="modalDialogCreateTypeContainer">
+                        <span>
+                            <a class="dialogTitleItalic">Advanced</a>    
+                        </span>    
+                    </div>
+                    <div class="modalDialogTitleContainer">
+                        <span class="dialogTitlesSpan">
+                            <a class="dialogTitleRegular">CREATE</a>
+                            <a class="dialogTitleBold">CLUSTER</a>
+                        </span>
+                    </div>
+                    <div class="closeWindowBtnContainer">
+                        <button class="closeWindowBtn"></button>
+                    </div>
+                </div>
+                <div class="modalTitleContainer">
+                    <a class="modalCreateClusterTitle">workers</a>
+                </div>
+                <div class="modalContentContainer">
+                    <div class="modalAdvancedWorkersBlock">
+                        <form class="modalForm" id="wizardClusterForm">
+                            <div class="modalAdvancedWorkersContainer bordered">
+                                <div class="advancedWorkersTitleContainer">
+                                    <div class="inputBlock inputLarge">
+                                        <label class="createClusterLabel" for="advancedWorkersGroupID">group ID</label><br>
+                                        <select class="createClusterTextSelect input100" id="advancedWorkersGroupID" name="advancedWorkersGroupID">
+                                            <option value="" disabled selected hidden>clusterName-mp-0</option>
+                                            <option value="option1">option1</option>
+                                            <option value="option2">option2</option>
+                                            <option value="option3">option3</option>
+                                        </select>
+                                        <a class="assistiveTextDefault">Assistive text default color</a>
+                                    </div>
+                                </div>
+                                <div class="advancedModalWorkersBlock">
+                                    <div class="advancedWorkersInputRow">
+                                        <div class="inputBlock inputSmall">
+                                            <label class="createClusterLabel" for="advancedControlPlaneReplicas">replicas</label><br>
+                                            <select class="createClusterTextSelect input100" id="advancedControlPlaneReplicas" name="advancedControlPlaneReplicas">
+                                                <option value="" disabled selected hidden>n#</option>
+                                                <option value="option1">option1</option>
+                                                <option value="option2">option2</option>
+                                                <option value="option3">option3</option>
+                                            </select>
+                                            <a class="assistiveTextDefault">Assistive text default color</a>
+                                        </div>
+                                        <div class="inputBlock inputMedium">
+                                            <label class="createClusterLabel" for="advancedControlPlaneSubnet">subnet</label><br>
+                                            <select class="createClusterTextSelect input100" id="advancedControlPlaneSubnet" name="advancedControlPlaneSubnet">
+                                                <option value="" disabled selected hidden>n#</option>
+                                                <option value="option1">option1</option>
+                                                <option value="option2">option2</option>
+                                                <option value="option3">option3</option>
+                                            </select>
+                                            <a class="assistiveTextDefault">Assistive text default color</a>
+                                        </div>
+                                        <div class="inputBlock inputSmall">
+                                            <label class="createClusterLabel" for="controlPlaneCPU">CPU</label><br>
+                                            <select class="createClusterTextSelect input100" id="controlPlaneCPU" name="controlPlaneCPU">
+                                                <option value="" disabled selected hidden>CPU</option>
+                                                <option value="option1">option1</option>
+                                                <option value="option2">option2</option>
+                                                <option value="option3">option3</option>
+                                            </select>
+                                            <a class="assistiveTextDefault">Assistive text default color</a>
+                                        </div>
+                                        <div class="inputBlock inputSmall">
+                                            <label class="createClusterLabel" for="controlPlaneMem">mem</label><br>
+                                            <select class="createClusterTextSelect input100" id="controlPlaneMem" name="controlPlaneMem">
+                                                <option value="" disabled selected hidden>mem</option>
+                                                <option value="option1">option1</option>
+                                                <option value="option2">option2</option>
+                                                <option value="option3">option3</option>
+                                            </select>
+                                            <a class="assistiveTextDefault">Assistive text default color</a>
+                                        </div>
+                                        <div class="inputBlock inputFit">
+                                            <label class="createClusterLabel" for="controlPlaneMachineType">machineType</label><br>
+                                            <select class="createClusterTextSelect input100" id="controlPlaneMachineType" name="controlPlaneMachineType">
+                                                <option value="" disabled selected hidden>machine type</option>
+                                                <option value="option1">option1</option>
+                                                <option value="option2">option2</option>
+                                                <option value="option3">option3</option>
+                                            </select>
+                                            <a class="assistiveTextDefault">Assistive text default color</a>
+                                        </div>
+                                    </div>
+                                    <div class="advancedWorkersInputRow">
+                                        <div class="advancedWorkersSwitchBlock">
+                                            <div class="advancedWorkersInfraNodeContainer justifyCenter">
+                                                <div class="switchContainer justifyCenter">
+                                                    <a class="createClusterLabel">infraNode</a>
+                                                    <label class="switch" for="advancedWorkersInfraNodeSwitch">
+                                                        <input type="checkbox" id="advancedWorkersInfraNodeSwitch" name="advancedWorkersInfraNodeSwitch">
+                                                        <span class="slider round"></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="advancedWorkersAutoScaleContainer bordered justifyCenter">
+                                                <div class="switchContainer justifyCenter">
+                                                    <a class="createClusterLabel">enable auto scale</a>
+                                                    <label class="switch" for="advancedWorkersAutoScaleSwitch">
+                                                        <input type="checkbox" id="advancedWorkersAutoScaleSwitch" name="advancedWorkersAutoScaleSwitch">
+                                                        <span class="slider round"></span>
+                                                    </label>
+                                                </div>
+                                                <div class="inputBlock inputSmall">
+                                                    <label class="createClusterLabel" for="advancedWorkersAutoScaleMinSize">min size</label><br>
+                                                    <input class="createClusterTextInput input100" placeholder="n#" type="text" id="advancedWorkersAutoScaleMinSize" name="advancedWorkersAutoScaleMinSize">
+                                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                                </div>
+                                                <div class="inputBlock inputSmall">
+                                                    <label class="createClusterLabel" for="advancedWorkersAutoScaleMaxSize">max size</label><br>
+                                                    <input class="createClusterTextInput input100" placeholder="n#" type="text" id="advancedWorkersAutoScaleMaxSize" name="advancedWorkersAutoScaleMaxSize">
+                                                    <a class="assistiveTextDefault">Assistive text default color</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="advancedWorkersSettingsRow">
+
+                                        <div class="advancedControlPlaneSettingsContainer">
+                                            <table class="modalWorkersTable removeBorderSpacing">
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            <a>taints</a>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>taint-0</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>taint-1</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>taint-2</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>taint-3</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>taint-4</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>taint-5</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot style="height: 22px;">
+                                                    <tr>
+                                                        <th>
+                                                            <button class="tableAddSettings"></button>
+                                                        </th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+        
+                                        <div class="advancedControlPlaneSettingsContainer">
+                                            <table class="modalWorkersTable removeBorderSpacing">
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            <a>labels</a>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>label-0</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>label-1</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>label-2</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>label-3</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>label-4</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>label-5</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot style="height: 22px;">
+                                                    <tr>
+                                                        <th>
+                                                            <button class="tableAddSettings"></button>
+                                                        </th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+        
+                                        <div class="advancedControlPlaneSettingsContainer">
+                                            <table class="modalWorkersTable removeBorderSpacing">
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            <a>provider tags</a>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>provTag-0</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>provTag-1</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>provTag-2</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>provTag-3</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>provTag-4</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="modalTableRow">
+                                                                <div class="modalTableItem">
+                                                                    <a>provTag-5</a>
+                                                                </div>
+                                                                <div class="modalDeleteTableItemContainer">
+                                                                    <button class="deleteTableItem"></button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot style="height: 22px;">
+                                                    <tr>
+                                                        <th>
+                                                            <button class="tableAddSettings"></button>
+                                                        </th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+
+                                </div>
+
+                                <div class="advancedWorkersSaveGroupContainer">
+                                    <div class="addButtonBlock justifyCenter">
+                                        <button class="solidMdButtonDefault">
+                                            <a>save group</a>
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            
+                        </form>
+                        
+                    </div>
+                </div>
+
+                <div class="modalDialogButtonsContainer">
+                    <div class="leftButtonContainer">
+                        <button class="borderButtonDefault">
+                            <a>back</a>
+                        </button>
+                    </div>
+                    <div class="rightButtonContainer">
+                        <button class="borderButtonSuccess">
+                            <a>next</a>
+                        </button>
+                    </div>
+                </div>
+
+                
+
+            </div>
+
+        </div>
+            
+    </body>
+</html>
+

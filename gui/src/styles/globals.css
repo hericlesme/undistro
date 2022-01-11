@@ -14,7 +14,7 @@ html {
 body {
   min-height: calc(100vh - 84px);
   font-family: 'montserrat', sans-serif;
-  top: 84px;
+  /* top: 84px; */
   margin: 0;
   padding: 0;
   background-color: var(--background-default);
@@ -22,7 +22,6 @@ body {
 
 *:focus {
   outline: none;
-  border: none;
 }
 
 .clearMargins {
@@ -97,4 +96,15 @@ body {
 
 .dialogWindowShadow {
   box-shadow: 12px 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--background-weak);
 }

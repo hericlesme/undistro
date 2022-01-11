@@ -77,12 +77,7 @@ const ClustersOverviewNavFooter: VFC<ClustersOverviewFooterProps> = (props: Clus
                 type="text"
               ></input>
             </div>
-            <Pagination
-              currentPage={props.currentPage}
-              totalCount={props.total}
-              pageSize={props.pageSize}
-              onPageChange={page => console.log(page)}
-            />
+            <Pagination currentPage={props.currentPage} totalCount={props.total} pageSize={props.pageSize} />
           </>
         )}
       </div>

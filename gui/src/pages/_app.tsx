@@ -5,13 +5,14 @@ import { CheckAuthRoute } from '@/components/AuthRoute/AuthRoute'
 import { AppProviders } from '@/contexts'
 
 import '@reach/dialog/styles.css'
+import '@reach/combobox/styles.css'
 import '@/styles/globals.css'
 
 function UndistroDashBoard({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
     <AppProviders>
       <SessionProvider session={session}>
-        <div className="backgroundDefault responsiveScreenHeight">
+        <div className="backgroundDefault">
           <CheckAuthRoute>
             <Component {...pageProps} />
           </CheckAuthRoute>
