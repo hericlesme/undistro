@@ -78,8 +78,8 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 	return nil
 }
 
-// ReconcileLaunchTemplate from clouds
-func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
+// ReconcileClusterConf from clouds
+func ReconcileClusterConf(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
 	switch cl.Spec.InfrastructureProvider.Name {
 	case appv1alpha1.Amazon.String():
 		return aws.ReconcileLaunchTemplate(ctx, r, cl, capiCluster)
@@ -89,11 +89,11 @@ func ReconcileLaunchTemplate(ctx context.Context, r client.Client, cl *appv1alph
 	return nil
 }
 
-// ReconcileIntegration from clouds
-func ReconcileIntegration(ctx context.Context, r client.Client, log logr.Logger, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
+// ReconcileProviderIntegration from clouds
+func ReconcileProviderIntegration(ctx context.Context, r client.Client, log logr.Logger, cl *appv1alpha1.Cluster) error {
 	switch cl.Spec.InfrastructureProvider.Name {
 	case appv1alpha1.OpenStack.String():
-		return openstack.ReconcileCloudProvider(ctx, r, log, cl, capiCluster)
+		return openstack.ReconcileCloudProvider(ctx, r, log, cl)
 	}
 	return nil
 }

@@ -35,6 +35,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	capi "sigs.k8s.io/cluster-api/api/v1alpha4"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -99,8 +100,7 @@ func (c CloudConf) renderConf() (string, error) {
 	return credsFileStr.String(), nil
 }
 
-func ReconcileCloudProvider(ctx context.Context, c client.Client, log logr.Logger, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
-
+func ReconcileCloudProvider(ctx context.Context, c client.Client, log logr.Logger, cl *appv1alpha1.Cluster) error {
 	cfg := config{}
 	err := json.Unmarshal(cl.Spec.InfrastructureProvider.ExtraConfiguration.Raw, &cfg)
 	if err != nil {
@@ -235,6 +235,11 @@ func ReconcileClusterSecret(ctx context.Context, c client.Client, cl *appv1alpha
 }
 
 func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Cluster, capiCluster *capi.Cluster) error {
+	log, err := logr.FromContext(ctx)
+	if err != nil {
+		log = ctrl.Log
+	}
+
 	u := unstructured.Unstructured{}
 	key := client.ObjectKey{}
 	u.SetGroupVersionKind(capiCluster.Spec.InfrastructureRef.GroupVersionKind())
@@ -242,27 +247,36 @@ func ReconcileNetwork(ctx context.Context, r client.Client, cl *appv1alpha1.Clus
 		Name:      capiCluster.Spec.InfrastructureRef.Name,
 		Namespace: capiCluster.Spec.InfrastructureRef.Namespace,
 	}
-	err := r.Get(ctx, key, &u)
+
+	log.Info("Retrieving cluster obj")
+	err = r.Get(ctx, key, &u)
 	if err != nil {
 		return client.IgnoreNotFound(err)
 	}
-	return clusterNetwork(cl, u)
+	log.Info("CAPO cluster object", "object", u.Object)
+	return clusterNetwork(log, cl, u)
 }
 
-func clusterNetwork(cl *appv1alpha1.Cluster, u unstructured.Unstructured) error {
+func clusterNetwork(log logr.Logger, cl *appv1alpha1.Cluster, u unstructured.Unstructured) error {
 	host, ok, err := unstructured.NestedString(u.Object, "spec", "controlPlaneEndpoint", "host")
 	if err != nil {
 		return err
 	}
-	if ok && host != "" {
+	log.Info("Control Plane endpoint host from child cluster", "host", host)
+	if ok && host != "" && cl.Spec.ControlPlane.Endpoint.Host == "" {
 		cl.Spec.ControlPlane.Endpoint.Host = host
 	}
+	log.Info("Control Plane endpoint host from child cluster assign to spec", "host", cl.Spec.ControlPlane.Endpoint.Host)
+
 	port, ok, err := unstructured.NestedInt64(u.Object, "spec", "controlPlaneEndpoint", "port")
 	if err != nil {
 		return err
 	}
+	log.Info("Control Plane endpoint port from child cluster", "port", port)
 	if ok && port != 0 {
 		cl.Spec.ControlPlane.Endpoint.Port = int32(port)
 	}
+	log.Info("Control Plane endpoint port from child cluster", "port", cl.Spec.ControlPlane.Endpoint.Port)
+	log.Info("UnDistro cluster object", "object", cl)
 	return nil
 }

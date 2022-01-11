@@ -261,7 +261,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, hr appv1alpha1.He
 			return appv1alpha1.HelmReleaseNotReady(hr,
 				meta.DependencyNotReadyReason, err.Error()), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
-		log.Info("all dependencies are ready, proceeding with release")
+		log.Info("All dependencies are ready, proceeding with release")
 	}
 	restClientGetter, err := r.getRESTClientGetter(ctx, hr)
 	if err != nil {
@@ -269,14 +269,14 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, hr appv1alpha1.He
 			return hr, ctrl.Result{}, err
 		}
 		if _, isSetupChart := hr.Annotations[meta.SetupAnnotation]; isSetupChart {
-			return appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "wait kubeconfig to be available"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+			return appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "Wait kubeconfig to be available"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
 		return hr, ctrl.Result{}, nil
 	}
 	restCfg, err := restClientGetter.ToRESTConfig()
 	if err != nil {
 		if _, isCNIChart := hr.Annotations[meta.SetupAnnotation]; isCNIChart {
-			return appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "wait kubeconfig to be available"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+			return appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "Wait kubeconfig to be available"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
 		return hr, ctrl.Result{}, err
 	}
@@ -285,7 +285,7 @@ func (r *HelmReleaseReconciler) reconcile(ctx context.Context, hr appv1alpha1.He
 	})
 	if err != nil {
 		if _, isCNIChart := hr.Annotations[meta.SetupAnnotation]; isCNIChart {
-			return appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "wait kubeconfig to be available"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+			return appv1alpha1.HelmReleaseNotReady(hr, meta.WaitProvisionReason, "Wait kubeconfig to be available"), ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
 		return hr, ctrl.Result{}, err
 	}
@@ -658,10 +658,12 @@ func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, hr appv1alp
 		}
 		return ctrl.Result{}, nil
 	}
+
 	runner, err := helm.NewRunner(restClient, hr.Spec.TargetNamespace, log)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+
 	rel, err := runner.ObserveLastRelease(hr)
 	if err != nil {
 		controllerutil.RemoveFinalizer(&hr, meta.Finalizer)
@@ -671,6 +673,7 @@ func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, hr appv1alp
 		}
 		return ctrl.Result{}, nil
 	}
+
 	if rel == nil {
 		controllerutil.RemoveFinalizer(&hr, meta.Finalizer)
 		_, err = util.CreateOrUpdate(ctx, r.Client, &hr)
@@ -679,6 +682,7 @@ func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, hr appv1alp
 		}
 		return ctrl.Result{}, nil
 	}
+
 	err = runner.Uninstall(hr)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -692,6 +696,7 @@ func (r *HelmReleaseReconciler) reconcileDelete(ctx context.Context, hr appv1alp
 			return ctrl.Result{Requeue: true}, nil
 		}
 	}
+
 	// Remove our finalizer from the list and update it.
 	controllerutil.RemoveFinalizer(&hr, meta.Finalizer)
 	_, err = util.CreateOrUpdate(ctx, r.Client, &hr)

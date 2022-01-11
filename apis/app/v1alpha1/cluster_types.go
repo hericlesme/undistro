@@ -269,7 +269,7 @@ var InvalidMP = errors.New("invalid machinepool")
 func ClusterProgressing(p *Cluster) *Cluster {
 	p.Status.Conditions = []metav1.Condition{}
 	msg := "Reconciliation in progress"
-	meta.SetResourceCondition(p, meta.ReadyCondition, metav1.ConditionUnknown, meta.ProgressingReason, msg)
+	meta.SetResourceCondition(p, meta.ReadyCondition, metav1.ConditionFalse, meta.ProgressingReason, msg)
 	return p
 }
 
