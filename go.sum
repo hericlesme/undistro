@@ -493,6 +493,8 @@ github.com/garyburd/redigo v0.0.0-20150301180006-535138d7bcd7 h1:LofdAjjjqCSXMwL
 github.com/garyburd/redigo v0.0.0-20150301180006-535138d7bcd7/go.mod h1:NR3MbYisc3/PwhQ00EMzDiPmrwpPxAn5GI05/YaO1SY=
 github.com/getkin/kin-openapi v0.76.0/go.mod h1:660oXbgy5JFMKreazJaQTw7o+X00qeSyhcnluiMv+Xg=
 github.com/getsentry/raven-go v0.2.0/go.mod h1:KungGk8q33+aIAZUIVWZDr2OfAEBsO49PX4NzFV5kcQ=
+github.com/getupio-undistro/clilib v0.0.2 h1:ar/DmNAjaxJw6Q4RLtY0x4zsNZUuSapol076EG70fn8=
+github.com/getupio-undistro/clilib v0.0.2/go.mod h1:zx0Pcrl4v05tUyimwh7o21jCkWEZvNCrW8BL3hAqlI8=
 github.com/getupio-undistro/controllerlib v0.0.3 h1:mjK51Tw2PiBaO3UwtPKKeen0Pakpv/9M1T+BP9JYT5c=
 github.com/getupio-undistro/controllerlib v0.0.3/go.mod h1:kOvWeqVQxJaTPkyooGyvPABzKcfb4R7bJH7Ln3Nh7Ms=
 github.com/getupio-undistro/meta v0.0.0-20211220192614-ed32e951ac3b h1:pJ9ChUw5bmSoC1di0yqeGq5l67iJmX32rO4PUqVS+kE=
