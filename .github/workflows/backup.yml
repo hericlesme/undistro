@@ -1,0 +1,38 @@
+name: Backup
+on:
+  push:
+    branches:
+      - main
+jobs:
+  s3_backup:
+    runs-on: ubuntu-latest
+    env:
+      DIRECTORY: out
+      FILE_NAME: ${{ github.ref_name }}.zip
+      BUCKET: undistro-github-backup
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Create temporary directory
+        run: mkdir ${{ env.DIRECTORY }}
+
+      - name: Zip files into temporary directory
+        uses: montudor/action-zip@v1
+        with:
+          args: zip -qq -r ${{ env.DIRECTORY }}/${{ env.FILE_NAME }} .
+
+      - name: Synchronize to s3
+        uses: peter-evans/s3-backup@v1
+        env:
+          ACCESS_KEY_ID: ${{ secrets.BACKUP_AWS_ACCESS_KEY_ID }}
+          SECRET_ACCESS_KEY: ${{ secrets.BACKUP_AWS_SECRET_ACCESS_KEY }}
+          MIRROR_TARGET: ${{ env.BUCKET }}/${{ github.repository }}/
+          MIRROR_SOURCE: ${{ env.DIRECTORY }}
+        with:
+          args: --overwrite
+
+      - name: Delete temporary directory
+        run: rm -r ${{ env.DIRECTORY }}
