@@ -30,7 +30,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"sigs.k8s.io/cluster-api/test/framework/exec"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -39,25 +38,17 @@ var _ = Describe("Create EC2 cluster 1.21", func() {
 		clusterClient client.Client
 	)
 	It("Should generate recommend cluster spec 1.21", func() {
-		cmd := exec.NewCommand(
-			exec.WithCommand("undistro"),
-			exec.WithArgs("create", "cluster", "ec2-21-e2e", "-n", "e2e", "--infra", "aws", "--flavor", "ec2", "--ssh-key-name", "undistro", "--generate-file"),
-		)
-		_, _, err := cmd.Run(context.Background())
+		_, _, err := undcli.Create("cluster", "ec2-21-e2e", "-n", "e2e", "--infra", "aws", "--flavor", "ec2", "--ssh-key-name", "undistro", "--generate-file")
 		Expect(err).ToNot(HaveOccurred())
 		_, err = os.Stat("ec2-21-e2e.yaml")
 		Expect(err).ToNot(HaveOccurred())
 
 	})
 	It("Should create EC2 cluster 1.21", func() {
-		cmd := exec.NewCommand(
-			exec.WithCommand("undistro"),
-			exec.WithArgs("apply", "-f", "../../testdata/ec2-21.yaml"),
-		)
-		out, _, err := cmd.Run(context.Background())
+		sout, _, err := undcli.Apply("-f", "../../testdata/ec2-21.yaml")
 		fmt.Println(err)
 		Expect(err).ToNot(HaveOccurred())
-		fmt.Println(string(out))
+		fmt.Println(sout)
 		Eventually(func() bool {
 			cl := appv1alpha1.Cluster{}
 			key := client.ObjectKey{
@@ -73,13 +64,9 @@ var _ = Describe("Create EC2 cluster 1.21", func() {
 			return meta.InReadyCondition(cl.Status.Conditions)
 		}, 240*time.Minute, 2*time.Minute).Should(BeTrue())
 		fmt.Println("Get Kubeconfig")
-		cmd = exec.NewCommand(
-			exec.WithCommand("undistro"),
-			exec.WithArgs("get", "kubeconfig", "ec2-21-e2e", "-n", "e2e", "--admin"),
-		)
-		out, _, err = cmd.Run(context.Background())
+		sout, _, err = undcli.Get("kubeconfig", "ec2-21-e2e", "-n", "e2e", "--admin")
 		Expect(err).ToNot(HaveOccurred())
-		getter := kube.NewMemoryRESTClientGetter(out, "")
+		getter := kube.NewMemoryRESTClientGetter([]byte(sout), "")
 		cfg, err := getter.ToRESTConfig()
 		Expect(err).ToNot(HaveOccurred())
 		Expect(cfg).ToNot(BeNil())
@@ -133,18 +120,14 @@ var _ = Describe("Create EC2 cluster 1.21", func() {
 			fmt.Println(list.Items)
 			fmt.Println(len(list.Items))
 			if undistroPodName != "" {
-				cmd := exec.NewCommand(
-					exec.WithCommand("undistro"),
-					exec.WithArgs("logs", undistroPodName, "-n", "undistro-system", "-c", "manager"),
-				)
-				out, stderr, err := cmd.Run(context.Background())
+				sout, serr, err := undcli.Logs(undistroPodName, "-n", "undistro-system", "-c", "manager")
 				if err != nil {
-					fmt.Println(string(stderr))
+					fmt.Println(serr)
 					fmt.Println(err)
-					fmt.Println(string(out))
+					fmt.Println(sout)
 					return list.Items
 				}
-				fmt.Println(string(out))
+				fmt.Println(sout)
 			}
 			return list.Items
 		}, 240*time.Minute, 2*time.Minute).Should(HaveLen(16))
@@ -157,12 +140,8 @@ var _ = Describe("Create EC2 cluster 1.21", func() {
 			}
 		}
 		fmt.Println("delete cluster")
-		cmd = exec.NewCommand(
-			exec.WithCommand("undistro"),
-			exec.WithArgs("delete", "-f", "../../testdata/ec2-21.yaml"),
-		)
-		out, _, err = cmd.Run(context.Background())
+		sout, _, err = undcli.Delete("-f", "../../testdata/ec2-21.yaml")
 		Expect(err).ToNot(HaveOccurred())
-		fmt.Println(string(out))
+		fmt.Println(sout)
 	}, float64(480*time.Minute))
 })

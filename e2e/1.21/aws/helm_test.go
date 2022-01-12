@@ -25,19 +25,14 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	"sigs.k8s.io/cluster-api/test/framework/exec"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("Helm Release", func() {
 	It("Should apply helm release", func() {
-		cmd := exec.NewCommand(
-			exec.WithCommand("undistro"),
-			exec.WithArgs("apply", "-f", "../../testdata/k8s-dash.yaml"),
-		)
-		out, _, err := cmd.Run(context.Background())
+		sout, _, err := undcli.Apply("-f", "../../testdata/k8s-dash.yaml")
 		Expect(err).ToNot(HaveOccurred())
-		fmt.Println(string(out))
+		fmt.Println(sout)
 		Eventually(func() []corev1.Pod {
 			pods := corev1.PodList{}
 			err = k8sClient.List(context.Background(), &pods, client.InNamespace("k8s-dash"))
@@ -66,13 +61,9 @@ var _ = Describe("Helm Release", func() {
 	}, float64(480*time.Minute))
 
 	It("Should upgrade helm release", func() {
-		cmd := exec.NewCommand(
-			exec.WithCommand("undistro"),
-			exec.WithArgs("apply", "-f", "../../testdata/k8s-dash-upgrade.yaml"),
-		)
-		out, _, err := cmd.Run(context.Background())
+		sout, _, err := undcli.Apply("-f", "../../testdata/k8s-dash-upgrade.yaml")
 		Expect(err).ToNot(HaveOccurred())
-		fmt.Println(string(out))
+		fmt.Println(sout)
 		Eventually(func() []corev1.Pod {
 			pods := corev1.PodList{}
 			err = k8sClient.List(context.Background(), &pods, client.InNamespace("k8s-dash"))

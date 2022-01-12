@@ -8,6 +8,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/aws/aws-sdk-go v1.40.32
 	github.com/coreos/go-oidc/v3 v3.0.0
+	github.com/getupio-undistro/clilib v0.0.2
 	github.com/getupio-undistro/controllerlib v0.0.3
 	github.com/getupio-undistro/meta v0.0.0-20211220192614-ed32e951ac3b
 	github.com/getupio-undistro/record v0.0.0-20211220182201-b9ed9c5aed90

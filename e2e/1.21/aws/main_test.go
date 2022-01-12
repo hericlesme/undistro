@@ -16,7 +16,6 @@ limitations under the License.
 package e2e_test
 
 import (
-	"bytes"
 	"context"
 	"flag"
 	"fmt"
@@ -27,6 +26,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getupio-undistro/clilib"
 	"github.com/getupio-undistro/undistro/pkg/scheme"
 	_ "github.com/go-task/slim-sprig"
 	. "github.com/onsi/ginkgo"
@@ -41,6 +41,7 @@ import (
 )
 
 var (
+	undcli    = &clilib.CLI{}
 	e2eRun    = flag.Bool("e2e", false, "set true to run e2e tests")
 	k8sClient client.Client
 )
@@ -66,13 +67,13 @@ func TestMain(m *testing.M) {
 		exec.WithCommand("bash"),
 		exec.WithArgs("-c", fmt.Sprintf("../../../testbin/docker-build-e2e.sh %s %s", regHost, sha)),
 	)
-	stout, stderr, err := cmd.Run(ctx)
+	stdout, stderr, err := cmd.Run(ctx)
 	if err != nil {
 		fmt.Println(string(stderr))
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	fmt.Println(string(stout))
+	fmt.Println(string(stdout))
 	cfg := map[string]interface{}{
 		"global": map[string]interface{}{
 			"undistroRepository": "localhost:5000",
@@ -105,35 +106,31 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 	fmt.Println("Install UnDistro")
-	cmd = exec.NewCommand(
-		exec.WithCommand("undistro"),
-		exec.WithArgs("--config", "undistro-config.yaml", "install"),
-	)
-	out, stderr, _ := cmd.Run(ctx)
-	fmt.Println(string(out))
-	if !bytes.Contains(out, []byte("Management cluster is ready to use.")) {
-		msg := "failed to install undistro: " + string(stderr)
+	sout, serr, _ := undcli.Install("--config", "undistro-config.yaml")
+	fmt.Println(sout)
+	if !strings.Contains(sout, "Management cluster is ready to use.") {
+		msg := "failed to install undistro: " + serr
 		fmt.Println(msg)
 		cmd = exec.NewCommand(
 			exec.WithCommand("kubectl"),
 			exec.WithArgs("get", "pods", "--all-namespaces"),
 		)
-		out, stderr, _ = cmd.Run(ctx)
-		fmt.Println(string(out))
+		stdout, stderr, _ = cmd.Run(ctx)
+		fmt.Println(string(stdout))
 		fmt.Println("err:", string(stderr))
 		cmd = exec.NewCommand(
 			exec.WithCommand("kubectl"),
 			exec.WithArgs("describe", "nodes"),
 		)
-		out, stderr, _ = cmd.Run(ctx)
-		fmt.Println(string(out))
+		stdout, stderr, _ = cmd.Run(ctx)
+		fmt.Println(string(stdout))
 		fmt.Println("err:", string(stderr))
 		cmd = exec.NewCommand(
 			exec.WithCommand("kubectl"),
 			exec.WithArgs("describe", "pods", "-n", "undistro-system"),
 		)
-		out, stderr, _ = cmd.Run(ctx)
-		fmt.Println(string(out))
+		stdout, stderr, _ = cmd.Run(ctx)
+		fmt.Println(string(stdout))
 		fmt.Println("err:", string(stderr))
 		podList := corev1.PodList{}
 		err = k8sClient.List(ctx, &podList, client.InNamespace("undistro-system"))
@@ -143,58 +140,50 @@ func TestMain(m *testing.M) {
 		}
 		for _, p := range podList.Items {
 			if strings.Contains(p.Name, "undistro") {
-				cmd = exec.NewCommand(
-					exec.WithCommand("undistro"),
-					exec.WithArgs("logs", p.Name, "-n", "undistro-system", "-c", "manager", "--previous"),
-				)
-				out, stderr, _ = cmd.Run(ctx)
-				fmt.Println(string(out))
-				fmt.Println("err:", string(stderr))
+				sout, serr, _ = undcli.Logs(p.Name, "-n", "undistro-system", "-c", "manager", "--previous")
+				fmt.Println(sout)
+				fmt.Println("err:", stderr)
 			}
 		}
 		cmd = exec.NewCommand(
 			exec.WithCommand("helm"),
 			exec.WithArgs("get", "values", "undistro", "-n", "undistro-system"),
 		)
-		out, _, err = cmd.Run(ctx)
+		stdout, _, err = cmd.Run(ctx)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		fmt.Println(string(out))
+		fmt.Println(string(stdout))
 		cmd = exec.NewCommand(
 			exec.WithCommand("helm"),
 			exec.WithArgs("ls", "-n", "undistro-system"),
 		)
-		out, _, err = cmd.Run(ctx)
+		stdout, _, err = cmd.Run(ctx)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		fmt.Println(string(out))
+		fmt.Println(string(stdout))
 		cmd = exec.NewCommand(
 			exec.WithCommand("helm"),
 			exec.WithArgs("status", "undistro", "--show-desc", "-n", "undistro-system"),
 		)
-		out, _, err = cmd.Run(ctx)
+		stdout, _, err = cmd.Run(ctx)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		fmt.Println(string(out))
+		fmt.Println(string(stdout))
 		os.Exit(1)
 	}
 
-	cmd = exec.NewCommand(
-		exec.WithCommand("undistro"),
-		exec.WithArgs("get", "pods", "-n", "undistro-system"),
-	)
-	out, _, err = cmd.Run(ctx)
+	sout, _, err = undcli.Get("pods", "-n", "undistro-system")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println(string(out))
+	fmt.Println(sout)
 	code := m.Run()
 	os.Exit(code)
 }

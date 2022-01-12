@@ -83,49 +83,29 @@ var _ = Describe("Validate UnDistro Installation", func() {
 						return container.Image
 					}
 				}
-				cmd := exec.NewCommand(
-					exec.WithCommand("undistro"),
-					exec.WithArgs("logs", p.Name, "-n", "undistro-system", "-c", "manager"),
-				)
-				out, _, err := cmd.Run(context.Background())
+				sout, _, err := undcli.Logs(p.Name, "-n", "undistro-system", "-c", "manager")
 				fmt.Println(err)
-				fmt.Println(string(out))
-				cmd = exec.NewCommand(
-					exec.WithCommand("undistro"),
-					exec.WithArgs("get", "pods", p.Name, "-n", "undistro-system", "-o", "yaml"),
-				)
-				out, _, err = cmd.Run(context.Background())
+				fmt.Println(sout)
+				sout, _, err = undcli.Get("pods", p.Name, "-n", "undistro-system", "-o", "yaml")
 				fmt.Println(err)
-				fmt.Println(string(out))
+				fmt.Println(sout)
 			}
+			sout, _, err := undcli.Get("providers", "undistro", "-n", "undistro-system", "-o", "yaml")
+			fmt.Println(err)
+			fmt.Println(sout)
+			sout, _, err = undcli.Get("hr", "undistro", "-n", "undistro-system", "-o", "yaml")
+			fmt.Println(err)
+			fmt.Println(sout)
+			sout, _, err = undcli.Get("pods", "-n", "undistro-system")
+			fmt.Println(err)
+			fmt.Println(sout)
 			cmd := exec.NewCommand(
-				exec.WithCommand("undistro"),
-				exec.WithArgs("get", "providers", "undistro", "-n", "undistro-system", "-o", "yaml"),
-			)
-			out, _, err := cmd.Run(context.Background())
-			fmt.Println(err)
-			fmt.Println(string(out))
-			cmd = exec.NewCommand(
-				exec.WithCommand("undistro"),
-				exec.WithArgs("get", "hr", "undistro", "-n", "undistro-system", "-o", "yaml"),
-			)
-			out, _, err = cmd.Run(context.Background())
-			fmt.Println(err)
-			fmt.Println(string(out))
-			cmd = exec.NewCommand(
-				exec.WithCommand("undistro"),
-				exec.WithArgs("get", "pods", "-n", "undistro-system"),
-			)
-			out, _, err = cmd.Run(context.Background())
-			fmt.Println(err)
-			fmt.Println(string(out))
-			cmd = exec.NewCommand(
 				exec.WithCommand("helm"),
 				exec.WithArgs("ls", "-n", "undistro-system"),
 			)
-			out, _, err = cmd.Run(context.Background())
+			stdout, _, err := cmd.Run(context.Background())
 			fmt.Println(err)
-			fmt.Println(string(out))
+			fmt.Println(string(stdout))
 			return ""
 		}, 10*time.Minute, 1*time.Minute).Should(Equal(image))
 	})
