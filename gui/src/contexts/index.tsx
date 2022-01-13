@@ -4,6 +4,7 @@ import { ThemeProvider } from 'next-themes'
 import { QueryCache, QueryClient, QueryClientProvider } from 'react-query'
 
 import { ModalProvider } from '@/contexts/ModalContext'
+import { ClusterProvider } from '@/contexts/ClusterContext'
 import api from '@/lib/axios'
 
 const queryClient = new QueryClient({
@@ -22,9 +23,11 @@ const queryClient = new QueryClient({
 const AppProviders: FunctionComponent = ({ children }) => (
   <QueryClientProvider client={queryClient}>
     <ModalProvider>
-      <ThemeProvider defaultTheme="dark-mode" themes={['dark-mode']}>
-        {children}
-      </ThemeProvider>
+      <ClusterProvider>
+        <ThemeProvider defaultTheme="dark-mode" themes={['dark-mode']}>
+          {children}
+        </ThemeProvider>
+      </ClusterProvider>
     </ModalProvider>
   </QueryClientProvider>
 )

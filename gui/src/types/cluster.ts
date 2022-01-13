@@ -9,6 +9,8 @@ export interface Cluster {
   machines: number
   age: string | number // based on timestamp
   status: string
+  workers: Worker[]
+  controlPlane: any
 }
 
 export interface Worker {

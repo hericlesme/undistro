@@ -12,24 +12,28 @@ const LeftMenuArea = () => {
       id: 'menuClusterButton',
       alt: 'Clusters',
       src: menuClustersIcon,
+      path: '/',
       actions: ['Pause', 'Update K8s', 'Settings', 'Delete']
     },
     {
       id: 'menuNodePoolsButton',
       alt: 'Node Pools',
       src: menuNodePoolsIcon,
+      path: '/nodepools',
       actions: ['Create', 'Settings', 'Delete']
     },
     {
       id: 'menuSecurityButton',
       alt: 'Security',
       src: menuSecurityIcon,
+      path: '/security',
       actions: ['Create Roles', 'Assign Roles', 'Manage Profiles']
     },
     {
       id: 'menuLogsButton',
       alt: 'Logs',
       src: menuLogsIcon,
+      path: '/logs',
       actions: []
     }
   ]
@@ -38,7 +42,7 @@ const LeftMenuArea = () => {
     <>
       <div className={styles.leftNav}>
         {leftMenuItems.map(item => (
-          <LeftMenuItemButton id={item.id} key={`menu-${item.id}`} title={item.alt} item={item} />
+          <LeftMenuItemButton id={item.id} path={item.path} key={`menu-${item.id}`} title={item.alt} item={item} />
         ))}
       </div>
     </>

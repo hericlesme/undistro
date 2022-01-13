@@ -66,7 +66,7 @@ const InfraProvider: VFC<FormActions> = ({ register, control }: FormActions) => 
           placeholder="ssh Key"
           id="infraProviderSshKey"
           name="infraProviderSshKey"
-          {...register('infraProviderSshKey', { required: true })}
+          {...register('infraProviderSshKey')}
         />
         <a className={styles.assistiveTextDefault}>Assistive text default color</a>
       </div>

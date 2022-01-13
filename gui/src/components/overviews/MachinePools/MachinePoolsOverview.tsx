@@ -6,27 +6,30 @@ import { useResizeDetector } from 'react-resize-detector'
 
 import { MenuActions } from '@/components/MenuActions/MenuActions'
 import { ContentNotFound } from '@/components/ContentNotFound'
-import { ClustersOverviewRow, ClustersOverviewEmptyRow, ClustersOverviewFooter } from '@/components/overviews/Clusters'
+import {
+  NodepoolsOverviewRow,
+  ClustersOverviewEmptyRow,
+  ClustersOverviewFooter
+} from '@/components/overviews/MachinePools'
 import { useClusters } from '@/contexts/ClusterContext'
 import { paginate } from '@/helpers/pagination'
 import { useFetch } from '@/hooks/query'
 
 import styles from '@/components/overviews/Clusters/ClustersOverview.module.css'
-import Unauthorized from '@/components/errors/Unauthorized'
 
-type ClusterOverviewProps = {
+type NodePoolsOverviewProps = {
   page: string
 }
 
-const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewProps) => {
+const NodePoolsOverview: VFC<NodePoolsOverviewProps> = ({ page }: NodePoolsOverviewProps) => {
   const router = useRouter()
 
-  const { clusters: selectedClusters, setClusters: setSelectedClusters } = useClusters()
+  const { clusters: selectedClusters } = useClusters()
 
   const rowHeight = 36
   const tableContainerRef = createRef<HTMLDivElement>()
   const tableRef = createRef<HTMLTableElement>() || undefined
-  const [clustersList, setClustersList] = useState<Cluster[]>([])
+  const [nodepoolsList, setNodepoolsList] = useState<Cluster[]>([])
   const [allChecked, setAllChecked] = useState<boolean>(false)
   const { height } = useResizeDetector<HTMLDivElement>({
     targetRef: tableContainerRef
@@ -39,19 +42,49 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
   const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 })
 
-  const columns = ['provider', 'flavor', 'k8s version', 'cluster group', 'machines', 'age', 'status']
+  const columns = ['type', 'replicas', 'k8s version', 'labels', 'taints', 'age', 'status']
 
-  const { data: clusters, isLoading, isError, error } = useFetch<Cluster[]>('/api/clusters')
+  const { data: clusters, isLoading } = useFetch<Cluster[]>('/api/clusters')
+
+  const nodepools =
+    clusters &&
+    clusters
+      .filter(c => selectedClusters.includes(c.name))
+      .flatMap(cluster => {
+        const controlPlane = {
+          ...cluster.controlPlane,
+          age: cluster.age,
+          labels: 0,
+          name: cluster.name,
+          status: cluster.status,
+          taints: 0,
+          type: 'Control Plane',
+          replicas: cluster.machines,
+          version: cluster.k8sVersion
+        }
+
+        const workers = cluster.workers.map((worker: any, i: number) => ({
+          ...worker,
+          age: cluster.age,
+          labels: Object.keys(worker.labels || {}).length,
+          name: `${cluster.name}-mp-${i}`,
+          status: cluster.status,
+          taints: (worker.taints || []).length,
+          type: worker.infraNode ? 'InfraNode' : 'Worker',
+          replicas: cluster.machines,
+          version: cluster.k8sVersion
+        }))
+
+        return [controlPlane, ...workers]
+      })
 
   const changeCheckbox = (checked: boolean) => {
     if (checked) {
       let cls: string[] = []
-      clustersList?.forEach(c => {
+      nodepoolsList?.forEach(c => {
         cls.push(c.name)
       })
-      setSelectedClusters(cls)
     } else {
-      setSelectedClusters([])
       setAllChecked(false)
     }
   }
@@ -69,9 +102,6 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
       } else {
         cls.push(clusterName)
       }
-      setSelectedClusters(cls)
-    } else {
-      setSelectedClusters([clusterName])
     }
 
     if (event.target.className.includes('actions') && selectedClusters.length > 0) {
@@ -117,7 +147,7 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
 
   const pagesCalc = useCallback(() => {
     if (isLoading) {
-      setClustersList([])
+      setNodepoolsList([])
       return
     }
 
@@ -136,10 +166,10 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
       let qtyPages = Math.ceil(clusters?.length! / pageQtyItems)
       setQtyPages(qtyPages)
     }
-    let pageLists = paginate(clusters || [], pageQtyItems)
+    let pageLists = paginate(nodepools, pageQtyItems)
     if (pageLists.length >= pageNumber) {
       let items = pageLists[pageNumber - 1]
-      setClustersList(items)
+      setNodepoolsList(items)
     }
   }, [height, pageNumber, qtyPages, clusters, isLoading])
 
@@ -155,26 +185,17 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
     }
   }, [height, initialContainerSize, isValidPage, qtyPages, router, pagesCalc])
 
-  // useEffect(() => {
-  //   setSelectedClusters([])
-  // }, [pageNumber, setSelectedClusters])
-
-  useEffect(() => {
-    let displayedClusters = clustersList.filter(e => e.name != '')
-    setAllChecked(selectedClusters?.length == displayedClusters?.length)
-  }, [clustersList, selectedClusters])
-
   const renderClusters = () => {
     let cls = []
-    for (let i = 0; i < clustersList.length + (pageSize - clustersList.length); i++) {
-      if (clustersList[i] === undefined) {
+    for (let i = 0; i < nodepoolsList.length + (pageSize - nodepoolsList.length); i++) {
+      if (nodepoolsList[i] === undefined) {
         cls.push(<ClustersOverviewEmptyRow key={i} />)
       } else {
         cls.push(
-          <ClustersOverviewRow
-            onClick={toggleClusterSelection(clustersList[i].name)}
+          <NodepoolsOverviewRow
+            onClick={toggleClusterSelection(nodepoolsList[i].name)}
             key={i}
-            cluster={clustersList[i]}
+            nodepool={nodepoolsList[i]}
             disabled={false}
           />
         )
@@ -207,7 +228,7 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
               </div>
             </th>
             <th className={styles.responsiveTh}>
-              <div className={styles.tableHeaderTitle}>clusters</div>
+              <div className={styles.tableHeaderTitle}>Name</div>
             </th>
             {columns.map((column, i) => (
               <th key={i}>
@@ -235,16 +256,12 @@ const ClustersOverview: VFC<ClusterOverviewProps> = ({ page }: ClusterOverviewPr
   return (
     <>
       <div className={styles.clustersOverviewContainer}>
-        {error ? (
-          <Unauthorized />
-        ) : (
-          <div id="tableContainer" className={styles.clustersOverviewTableContainer} ref={tableContainerRef}>
-            {renderPage()}
-          </div>
-        )}
+        <div id="tableContainer" className={styles.clustersOverviewTableContainer} ref={tableContainerRef}>
+          {renderPage()}
+        </div>
       </div>
     </>
   )
 }
 
-export { ClustersOverview }
+export { NodePoolsOverview as ClustersOverview }

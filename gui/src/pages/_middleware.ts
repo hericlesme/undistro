@@ -3,9 +3,9 @@ import { NextFetchEvent, NextResponse } from 'next/server'
 import type { NextApiRequest } from 'next'
 
 export async function middleware(req: NextApiRequest, ev: NextFetchEvent) {
-  let path = new URL(req.url).pathname
+  // let path = new URL(req.url).pathname
 
-  if (!isIdentityEnabled() && path == '/login') {
+  if (!isIdentityEnabled() && req.url.includes('/login')) {
     return NextResponse.redirect('/', 302)
   }
 

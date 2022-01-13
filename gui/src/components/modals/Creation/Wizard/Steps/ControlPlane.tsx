@@ -117,11 +117,13 @@ const ControlPlane: VFC<FormActions> = ({ register, setValue, control }: FormAct
   const [workerConfig, setWorkerConfig] = useState(workerDefaults)
 
   useEffect(() => {
-    let workersData = workers.map(w => ({
-      infraNode: w.workersInfraNodeSwitch ? true : false,
-      machineType: w.workersMachineType,
-      replicas: w.workersReplicas
-    }))
+    let workersData = workers.map(w => {
+      return {
+        infraNode: w.workersInfraNodeSwitch ? true : false,
+        machineType: w.workersMachineType,
+        replicas: w.workersReplicas
+      }
+    })
 
     setValue('workers', workersData)
   }, [workers])

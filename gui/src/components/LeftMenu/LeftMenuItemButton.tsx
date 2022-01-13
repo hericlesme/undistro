@@ -1,21 +1,35 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import classNames from 'classnames'
 
 import styles from '@/components/LeftMenu/LeftMenuItemButton.module.css'
+import { useRouter } from 'next/router'
 
 type LeftMenuItemProps = {
   id: string
   children?: React.ReactNode
   title: string
+  path: string
   item: any
 }
 
-const LeftMenuItemButton = ({ id, title, item }: LeftMenuItemProps) => {
+const LeftMenuItemButton = ({ id, title, item, path }: LeftMenuItemProps) => {
   const [isOpen, setIsOpen] = useState(false)
 
+  const router = useRouter()
+
+  useEffect(() => {
+    if (router.pathname === path) {
+      setIsOpen(true)
+    }
+  }, [])
+
   const toggleState = () => {
-    setIsOpen(!isOpen)
+    router.push(path, undefined, { shallow: true })
+  }
+
+  const handleClick = () => {
+    router.push(path, undefined, { shallow: true })
   }
 
   const leftMenuStyles = {
@@ -31,7 +45,7 @@ const LeftMenuItemButton = ({ id, title, item }: LeftMenuItemProps) => {
   }
   return (
     <div id={id} title={title} className={styles.leftMenuButtonContainer}>
-      <button onClick={toggleState} className={leftMenuStyles.button}>
+      <button onClick={handleClick} className={leftMenuStyles.button}>
         <div className={styles.leftMenuButton}>
           <div className={styles.leftMenuButtonIcon}>
             <Image src={item.src} alt={item.alt} />

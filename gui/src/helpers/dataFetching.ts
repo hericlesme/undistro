@@ -20,6 +20,7 @@ export function clusterDataHandler(clusterList): Cluster[] {
     if (cl.spec.controlPlane != undefined && cl.spec.controlPlane.replicas != undefined) {
       machines += cl.spec.controlPlane.replicas as number
     }
+
     return {
       name: cl.metadata.name as string,
       provider: cl.spec.infrastructureProvider.name as string,
@@ -28,7 +29,9 @@ export function clusterDataHandler(clusterList): Cluster[] {
       clusterGroup: cl.metadata.namespace as string,
       machines: machines,
       age: getAge(cl.metadata.creationTimestamp as string),
-      status: getStatusFromConditions(conditions)
+      status: getStatusFromConditions(conditions),
+      workers: workers || [],
+      controlPlane: cl.spec.controlPlane as any
     }
   })
 }

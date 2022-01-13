@@ -3,13 +3,7 @@ import { useForm } from 'react-hook-form'
 import { ClusterInfo, InfraProvider, AddOns, Step, ControlPlane } from '@/components/modals/Creation/Wizard/Steps'
 import { useMutate } from '@/hooks/query'
 import { ClusterCreationData } from '@/types/cluster'
-import { Progress } from '@/components/modals/Creation/Progress'
-import { removeEmpty } from '@/helpers/encoding'
-import classNames from 'classnames'
-
 import styles from '@/components/modals/Creation/ClusterCreation.module.css'
-// import { InfraNetVPC } from '../Advanced/Steps/InfraNetVPC'
-// import { KubernetesNetwork } from '../Advanced/Steps/KubernetesNetwork'
 
 type WizardProps = {
   dispatch: Dispatch<any>
@@ -77,14 +71,10 @@ const Wizard: VFC<WizardProps> = ({ step, dispatch }: WizardProps) => {
             id: data.infraProviderID,
             cidrBlock: data.infraProviderCIDR
           }
-        }
+        },
+        workers: data.workers
       }
     }
-
-    // if (data.workers && data.workers.length > 0) {
-    //   clusterData.spec.workers = data.workers
-    // }
-
     const dataPolicies = {
       apiVersion: 'app.undistro.io/v1alpha1',
       kind: 'DefaultPolicies',
@@ -107,9 +97,8 @@ const Wizard: VFC<WizardProps> = ({ step, dispatch }: WizardProps) => {
         clusterName: data.clusterName
       }
     }
-    // createPolicy.mutate(JSON.stringify(dataPolicies))
 
-    let res: any = await createCluster.mutateAsync(JSON.stringify(removeEmpty(clusterData)))
+    let res: any = await createCluster.mutateAsync(JSON.stringify(clusterData))
     let payload = {
       cluster: data.clusterName,
       namespace: data.clusterNamespace,

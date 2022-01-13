@@ -10,7 +10,6 @@ import { clusterDataHandler } from '@/helpers/dataFetching'
 import { isIdentityEnabled } from '@/helpers/identity'
 import { DEFAULT_USER_GROUP } from '@/helpers/constants'
 import { getResourcePath, getServerAddress } from '@/helpers/server'
-import { ErrorMessage } from '@/lib/axios'
 
 type UnDistroSession = Session & {
   user?: {
@@ -18,7 +17,7 @@ type UnDistroSession = Session & {
   }
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Cluster[] | ErrorMessage>) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Cluster[]>) {
   let clusters = []
 
   const opts = {
@@ -35,21 +34,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
   }
 
+  const { namespace, cluster } = req.query
   const server = getServerAddress(opts)
-  const url = getResourcePath({ server: server, kind: 'app', resource: 'clusters' })
+  const baseUrl = getResourcePath({ server: server, kind: 'app', resource: 'namespaces' })
+  const url = `${baseUrl}/${namespace}/clusters/${cluster}`
 
   request.get(url, opts, (error, response, body) => {
     if (error || response.statusCode !== 200) {
-      return res.status(response.statusCode).json({
-        type: 'error',
-        status: response.statusCode,
-        message: JSON.parse(body).error
-      })
+      res.status(response.statusCode).json([])
     }
     if (response) {
-      clusters = clusterDataHandler(JSON.parse(body))
-      res.json(clusters)
-      return res.status(200).end()
+      res.json(JSON.parse(body))
+      res.status(200).end()
     }
   })
 }

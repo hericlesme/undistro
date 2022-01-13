@@ -5,7 +5,7 @@
     "dev": "next dev",
     "dev:secure": "node server.ts",
     "build": "next build",
-    "start": "next start",
+    "start": "NODE_ENV=production node server.ts",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "pretty-quick --staged",
